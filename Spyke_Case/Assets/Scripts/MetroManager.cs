@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class MetroManager : MonoBehaviour
 {
+    [Header("Mid vagon renkleri (sıralı)")]
+    public List<HyperCasualColor> midWagonColors = new List<HyperCasualColor> { HyperCasualColor.Blue, HyperCasualColor.Red, HyperCasualColor.Green, HyperCasualColor.Yellow, HyperCasualColor.Orange, HyperCasualColor.Purple, HyperCasualColor.Pink, HyperCasualColor.Cyan, HyperCasualColor.Lime, HyperCasualColor.White };
     [Header("Prefablar")]
     public GameObject headPrefab;
     public GameObject midPrefab;
@@ -60,6 +62,16 @@ public class MetroManager : MonoBehaviour
                 continue;
             }
             midWagon.wagonToFollow = prevWagon;
+            // Renk ata
+            if (midWagonColors != null && midWagonColors.Count > 0)
+            {
+                int colorIndex = i % midWagonColors.Count;
+                var renderer = midWagon.GetComponentInChildren<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.material.color = midWagonColors[colorIndex].ToColor();
+                }
+            }
             wagons.Add(midWagon);
             prevWagon = midWagon;
         }

@@ -1,0 +1,48 @@
+# Metro Tren Sistemi Kurulum Rehberi (ruller.txt)
+
+Bu rehber, checkpoint tabanlı metro tren sistemini Unity sahnesine nasıl ekleyeceğini ve scriptleri hangi GameObject'lere atayacağını adım adım açıklar.
+
+---
+
+## 1. Checkpoint Sistemi Kurulumu
+
+1. **Boş bir GameObject oluştur** (ör: `MetroPath`).
+2. Bu GameObject'e `MetroCheckpointPath` scriptini ekle.
+3. Güzergah üzerinde her bir checkpoint için boş GameObject'ler oluştur (ör: `CP_0`, `CP_1`, ...). Bunları sahnede ray üzerinde sıralı şekilde yerleştir.
+4. Tüm checkpoint GameObject'lerini `MetroPath` GameObject'inin `checkpoints` listesine sırayla ekle.
+
+---
+
+## 2. Prefab Hazırlığı
+
+- **Head Vagon Prefab**: Lokomotif (en öndeki vagon)
+- **Mid Vagon Prefab**: Ara vagon (istediğin kadar çoğaltılabilir)
+- **End Vagon Prefab**: Kuyruk vagonu (en sonda)
+
+Her prefab'a `MetroWagon` scriptini ekle.
+
+---
+
+## 3. MetroManager Kurulumu
+
+1. Sahnede boş bir GameObject oluştur (ör: `MetroManager`).
+2. Bu GameObject'e aşağıdaki scripti ekle (MetroManager.cs).
+3. Inspector'da ilgili prefabları ve MetroCheckpointPath referansını atayarak ayarları yap.
+
+---
+
+## 4. Çalıştırma
+
+- Oyunu başlatınca, head vagon checkpoint'ler boyunca ilerler.
+- Mid vagonlar ve end vagon, head'i ve birbirini takip eder.
+- Vagon sayısını Inspector'dan ayarlayabilirsin.
+
+---
+
+## Notlar
+- Vagonlar arası mesafe için `followDelay` değerini prefab üzerinde ayarlayabilirsin.
+- Güzergahı değiştirmek için checkpoint GameObject'lerini sahnede taşıyabilir veya yenilerini ekleyebilirsin.
+
+---
+
+Herhangi bir hata veya ek özellik için bana tekrar yazabilirsin!

@@ -1,0 +1,23 @@
+# Metro Tren Sistemi - Todo Listesi ve Yapılanlar
+
+## [v1.0.0] - Başlangıç ve Temel Sistem
+
+### Yapılanlar
+- [x] Checkpoint tabanlı güzergah sistemi (MetroCheckpointPath.cs)
+- [x] Vagon hareket scripti (MetroWagon.cs)
+- [x] MetroManager ile otomatik vagon spawn ve başlatma (MetroManager.cs)
+- [x] Kurulum ve sahneye ekleme rehberi (ruller.txt)
+
+### Yapılacaklar
+- [ ] Vagonlar arası mesafe ve takip hassasiyetini Inspector'dan ayarlama
+- [ ] Vagonların ray üzerinde daha yumuşak dönüşler yapması (lerp/slerp ile)
+- [ ] Metroya yolcu bindirme/indirme sistemi
+- [ ] Güzergahı dinamik olarak değiştirme (oyun sırasında)
+- [ ] Metro hızını dinamik olarak değiştirme
+- [ ] Vagonlara animasyon/efekt ekleme
+- [ ] Oyun içi UI ile metro kontrolü
+
+## Notlar
+- Her yeni özellik veya değişiklikte bu dosyayı güncelle.
+- Kodda yapılan önemli değişiklikleri ve nedenlerini burada açıkla.
+- Başka bir AI veya geliştirici, bu dosyadan projenin ilerlemesini ve yapılacakları takip edebilir.

@@ -382,10 +382,10 @@ public class PassengerGroup : MonoBehaviour
     }
 
     // Follow a path given as a list of grid positions (each step will be executed sequentially)
-    System.Collections.IEnumerator FollowPath(List<Vector2Int> path)
+    System.Collections.IEnumerator FollowPath(List<Vector2Int> path, System.Nullable<Vector2Int> returnOrigin = null)
     {
         // Remember starting position so we can return if blocked
-        Vector2Int origin = gridPos;
+        Vector2Int origin = returnOrigin.HasValue ? returnOrigin.Value : gridPos;
         foreach (var step in path)
         {
             // Validate target cell
@@ -444,6 +444,9 @@ public class PassengerGroup : MonoBehaviour
     // Move along straight leg then follow the provided path to the reserved stop
     System.Collections.IEnumerator MoveAlongThenFollow(List<Vector2Int> straightLeg, List<Vector2Int> pathToStop, int stopIndex, Vector2Int stopPos)
     {
+        // Remember the overall origin (slot before any movement)
+        Vector2Int overallOrigin = gridPos;
+
         // First, move along straight leg (if any)
         if (straightLeg != null)
         {
@@ -452,7 +455,28 @@ public class PassengerGroup : MonoBehaviour
                 // If occupied or invalid, abort and return to origin
                 var c = grid.GetCell(step.x, step.y);
                 if (c == null) yield break;
-                if (grid.IsOccupied(step)) { StartCoroutine(BounceVisual()); yield break; }
+                // If the step is a blocked or empty tile, treat specially
+                if (c.cellType == GridCellType.Blocked || c.cellType == GridCellType.Empty)
+                {
+                    var curCell = grid.GetCell(gridPos.x, gridPos.y);
+                    if (curCell != null && curCell.cellType == GridCellType.WaitingArea)
+                    {
+                        Debug.LogWarning($"[MoveAlongThenFollow] blocked ahead at {step} while on WaitingArea — returning to origin {overallOrigin}");
+                        yield return StartCoroutine(MoveToCoroutine(overallOrigin));
+                        yield break;
+                    }
+                    StartCoroutine(BounceVisual()); yield break;
+                }
+                if (grid.IsOccupied(step)) {
+                    // If we are currently standing on a WaitingArea, return to the overall origin
+                    var curCell = grid.GetCell(gridPos.x, gridPos.y);
+                    if (curCell != null && curCell.cellType == GridCellType.WaitingArea)
+                    {
+                        Debug.LogWarning($"[MoveAlongThenFollow] occupied ahead at {step} while on WaitingArea — returning to origin {overallOrigin}");
+                        yield return StartCoroutine(MoveToCoroutine(overallOrigin));
+                        yield break;
+                    }
+                    StartCoroutine(BounceVisual()); yield break; }
                 yield return StartCoroutine(MoveToCoroutine(step));
             }
         }
@@ -460,7 +484,8 @@ public class PassengerGroup : MonoBehaviour
         // Then follow pathToStop (which is computed from the walkable start)
         if (pathToStop != null && pathToStop.Count > 0)
         {
-            yield return StartCoroutine(FollowPath(pathToStop));
+            // Pass overallOrigin so FollowPath can return to the original start if necessary
+            yield return StartCoroutine(FollowPath(pathToStop, overallOrigin));
         }
 
         // On arrival, if we are at stopPos, release reservation and log

@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
+using GridSystem; // PassengerGrid için eklendi
+using DG.Tweening; // DOTween için eklendi
 
 public class MetroManager : MonoBehaviour
 {
@@ -15,15 +18,38 @@ public class MetroManager : MonoBehaviour
     [Tooltip("Vagonlar arası mesafe (birim)")]
     public float wagonSpacing = 1.5f;
     public MetroCheckpointPath checkpointPath;
+    [Header("Bağlantılar")]
+    public PassengerGrid passengerGrid; // Yolcu grid'i referansı
 
     private List<MetroWagon> wagons = new List<MetroWagon>();
 
+    public static MetroManager Instance { get; private set; }
+
     // Tüm vagonların hareketini kontrol etmek için statik değişken
     public static bool IsMovementStopped { get; private set; }
+    private bool isAdjusting = false; // Tren pozisyon ayarlaması yaparken true olur.
+
+    void Awake()
+    {
+        // Singleton pattern
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        // Yolcu varış event'ini dinlemeye başla.
+        StopManager.OnPassengerArrivedAtStop += CheckForBoarding;
+        WagonManager.Instance.OnWagonRemoved += HandleWagonRemoval;
+    }
 
     public static void StopMovement()
     {
         IsMovementStopped = true;
+    }
+
+    void OnDestroy()
+    {
+        // Bellek sızıntılarını önlemek için event aboneliğini kaldır.
+        StopManager.OnPassengerArrivedAtStop -= CheckForBoarding;
+        WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
     }
 
     void Start()
@@ -36,6 +62,11 @@ public class MetroManager : MonoBehaviour
         if (headPrefab == null || midPrefab == null || endPrefab == null)
         {
             Debug.LogError("Prefab referansları atanmadı!");
+            return;
+        }
+        if (passengerGrid == null)
+        {
+            Debug.LogError("PassengerGrid referansı MetroManager'a atanmadı!");
             return;
         }
 
@@ -59,6 +90,7 @@ public class MetroManager : MonoBehaviour
         // Head vagonu en yakın checkpoint'ten başlat
         headWagon.isHead = true; // Bu vagonun lider olduğunu belirt
         headWagon.Init(checkpointPath, FindClosestCheckpointIndex(headObj.transform.position));
+        WagonManager.Instance.RegisterWagon(headWagon);
         wagons.Add(headWagon);
 
         for (int i = 0; i < midCount; i++) // Mid vagonlar
@@ -73,16 +105,20 @@ public class MetroManager : MonoBehaviour
             }
             // Her vagonu kendi en yakın checkpoint'inden başlat
             midWagon.Init(checkpointPath, FindClosestCheckpointIndex(midObj.transform.position));
+
             // Renk ata
             if (midWagonColors != null && midWagonColors.Count > 0)
             {
                 int colorIndex = i % midWagonColors.Count;
+                HyperCasualColor color = midWagonColors[colorIndex];
                 var renderer = midWagon.GetComponentInChildren<Renderer>();
-                if (renderer != null)
+                if (renderer != null) // Init metoduna rengi de gönder
                 {
-                    renderer.material.color = midWagonColors[colorIndex].ToColor();
+                    midWagon.Init(checkpointPath, FindClosestCheckpointIndex(midObj.transform.position), color);
+                    renderer.material.color = color.ToColor();
                 }
             }
+            WagonManager.Instance.RegisterWagon(midWagon);
             wagons.Add(midWagon);
         }
 
@@ -97,7 +133,103 @@ public class MetroManager : MonoBehaviour
         }
         // Tail vagonu kendi en yakın checkpoint'inden başlat
         tailWagon.Init(checkpointPath, FindClosestCheckpointIndex(tailObj.transform.position));
+        WagonManager.Instance.RegisterWagon(tailWagon);
         wagons.Add(tailWagon);
+    }
+
+    /// <summary>
+    /// Bir yolcu durağa vardığında tetiklenir. Bekleyen tüm yolcular için uygun vagonları arar.
+    /// </summary>
+    private void CheckForBoarding(PassengerGroup arrivedPassenger, int stopIndex)
+    {
+        Debug.Log($"Yolcu varışı algılandı ({arrivedPassenger.name}). Vagon eşleşmesi kontrol ediliyor...");
+
+        // 1. Gerekli bilgileri hazırla.
+        int totalCheckpoints = checkpointPath.checkpoints.Count;
+        int boardingZoneStart = totalCheckpoints - 21;
+
+        // 2. Duraklarda bekleyen tüm yolcuları al (bir kopyasını).
+        var waitingPassengers = StopManager.Instance.GetOccupiedStops();
+
+        // 3. Her bekleyen yolcu için uygun bir vagon ara.
+        foreach (var passengerEntry in waitingPassengers)
+        {
+            int currentStopIndex = passengerEntry.Key;
+            PassengerGroup passenger = passengerEntry.Value;
+
+            // WagonManager'dan bu yolcu için uygun bir vagon iste.
+            MetroWagon availableWagon = WagonManager.Instance.GetAvailableWagon(passenger.groupColor, boardingZoneStart);
+
+            if (availableWagon != null)
+            {
+                Debug.Log($"<color=cyan>EŞLEŞME BULUNDU:</color> {availableWagon.wagonColor} vagonu, {passenger.groupColor} renkli yolcuları alıyor.");
+
+                // Yolcuları bindir, durağı boşalt ve yolcuyu deaktif et.
+                availableWagon.BoardPassengers(passenger.groupSize);
+                StopManager.Instance.FreeStop(currentStopIndex);
+                passenger.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Bir vagon dolup sistemden kaldırıldığında tetiklenir.
+    /// Öndeki vagonları kaydırarak boşluğu kapatır.
+    /// </summary>
+    private void HandleWagonRemoval(Transform removedWagonTransform)
+    {
+        if (isAdjusting) return;
+
+        Debug.Log("Vagon kaldırma işlemi algılandı. Tren DOTween ile yeniden düzenleniyor...");
+        isAdjusting = true;
+
+        // 1. Aktif vagonları al ve trenin başından sonuna doğru (Z ekseninde artan şekilde) sırala.
+        // Bu, Head vagonun listenin başında olmasını sağlar.
+        wagons = WagonManager.Instance.GetActiveWagons();
+        wagons = wagons.OrderBy(w => w.transform.position.z).ToList();
+
+        // 2. Kaldırılan vagonun pozisyonundan daha önde (daha küçük Z) olan vagonları bul.
+        var wagonsToMove = wagons.Where(w => w.transform.position.z < removedWagonTransform.position.z).ToList();
+
+        if (wagonsToMove.Count == 0) {
+            Debug.Log("Kaydırılacak ön vagon bulunamadı.");
+            isAdjusting = false;
+            return;
+        }
+
+        // 3. DOTween sekansı oluştur.
+        Sequence sequence = DOTween.Sequence();
+        float moveDuration = 0.7f; // Animasyon süresi
+
+        // 4. Her vagonun, bir sonraki vagonun yerine geçmesini sağla.
+        // Listenin sonundan başlayarak (kaldırılan vagona en yakın olan) başa doğru ilerle.
+        for (int i = wagonsToMove.Count - 1; i >= 0; i--)
+        {
+            MetroWagon currentWagon = wagonsToMove[i];
+            Transform targetTransform;
+
+            // Eğer bu vagon, kaldırılan vagonun hemen önündekiyse, hedefi kaldırılan vagondur.
+            if (i == wagonsToMove.Count - 1)
+            {
+                targetTransform = removedWagonTransform;
+            }
+            else // Değilse, hedefi listedeki bir sonraki (yani trenin arkasındaki) vagondur.
+            {
+                targetTransform = wagonsToMove[i + 1].transform;
+            }
+
+            // Animasyonları sekansa ekle. Join() ile hepsi aynı anda başlar.
+            sequence.Join(currentWagon.transform.DOMove(targetTransform.position, moveDuration).SetEase(Ease.InOutCubic));
+            sequence.Join(currentWagon.transform.DORotate(targetTransform.rotation.eulerAngles, moveDuration).SetEase(Ease.InOutCubic));
+        }
+
+        // 4. Sekans tamamlandığında yapılacaklar.
+        sequence.OnComplete(() => {
+            Debug.Log("Trenin düzenlenmesi tamamlandı. Normal hareket devam ediyor.");
+            isAdjusting = false; // Ayarlama modunu bitir.
+            // Animasyon sonrası vagonların checkpoint hedeflerini de güncelleyebiliriz.
+            // Şimdilik bu adımı atlıyoruz, çünkü pozisyonları zaten doğru.
+        });
     }
 
     // Verilen pozisyona en yakın checkpoint'in index'ini bulur.
@@ -119,5 +251,10 @@ public class MetroManager : MonoBehaviour
         // En yakın checkpoint'ten bir sonraki hedef olarak başla, eğer son checkpoint değilse.
         // Bu, vagonun geriye gitmesini engeller.
         return Mathf.Min(closestIndex + 1, checkpointPath.checkpoints.Count - 1);
+    }
+
+    public bool IsAdjusting()
+    {
+        return isAdjusting;
     }
 }

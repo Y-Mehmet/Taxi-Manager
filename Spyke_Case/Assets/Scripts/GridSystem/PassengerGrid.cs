@@ -22,8 +22,6 @@ namespace GridSystem
         private bool isInitialized;
     // Occupancy map for O(1) lookups
     private Dictionary<Vector2Int, PassengerGroup> occupancy = new Dictionary<Vector2Int, PassengerGroup>();
-    // Stop reservations: map stopIndex -> passenger who reserved it
-    private Dictionary<int, PassengerGroup> stopReservations = new Dictionary<int, PassengerGroup>();
 
     // Backwards-compatible convenience properties for legacy code
     public int gridWidth { get { return gridData != null ? gridData.width : 0; } set { if (gridData != null) gridData.width = value; } }
@@ -45,7 +43,6 @@ namespace GridSystem
             isInitialized = true;
             // Clear occupancy/reservations when grid initializes
             occupancy.Clear();
-            stopReservations.Clear();
         }
 
         // Allow editor scripts to trigger validation from the inspector
@@ -108,14 +105,7 @@ namespace GridSystem
                 {
                     // Ensure stop is free (no occupant) OR reserved by the requester
                     bool occupied = occupancy.ContainsKey(cur);
-                    int sIndex = cell.stopIndex;
-                    if (!occupied && sIndex >= 0)
-                    {
-                        if (stopReservations.TryGetValue(sIndex, out var owner))
-                        {
-                            if (owner != requester) occupied = true;
-                        }
-                    }
+                    // TODO: StopManager'dan kontrol edilebilir. Şimdilik sadece occupancy'e bakıyor.
                     if (!occupied)
                     {
                         // Reconstruct path
@@ -211,15 +201,7 @@ namespace GridSystem
                             // If this neighbor is the target and is a Stop, ensure reservation rules allow reaching it
                             if (nx == target && nc.cellType == GridCellType.Stop)
                             {
-                                bool occupied = occupancy.ContainsKey(nx);
-                                int sIndex = nc.stopIndex;
-                                if (!occupied && sIndex >= 0)
-                                {
-                                    if (stopReservations.TryGetValue(sIndex, out var owner))
-                                    {
-                                        if (owner != requester) occupied = true;
-                                    }
-                                }
+                                bool occupied = occupancy.ContainsKey(nx); // Sadece fiziksel doluluğa bak
                                 if (occupied) continue; // cannot step into the target
                             }
 
@@ -236,18 +218,6 @@ namespace GridSystem
             // Return the reserved stop (pos,index) for a given passenger, or null if none
             public (Vector2Int pos, int index)? GetReservedStopFor(PassengerGroup g)
             {
-                if (gridData == null || g == null) return null;
-                foreach (var kv in stopReservations)
-                {
-                    if (kv.Value == g)
-                    {
-                        int idx = kv.Key;
-                        if (idx >= 0 && idx < gridData.stopSlots.Count)
-                        {
-                            return (gridData.stopSlots[idx], idx);
-                        }
-                    }
-                }
                 return null;
             }
 
@@ -271,53 +241,22 @@ namespace GridSystem
             }
         }
 
-        // Reserve the first free stop for the given passenger and return the stop's grid pos and index, or null if none
-        public (Vector2Int pos, int index)? ReserveFirstFreeStop(PassengerGroup g)
-        {
-            if (gridData == null || g == null) return null;
-            Debug.LogWarning($"[Reserve] Passenger '{g.name}' attempting to reserve a stop. OccupiedCount={occupancy.Count} Reservations={stopReservations.Count}");
-            for (int i = 0; i < gridData.stopSlots.Count; i++)
-            {
-                var stopPos = gridData.stopSlots[i];
-                var cell = GetCell(stopPos.x, stopPos.y);
-                if (cell == null) continue;
-                // skip if occupancy or reservation exists
-                if (occupancy.ContainsKey(stopPos))
-                {
-                    Debug.LogWarning($"[Reserve] Skipping stop {i} at {stopPos} because occupied by '{occupancy[stopPos]?.name ?? "(unknown)"}'");
-                    continue;
-                }
-                if (stopReservations.ContainsKey(i))
-                {
-                    Debug.LogWarning($"[Reserve] Skipping stop {i} at {stopPos} because already reserved by '{stopReservations[i]?.name ?? "(unknown)"}'");
-                    continue;
-                }
 
-                // Reserve
-                stopReservations[i] = g;
-                cell.stopIndex = i;
-                Debug.LogWarning($"[Reserve] Passenger '{g.name}' assigned to stop index {i} at {stopPos}");
-                return (stopPos, i);
+
+        /// <summary>
+        /// Belirtilen durak indeksindeki yolcu grubunu döndürür.
+        /// Sadece durağa varmış ve rezerve etmiş yolcuları dikkate alır.
+        /// </summary>
+        public PassengerGroup GetPassengerAtStop(int stopIndex)
+        {
+            // Bu mantık StopManager'a taşındı.
+            if (StopManager.Instance != null)
+            {
+                return StopManager.Instance.GetPassengerAtStop(stopIndex);
             }
-            Debug.LogWarning($"[Reserve] Passenger '{g.name}' found no free stops. OccupiedCount={occupancy.Count} Reservations={stopReservations.Count}");
             return null;
         }
 
-        public void ReleaseStopReservation(int stopIndex, PassengerGroup g)
-        {
-            if (stopReservations.TryGetValue(stopIndex, out var existing) && existing == g)
-            {
-                stopReservations.Remove(stopIndex);
-                // clear stopIndex on cell
-                if (stopIndex >= 0 && stopIndex < gridData.stopSlots.Count)
-                {
-                    var pos = gridData.stopSlots[stopIndex];
-                    var cell = GetCell(pos.x, pos.y);
-                    if (cell != null && cell.stopIndex == stopIndex)
-                        cell.stopIndex = -1;
-                }
-            }
-        }
 
         public Vector3 GetStopWorldPosition(int stopIndex)
         {
@@ -347,6 +286,30 @@ namespace GridSystem
                 Vector3 start = transform.position + new Vector3(x * gridData.cellSize, 0, 0) + gridData.worldOffset;
                 Vector3 end = transform.position + new Vector3(x * gridData.cellSize, 0, gridData.height * gridData.cellSize) + gridData.worldOffset;
                 Gizmos.DrawLine(start, end);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (gridData == null || gridData.stopSlots == null) return;
+
+            // Sadece oyun çalışırken durak durumlarını çiz
+            if (!Application.isPlaying) return;
+
+            for (int i = 0; i < gridData.stopSlots.Count; i++)
+            {
+                Vector3 worldPos = GetWorldPosition(gridData.stopSlots[i]);
+                
+                // Durağın durumunu StopManager'dan al
+                if (StopManager.Instance != null && (StopManager.Instance.IsStopOccupied(i) || StopManager.Instance.IsStopReserved(i)))
+                {
+                    Gizmos.color = new Color(1, 0, 0, 0.5f); // Kırmızı (Dolu)
+                }
+                else
+                {
+                    Gizmos.color = new Color(0, 1, 0, 0.5f); // Yeşil (Boş)
+                }
+                Gizmos.DrawCube(worldPos + Vector3.up * 0.5f, new Vector3(gridData.cellSize, 1, gridData.cellSize));
             }
         }
 #endif

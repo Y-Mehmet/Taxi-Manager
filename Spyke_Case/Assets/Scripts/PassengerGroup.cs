@@ -153,7 +153,7 @@ public class PassengerGroup : MonoBehaviour
                     }
 
                     // 3) Reserve a stop (if any) and compute path
-                        var reservation = grid.ReserveFirstFreeStop(this);
+                        var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
                         if (reservation != null)
                         {
                             var (stopPos, stopIndex) = reservation.Value;
@@ -305,6 +305,15 @@ public class PassengerGroup : MonoBehaviour
     void OnDestroy()
     {
         if (allGroups.Contains(this)) allGroups.Remove(this);
+    }
+
+    void OnDisable()
+    {
+        // Bu yolcu deaktif edildiğinde, grid üzerindeki doluluk kaydını temizle.
+        if (grid != null)
+        {
+            grid.UnregisterOccupant(gridPos, this);
+        }
     }
 
     void SpawnPassengers()
@@ -513,7 +522,7 @@ public class PassengerGroup : MonoBehaviour
         // After arriving, attempt BFS to nearest free stop
         if (grid == null) yield break;
         // Reserve a stop now to avoid race conditions: assign first free stop to this passenger
-        var reservation = grid.ReserveFirstFreeStop(this);
+        var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
         if (reservation != null)
         {
             // Log assignment and then path towards that specific stop
@@ -529,8 +538,8 @@ public class PassengerGroup : MonoBehaviour
             // Note: MoveToCoroutine updates gridPos when arriving, so check if gridPos == stopPos
             if (gridPos == stopPos)
             {
-                Debug.Log($"Passenger '{name}' reached stop index {stopIndex} at {stopPos}");
-                grid.ReleaseStopReservation(stopIndex, this);
+                // Durağa vardığımızı StopManager'a bildir.
+                StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
             }
             yield break;
         }
@@ -552,7 +561,7 @@ public class PassengerGroup : MonoBehaviour
         // After landing, attempt BFS to nearest free stop
         if (grid == null) yield break;
         // Prefer reserved stop if we have one
-        var reserved = grid.GetReservedStopFor(this);
+        var reserved = StopManager.Instance.GetReservedStopFor(this);
         List<Vector2Int> path = null;
         if (reserved != null)
         {
@@ -602,7 +611,7 @@ public class PassengerGroup : MonoBehaviour
                     {
                         yield return StartCoroutine(JumpToCoroutine(landing));
                         // After jump, prefer our reserved stop when recomputing path
-                        var reserved = grid.GetReservedStopFor(this);
+                        var reserved = StopManager.Instance.GetReservedStopFor(this);
                         List<Vector2Int> newPath = null;
                         if (reserved != null)
                         {
@@ -676,8 +685,8 @@ public class PassengerGroup : MonoBehaviour
         // On arrival, if we are at stopPos, release reservation and log
         if (gridPos == stopPos)
         {
-            Debug.LogWarning($"Passenger '{name}' reached reserved stop index {stopIndex} at {stopPos}");
-            grid.ReleaseStopReservation(stopIndex, this);
+            // Durağa vardığımızı StopManager'a bildir.
+            StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
         }
     }
 

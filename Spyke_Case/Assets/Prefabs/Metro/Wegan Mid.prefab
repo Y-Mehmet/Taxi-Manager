@@ -85,7 +85,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 721fa0ace07c39642bb34ace26417950, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 1
-  wagonToFollow: {fileID: -3604586852891873368, guid: 6cd6f926f78b669448dffa15a5eca0e3, type: 3}
-  pathHistory: []
-  followDelay: 35
+  speed: 2
+  rotationSpeed: 2
+  isHead: 0
+  maxPassengerCount: 4

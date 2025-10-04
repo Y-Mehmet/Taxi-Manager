@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4859746539562214460
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7753311106716357004}
+  - component: {fileID: 2674849222815711849}
+  m_Layer: 0
+  m_Name: MetroManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7753311106716357004
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4859746539562214460}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2674849222815711849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4859746539562214460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89628bc75bfb3d84d96e15b3c4770126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  midWagonColors: 01000000020000000300000004000000050000000600000007000000080000000900000000000000
+  headPrefab: {fileID: 5559936830436890777, guid: 6cd6f926f78b669448dffa15a5eca0e3, type: 3}
+  midPrefab: {fileID: 5834072338753260973, guid: f92be2608d379c043af40a79beea8e9d, type: 3}
+  endPrefab: {fileID: 5868087145057524005, guid: 6fee7d027e2fcb44aab635c26ce6aa23, type: 3}
+  midCount: 15
+  wagonSpacing: 1
+  checkpointPath: {fileID: 0}
+  passengerGrid: {fileID: 0}

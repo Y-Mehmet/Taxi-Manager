@@ -23,13 +23,28 @@ public class PassengerGroup : MonoBehaviour
     private List<GameObject> passengers = new List<GameObject>();
     // --- Convoy / train follow support ---
     [Header("Convoy (train) settings")]
-    [Tooltip("If set, this PassengerGroup will follow the movements of the given leader group (rail-like behavior)")]
+    //[Tooltip("If set, this PassengerGroup will follow the movements of the given leader group (rail-like behavior)")]
     public PassengerGroup followTarget = null;
     [Tooltip("Number of steps of delay behind the leader (1 = directly into leader's previous cell)")]
     public int followStepDelay = 1;
 
     // Static registry of all groups (used to find followers cheaply)
     private static List<PassengerGroup> allGroups = new List<PassengerGroup>();
+
+    // --- Rail-mode support ---
+    [Header("Rail mode")]
+    [Tooltip("When true, followers will follow the leader's recorded route positions (rail-like). If false, legacy followQueue is used.")]
+    public bool railMode = true;
+
+    // leader -> recorded route positions (appended each time leader moves)
+    private static Dictionary<PassengerGroup, List<Vector2Int>> leaderRoutes = new Dictionary<PassengerGroup, List<Vector2Int>>();
+
+    // Per-follower index of last processed route entry (prevents repeated moves)
+    private int lastRailIndex = -1;
+    // Global rail route and head flag: when set, groups using rail will follow this global route
+    [Tooltip("If true, this group will act as the global rail head and its moves will define the route all groups follow.")]
+    public bool isRailHead = false;
+    private static List<Vector2Int> globalRailRoute = new List<Vector2Int>();
 
     // Queue of positions to follow (filled by leader notifications)
     private Queue<Vector2Int> followQueue = new Queue<Vector2Int>();
@@ -47,7 +62,7 @@ public class PassengerGroup : MonoBehaviour
         // Sadece bir dokunuş varsa ve bu objeye dokunulduysa
         if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+           Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
@@ -329,6 +344,25 @@ public class PassengerGroup : MonoBehaviour
     // Start processing follow queue if items exist
     void UpdateFollowQueue()
     {
+        // Rail-mode fast path: followers follow leaderRoutes by index
+        if (railMode && followTarget != null)
+        {
+            if (!leaderRoutes.ContainsKey(followTarget)) return;
+            var route = leaderRoutes[followTarget];
+            int targetIdx = route.Count - followStepDelay - 1;
+            if (targetIdx > lastRailIndex && targetIdx >= 0)
+            {
+                // Move into the leader's recorded cell at targetIdx
+                Vector2Int targetPos = route[targetIdx];
+                if (!isMoving)
+                {
+                    StartCoroutine(MoveToCoroutine(targetPos));
+                    lastRailIndex = targetIdx;
+                }
+            }
+            return;
+        }
+
         if (processingFollowQueue) return;
         if (followQueue.Count == 0) return;
         // Start coroutine to process
@@ -429,7 +463,10 @@ public class PassengerGroup : MonoBehaviour
         // Use existing axis-aligned MoveToWorld but wait for it to finish
         yield return StartCoroutine(MoveToWorld(worldTarget, newGridPos));
         // After finishing move, notify any followers (leader broadcasts its previous position)
-        NotifyFollowersOfMove(gridPos);
+   // NotifyFollowersOfMove(gridPos);
+   // // Record leader route for rail-mode
+   // if (!leaderRoutes.ContainsKey(this)) leaderRoutes[this] = new List<Vector2Int>();
+   // leaderRoutes[this].Add(gridPos);
         // If the cell we moved into is a Stop and has an index, broadcast checkpoint to followers
         var arrivedCell = grid.GetCell(gridPos.x, gridPos.y);
         if (arrivedCell != null && arrivedCell.cellType == GridCellType.Stop && arrivedCell.stopIndex >= 0)
@@ -441,20 +478,21 @@ public class PassengerGroup : MonoBehaviour
 
     // Notify followers: leader informs followers of its previous position so they can enqueue moves
     void NotifyFollowersOfMove(Vector2Int leaderPos)
-    {
-        // Anyone that has followTarget == this should receive the leaderPos into their queue
-        foreach (var g in allGroups)
-        {
-            if (g == null) continue;
-            if (g.followTarget == this)
-            {
-                // Enqueue leader's previous pos for the follower; follower will process with delay
-                g.followQueue.Enqueue(leaderPos);
-            }
-        }
-    }
+   {
+   //     // Anyone that has followTarget == this should receive the leaderPos into their queue
+   //     foreach (var g in allGroups)
+   //     {
+   //         if (g == null) continue;
+   //         if (g.followTarget == this)
+   //         {
+   //             // Enqueue leader's previous pos for the follower; follower will process with delay
+   //             g.followQueue.Enqueue(leaderPos);
+   //         }
+   //     }
+   }
 
-    void BroadcastCheckpointToFollowers(int stopIndex)
+
+   void BroadcastCheckpointToFollowers(int stopIndex)
     {
         foreach (var g in allGroups)
         {
@@ -730,4 +768,5 @@ public class PassengerGroup : MonoBehaviour
         // Now we arrived: update logical grid position
         gridPos = finalGridPos;
     }
+
 }

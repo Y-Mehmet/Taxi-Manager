@@ -18,6 +18,14 @@ public class MetroManager : MonoBehaviour
 
     private List<MetroWagon> wagons = new List<MetroWagon>();
 
+    // Tüm vagonların hareketini kontrol etmek için statik değişken
+    public static bool IsMovementStopped { get; private set; }
+
+    public static void StopMovement()
+    {
+        IsMovementStopped = true;
+    }
+
     void Start()
     {
         if (checkpointPath == null || checkpointPath.checkpoints == null || checkpointPath.checkpoints.Count == 0)
@@ -30,6 +38,9 @@ public class MetroManager : MonoBehaviour
             Debug.LogError("Prefab referansları atanmadı!");
             return;
         }
+
+        // Oyuna başlarken hareketi başlat
+        IsMovementStopped = false;
 
         // HEAD vagonu en önde spawn et
         // Head vagonu en küçük z'de, tail en büyük z'de olacak şekilde spawn et
@@ -45,13 +56,12 @@ public class MetroManager : MonoBehaviour
             Debug.LogError("Head prefabında MetroWagon scripti yok!");
             return;
         }
-        headWagon.Init(checkpointPath, 1);
-        headWagon.wagonToFollow = null;
+        // Head vagonu en yakın checkpoint'ten başlat
+        headWagon.isHead = true; // Bu vagonun lider olduğunu belirt
+        headWagon.Init(checkpointPath, FindClosestCheckpointIndex(headObj.transform.position));
         wagons.Add(headWagon);
 
-        MetroWagon prevWagon = headWagon;
-        // Mid vagonlar
-        for (int i = 0; i < midCount; i++)
+        for (int i = 0; i < midCount; i++) // Mid vagonlar
         {
             Vector3 spawnPos = basePos - forward * wagonSpacing * (i + 1);
             GameObject midObj = Instantiate(midPrefab, spawnPos, Quaternion.LookRotation(forward));
@@ -61,7 +71,8 @@ public class MetroManager : MonoBehaviour
                 Debug.LogError($"Mid prefabında MetroWagon scripti yok! Index: {i}");
                 continue;
             }
-            midWagon.wagonToFollow = prevWagon;
+            // Her vagonu kendi en yakın checkpoint'inden başlat
+            midWagon.Init(checkpointPath, FindClosestCheckpointIndex(midObj.transform.position));
             // Renk ata
             if (midWagonColors != null && midWagonColors.Count > 0)
             {
@@ -73,7 +84,6 @@ public class MetroManager : MonoBehaviour
                 }
             }
             wagons.Add(midWagon);
-            prevWagon = midWagon;
         }
 
         // Tail vagon
@@ -85,7 +95,29 @@ public class MetroManager : MonoBehaviour
             Debug.LogError("End prefabında MetroWagon scripti yok!");
             return;
         }
-        tailWagon.wagonToFollow = prevWagon;
+        // Tail vagonu kendi en yakın checkpoint'inden başlat
+        tailWagon.Init(checkpointPath, FindClosestCheckpointIndex(tailObj.transform.position));
         wagons.Add(tailWagon);
+    }
+
+    // Verilen pozisyona en yakın checkpoint'in index'ini bulur.
+    private int FindClosestCheckpointIndex(Vector3 position)
+    {
+        int closestIndex = 0;
+        float minDistance = float.MaxValue;
+
+        for (int i = 0; i < checkpointPath.checkpoints.Count; i++)
+        {
+            float dist = Vector3.Distance(position, checkpointPath.checkpoints[i].position);
+            if (dist < minDistance)
+            {
+                minDistance = dist;
+                closestIndex = i;
+            }
+        }
+
+        // En yakın checkpoint'ten bir sonraki hedef olarak başla, eğer son checkpoint değilse.
+        // Bu, vagonun geriye gitmesini engeller.
+        return Mathf.Min(closestIndex + 1, checkpointPath.checkpoints.Count - 1);
     }
 }

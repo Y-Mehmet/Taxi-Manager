@@ -1,79 +1,57 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MetroWagon : MonoBehaviour
 {
     public float speed = 5f;
-    public MetroWagon wagonToFollow; // Önündeki vagon (head için null)
-    public List<Vector3> pathHistory = new List<Vector3>(); // Sadece head için kullanılır
-    [Tooltip("Takip edilen pathHistory aralığı (mesafe ayarı)")]
-    public int followDelay = 10; // Kaç adım geriden takip edecek (mid/end için)
+    public float rotationSpeed = 2.0f; // Dönüş yumuşaklığı için hız
+    public bool isHead = false; // Bu vagonun lider olup olmadığını belirtir
 
     private int currentCheckpointIndex = 0;
     private MetroCheckpointPath path;
-
-    public void Init(MetroCheckpointPath path, int startCheckpoint)
+    public void Init(MetroCheckpointPath path, int startCheckpointIndex)
     {
         this.path = path;
-        currentCheckpointIndex = startCheckpoint;
-        // Başlangıçta pathHistory'yi doldur (beklemesinler)
-        pathHistory.Clear();
-        for (int i = 0; i <= followDelay; i++)
-        {
-            pathHistory.Add(transform.position);
-        }
+        currentCheckpointIndex = startCheckpointIndex;
     }
 
     void Update()
     {
-        bool moved = false;
-        if (wagonToFollow == null)
+        // Eğer genel hareket durdurulduysa, hiçbir şey yapma.
+        if (MetroManager.IsMovementStopped)
         {
-            // Head vagon: checkpoint'ler boyunca ilerle
-            if (path != null && path.checkpoints.Count > 0 && currentCheckpointIndex < path.checkpoints.Count)
+            return;
+        }
+
+        // Her vagon doğrudan checkpoint'ler boyunca ilerler
+        if (path != null && path.checkpoints.Count > 0 && currentCheckpointIndex < path.checkpoints.Count)
+        {
+            Vector3 target = path.checkpoints[currentCheckpointIndex].position;
+            MoveTowards(target);
+
+            // Hedefe yeterince yaklaştıysak bir sonraki checkpoint'e geç
+            if (Vector3.Distance(transform.position, target) < 0.1f)
             {
-                Vector3 target = path.checkpoints[currentCheckpointIndex].position;
-                float dist = Vector3.Distance(transform.position, target);
-                if (dist > 0.01f)
-                {
-                    MoveTowards(target);
-                    moved = true;
-                }
-                if (dist < 0.1f)
-                {
-                    currentCheckpointIndex++;
-                }
+                currentCheckpointIndex++;
             }
         }
-        else
+        else if (isHead)
         {
-            // Mid/end vagon: önündeki vagonun pathHistory'sini takip et
-            if (wagonToFollow.pathHistory.Count > followDelay)
-            {
-                Vector3 followPos = wagonToFollow.pathHistory[followDelay];
-                float dist = Vector3.Distance(transform.position, followPos);
-                if (dist > 0.01f)
-                {
-                    MoveTowards(followPos);
-                    moved = true;
-                }
-            }
-        }
-        // Sadece hareket ettiyse pathHistory'ye ekle
-        if (moved)
-        {
-            pathHistory.Insert(0, transform.position);
-            if (pathHistory.Count > 1000) pathHistory.RemoveAt(pathHistory.Count - 1);
+            // Eğer bu lider vagonsa ve yolu tamamladıysa, tüm vagonları durdur.
+            MetroManager.StopMovement();
         }
     }
 
     void MoveTowards(Vector3 target)
     {
-        Vector3 dir = (target - transform.position).normalized;
-        transform.position += dir * speed * Time.deltaTime;
-        if (dir != Vector3.zero)
+        // Pozisyonu hedefe doğru sabit hızla ilerlet
+        transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
+
+        // Rotasyonu hedefe doğru yumuşak bir şekilde döndür
+        Vector3 direction = (target - transform.position).normalized;
+        if (direction != Vector3.zero)
         {
-            transform.forward = dir;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
     }
 }

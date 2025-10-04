@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 721fa0ace07c39642bb34ace26417950, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 5
+  speed: 1
   wagonToFollow: {fileID: 0}
   pathHistory: []
   followDelay: 0

@@ -21,6 +21,22 @@ public class PassengerGroup : MonoBehaviour
     [Header("Yolcu Prefabı")]
     public GameObject passengerPrefab;
     private List<GameObject> passengers = new List<GameObject>();
+    // --- Convoy / train follow support ---
+    [Header("Convoy (train) settings")]
+    [Tooltip("If set, this PassengerGroup will follow the movements of the given leader group (rail-like behavior)")]
+    public PassengerGroup followTarget = null;
+    [Tooltip("Number of steps of delay behind the leader (1 = directly into leader's previous cell)")]
+    public int followStepDelay = 1;
+
+    // Static registry of all groups (used to find followers cheaply)
+    private static List<PassengerGroup> allGroups = new List<PassengerGroup>();
+
+    // Queue of positions to follow (filled by leader notifications)
+    private Queue<Vector2Int> followQueue = new Queue<Vector2Int>();
+    private bool processingFollowQueue = false;
+    // Queue of checkpoint indices (stop indices) to follow
+    private Queue<int> checkpointQueue = new Queue<int>();
+    private bool processingCheckpointQueue = false;
 
     // --- METODLAR ---
 
@@ -56,6 +72,10 @@ public class PassengerGroup : MonoBehaviour
             }
         }
 #endif
+        // Process follow queue if any
+        UpdateFollowQueue();
+        // Process checkpoint queue if any
+        UpdateCheckpointQueue();
     }
 
     // Hareket denemesi ve loglama
@@ -262,6 +282,14 @@ public class PassengerGroup : MonoBehaviour
                 grid.RegisterOccupant(gridPos, this);
             }
         }
+
+        // Register in global list for convoy support
+        if (!allGroups.Contains(this)) allGroups.Add(this);
+    }
+
+    void OnDestroy()
+    {
+        if (allGroups.Contains(this)) allGroups.Remove(this);
     }
 
     void SpawnPassengers()
@@ -298,6 +326,90 @@ public class PassengerGroup : MonoBehaviour
             StartCoroutine(MoveToCoroutine(newGridPos));
     }
 
+    // Start processing follow queue if items exist
+    void UpdateFollowQueue()
+    {
+        if (processingFollowQueue) return;
+        if (followQueue.Count == 0) return;
+        // Start coroutine to process
+        StartCoroutine(ProcessFollowQueue());
+    }
+
+    // Start processing checkpoint queue too
+    void UpdateCheckpointQueue()
+    {
+        if (processingCheckpointQueue) return;
+        if (checkpointQueue.Count == 0) return;
+        StartCoroutine(ProcessCheckpointQueue());
+    }
+
+    System.Collections.IEnumerator ProcessFollowQueue()
+    {
+        processingFollowQueue = true;
+        // Respect followStepDelay: wait until queue has at least followStepDelay items
+        while (followQueue.Count < Mathf.Max(1, followStepDelay))
+        {
+            yield return null;
+        }
+
+        while (followQueue.Count > 0)
+        {
+            // Only move if not currently moving
+            if (isMoving)
+            {
+                yield return null;
+                continue;
+            }
+
+            // Dequeue the next target and move there directly (no pathfinding)
+            Vector2Int target = followQueue.Dequeue();
+            // Safety: ensure the target cell is valid and walkable
+            var cell = grid.GetCell(target.x, target.y);
+            if (cell == null)
+            {
+                // skip invalid
+                continue;
+            }
+
+            // Move directly into the leader's previous position
+            yield return StartCoroutine(MoveToCoroutine(target));
+        }
+
+        processingFollowQueue = false;
+    }
+
+    System.Collections.IEnumerator ProcessCheckpointQueue()
+    {
+        processingCheckpointQueue = true;
+        while (checkpointQueue.Count > 0)
+        {
+            // Only act if not currently moving
+            if (isMoving)
+            {
+                yield return null;
+                continue;
+            }
+
+            int stopIndex = checkpointQueue.Dequeue();
+            if (grid == null || grid.gridData == null) continue;
+            if (stopIndex < 0 || stopIndex >= grid.gridData.stopSlots.Count) continue;
+            var stopPos = grid.gridData.stopSlots[stopIndex];
+
+            // Compute targeted path to that stop from current gridPos, honoring reservation
+            var path = grid.FindPathToTarget(gridPos, stopPos, this);
+            if (path != null && path.Count > 0)
+            {
+                yield return StartCoroutine(FollowPath(path));
+            }
+            else
+            {
+                // Could not compute path — skip or retry later. For now, wait a bit and continue.
+                yield return new WaitForSeconds(0.15f);
+            }
+        }
+        processingCheckpointQueue = false;
+    }
+
     // Coroutine that moves to a grid cell and updates gridPos on arrival
     System.Collections.IEnumerator MoveToCoroutine(Vector2Int newGridPos)
     {
@@ -316,7 +428,42 @@ public class PassengerGroup : MonoBehaviour
         isMoving = true;
         // Use existing axis-aligned MoveToWorld but wait for it to finish
         yield return StartCoroutine(MoveToWorld(worldTarget, newGridPos));
+        // After finishing move, notify any followers (leader broadcasts its previous position)
+        NotifyFollowersOfMove(gridPos);
+        // If the cell we moved into is a Stop and has an index, broadcast checkpoint to followers
+        var arrivedCell = grid.GetCell(gridPos.x, gridPos.y);
+        if (arrivedCell != null && arrivedCell.cellType == GridCellType.Stop && arrivedCell.stopIndex >= 0)
+        {
+            BroadcastCheckpointToFollowers(arrivedCell.stopIndex);
+        }
         isMoving = false;
+    }
+
+    // Notify followers: leader informs followers of its previous position so they can enqueue moves
+    void NotifyFollowersOfMove(Vector2Int leaderPos)
+    {
+        // Anyone that has followTarget == this should receive the leaderPos into their queue
+        foreach (var g in allGroups)
+        {
+            if (g == null) continue;
+            if (g.followTarget == this)
+            {
+                // Enqueue leader's previous pos for the follower; follower will process with delay
+                g.followQueue.Enqueue(leaderPos);
+            }
+        }
+    }
+
+    void BroadcastCheckpointToFollowers(int stopIndex)
+    {
+        foreach (var g in allGroups)
+        {
+            if (g == null) continue;
+            if (g.followTarget == this)
+            {
+                g.checkpointQueue.Enqueue(stopIndex);
+            }
+        }
     }
 
     // Move one step and then attempt to find nearest stop and follow path

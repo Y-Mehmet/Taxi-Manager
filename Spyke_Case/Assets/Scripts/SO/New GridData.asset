@@ -160,7 +160,7 @@ MonoBehaviour:
   - cellType: 3
     position: {x: 5, y: 6}
     stopIndex: -1
-  - cellType: 2
+  - cellType: 3
     position: {x: 6, y: 6}
     stopIndex: -1
   - cellType: 2
@@ -172,7 +172,7 @@ MonoBehaviour:
   - cellType: 3
     position: {x: 2, y: 7}
     stopIndex: -1
-  - cellType: 3
+  - cellType: 1
     position: {x: 3, y: 7}
     stopIndex: -1
   - cellType: 3

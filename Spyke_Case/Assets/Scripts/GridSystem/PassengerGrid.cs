@@ -20,6 +20,10 @@ namespace GridSystem
         public GameObject passengerGroupPrefab;
 
         private bool isInitialized;
+    // Occupancy map for O(1) lookups
+    private Dictionary<Vector2Int, PassengerGroup> occupancy = new Dictionary<Vector2Int, PassengerGroup>();
+    // Stop reservations: map stopIndex -> passenger who reserved it
+    private Dictionary<int, PassengerGroup> stopReservations = new Dictionary<int, PassengerGroup>();
 
     // Backwards-compatible convenience properties for legacy code
     public int gridWidth { get { return gridData != null ? gridData.width : 0; } set { if (gridData != null) gridData.width = value; } }
@@ -39,6 +43,9 @@ namespace GridSystem
         {
             // Grid başlatma işlemleri
             isInitialized = true;
+            // Clear occupancy/reservations when grid initializes
+            occupancy.Clear();
+            stopReservations.Clear();
         }
 
         // Allow editor scripts to trigger validation from the inspector
@@ -67,12 +74,7 @@ namespace GridSystem
             GridCell cell = GetCell(x, y);
             if (cell == null) return false;
             // If a PassengerGroup occupies this grid pos, treat it as not walkable
-            var groups = FindObjectsOfType<PassengerGroup>();
-            foreach (var g in groups)
-            {
-                if (g != null && g.gridPos.x == x && g.gridPos.y == y)
-                    return false;
-            }
+            if (occupancy.ContainsKey(new Vector2Int(x, y))) return false;
 
             return (cell.cellType == GridCellType.Walkable || 
                     cell.cellType == GridCellType.WaitingArea || 
@@ -82,7 +84,7 @@ namespace GridSystem
         // Find shortest path from 'from' to the nearest free Stop cell.
         // Allowed traversal types: Walkable and Stop. Cells occupied by PassengerGroup are treated as blocked.
         // Returns a list of grid positions (including the target Stop), or null if none found.
-        public List<Vector2Int> FindNearestStopPath(Vector2Int from)
+    public List<Vector2Int> FindNearestStopPath(Vector2Int from, PassengerGroup requester = null)
         {
             if (gridData == null) return null;
 
@@ -104,15 +106,14 @@ namespace GridSystem
                 var cell = GetCell(cur.x, cur.y);
                 if (cell != null && cell.cellType == GridCellType.Stop)
                 {
-                    // Ensure stop is free (no passenger)
-                    bool occupied = false;
-                    var groups = FindObjectsOfType<PassengerGroup>();
-                    foreach (var g in groups)
+                    // Ensure stop is free (no occupant) OR reserved by the requester
+                    bool occupied = occupancy.ContainsKey(cur);
+                    int sIndex = cell.stopIndex;
+                    if (!occupied && sIndex >= 0)
                     {
-                        if (g != null && g.gridPos == cur)
+                        if (stopReservations.TryGetValue(sIndex, out var owner))
                         {
-                            occupied = true;
-                            break;
+                            if (owner != requester) occupied = true;
                         }
                     }
                     if (!occupied)
@@ -139,16 +140,7 @@ namespace GridSystem
                     var nc = GetCell(nx.x, nx.y);
                     if (nc == null) continue;
                     // check occupancy
-                    bool occ = false;
-                    var groups = FindObjectsOfType<PassengerGroup>();
-                    foreach (var g in groups)
-                    {
-                        if (g != null && g.gridPos == nx)
-                        {
-                            occ = true; break;
-                        }
-                    }
-                    if (occ) continue;
+                    if (occupancy.ContainsKey(nx)) continue;
 
                     if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop)
                     {
@@ -160,6 +152,178 @@ namespace GridSystem
             }
 
             return null;
+        }
+
+            // Find shortest path from 'from' to the specific 'target' cell (goal).
+            // Allows traversal over Walkable and Stop cells. If the target is a Stop cell,
+            // it will be allowed if it's free or reserved by the requester.
+            public List<Vector2Int> FindPathToTarget(Vector2Int from, Vector2Int target, PassengerGroup requester = null)
+            {
+                if (gridData == null) return null;
+
+                int w = gridData.width;
+                int h = gridData.height;
+
+                // Validate bounds
+                if (target.x < 0 || target.y < 0 || target.x >= w || target.y >= h) return null;
+                if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h) return null;
+
+                bool[,] visited = new bool[w, h];
+                Vector2Int[,] parent = new Vector2Int[w, h];
+                Queue<Vector2Int> q = new Queue<Vector2Int>();
+
+                q.Enqueue(from);
+                visited[from.x, from.y] = true;
+
+                Vector2Int[] dirs = new Vector2Int[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+                while (q.Count > 0)
+                {
+                    var cur = q.Dequeue();
+
+                    // If we've reached the target, reconstruct path
+                    if (cur == target)
+                    {
+                        List<Vector2Int> path = new List<Vector2Int>();
+                        Vector2Int p = cur;
+                        while (p != from)
+                        {
+                            path.Add(p);
+                            p = parent[p.x, p.y];
+                        }
+                        path.Reverse();
+                        return path;
+                    }
+
+                    // expand neighbors (only Walkable or Stop)
+                    foreach (var d in dirs)
+                    {
+                        Vector2Int nx = cur + d;
+                        if (nx.x < 0 || nx.y < 0 || nx.x >= w || nx.y >= h) continue;
+                        if (visited[nx.x, nx.y]) continue;
+                        var nc = GetCell(nx.x, nx.y);
+                        if (nc == null) continue;
+                        // check occupancy (do not step into occupied cells)
+                        if (occupancy.ContainsKey(nx)) continue;
+
+                        if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop)
+                        {
+                            // If this neighbor is the target and is a Stop, ensure reservation rules allow reaching it
+                            if (nx == target && nc.cellType == GridCellType.Stop)
+                            {
+                                bool occupied = occupancy.ContainsKey(nx);
+                                int sIndex = nc.stopIndex;
+                                if (!occupied && sIndex >= 0)
+                                {
+                                    if (stopReservations.TryGetValue(sIndex, out var owner))
+                                    {
+                                        if (owner != requester) occupied = true;
+                                    }
+                                }
+                                if (occupied) continue; // cannot step into the target
+                            }
+
+                            visited[nx.x, nx.y] = true;
+                            parent[nx.x, nx.y] = cur;
+                            q.Enqueue(nx);
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            // Return the reserved stop (pos,index) for a given passenger, or null if none
+            public (Vector2Int pos, int index)? GetReservedStopFor(PassengerGroup g)
+            {
+                if (gridData == null || g == null) return null;
+                foreach (var kv in stopReservations)
+                {
+                    if (kv.Value == g)
+                    {
+                        int idx = kv.Key;
+                        if (idx >= 0 && idx < gridData.stopSlots.Count)
+                        {
+                            return (gridData.stopSlots[idx], idx);
+                        }
+                    }
+                }
+                return null;
+            }
+
+        // Occupancy API
+        public bool IsOccupied(Vector2Int pos)
+        {
+            return occupancy.ContainsKey(pos);
+        }
+
+        public void RegisterOccupant(Vector2Int pos, PassengerGroup g)
+        {
+            if (g == null) return;
+            occupancy[pos] = g;
+        }
+
+        public void UnregisterOccupant(Vector2Int pos, PassengerGroup g)
+        {
+            if (occupancy.TryGetValue(pos, out var existing) && existing == g)
+            {
+                occupancy.Remove(pos);
+            }
+        }
+
+        // Reserve the first free stop for the given passenger and return the stop's grid pos and index, or null if none
+        public (Vector2Int pos, int index)? ReserveFirstFreeStop(PassengerGroup g)
+        {
+            if (gridData == null || g == null) return null;
+            Debug.LogWarning($"[Reserve] Passenger '{g.name}' attempting to reserve a stop. OccupiedCount={occupancy.Count} Reservations={stopReservations.Count}");
+            for (int i = 0; i < gridData.stopSlots.Count; i++)
+            {
+                var stopPos = gridData.stopSlots[i];
+                var cell = GetCell(stopPos.x, stopPos.y);
+                if (cell == null) continue;
+                // skip if occupancy or reservation exists
+                if (occupancy.ContainsKey(stopPos))
+                {
+                    Debug.LogWarning($"[Reserve] Skipping stop {i} at {stopPos} because occupied by '{occupancy[stopPos]?.name ?? "(unknown)"}'");
+                    continue;
+                }
+                if (stopReservations.ContainsKey(i))
+                {
+                    Debug.LogWarning($"[Reserve] Skipping stop {i} at {stopPos} because already reserved by '{stopReservations[i]?.name ?? "(unknown)"}'");
+                    continue;
+                }
+
+                // Reserve
+                stopReservations[i] = g;
+                cell.stopIndex = i;
+                Debug.LogWarning($"[Reserve] Passenger '{g.name}' assigned to stop index {i} at {stopPos}");
+                return (stopPos, i);
+            }
+            Debug.LogWarning($"[Reserve] Passenger '{g.name}' found no free stops. OccupiedCount={occupancy.Count} Reservations={stopReservations.Count}");
+            return null;
+        }
+
+        public void ReleaseStopReservation(int stopIndex, PassengerGroup g)
+        {
+            if (stopReservations.TryGetValue(stopIndex, out var existing) && existing == g)
+            {
+                stopReservations.Remove(stopIndex);
+                // clear stopIndex on cell
+                if (stopIndex >= 0 && stopIndex < gridData.stopSlots.Count)
+                {
+                    var pos = gridData.stopSlots[stopIndex];
+                    var cell = GetCell(pos.x, pos.y);
+                    if (cell != null && cell.stopIndex == stopIndex)
+                        cell.stopIndex = -1;
+                }
+            }
+        }
+
+        public Vector3 GetStopWorldPosition(int stopIndex)
+        {
+            if (gridData == null) return Vector3.zero;
+            if (stopIndex < 0 || stopIndex >= gridData.stopSlots.Count) return Vector3.zero;
+            return GetWorldPosition(gridData.stopSlots[stopIndex]);
         }
 
 #if UNITY_EDITOR

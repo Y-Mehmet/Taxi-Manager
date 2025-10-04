@@ -78,15 +78,83 @@ public class PassengerGroup : MonoBehaviour
             {
                 reason = $"Gridde cell yok: {nextPos}";
             }
-            else if (cell.cellType != GridCellType.Walkable && cell.cellType != GridCellType.Stop)
+            else if (cell.cellType != GridCellType.Walkable && cell.cellType != GridCellType.Stop && cell.cellType != GridCellType.WaitingArea)
             {
+                // Allow stepping into WaitingArea as well — it's not a hard obstacle
                 reason = $"Hedef cell engelli veya geçilemez: {cell.cellType}";
             }
             else
             {
-                Debug.Log($"PassengerGroup hareket ediyor. Şu anki slot: {gridPos}, yön: {moveDirection}, hedef: {nextPos}");
+                // Diagnostic logging before starting movement
                 if (!isMoving)
-                    StartCoroutine(MoveThenFindStop(nextPos));
+                {
+                    // 1) basic info
+                    Debug.LogWarning($"[MoveStart] Passenger '{name}' at {gridPos} moving {moveDirection}");
+
+                    // 2) straight leg indices/types until Walkable reached (or edge)
+                    var straight = new List<string>();
+                    Vector2Int cursor = gridPos + moveDirection;
+                    while (cursor.x >= 0 && cursor.y >= 0 && cursor.x < grid.gridWidth && cursor.y < grid.gridHeight)
+                    {
+                        var c = grid.GetCell(cursor.x, cursor.y);
+                        if (c == null) break;
+                        straight.Add($"{cursor}:{c.cellType}");
+                        if (c.cellType == GridCellType.Walkable) break;
+                        cursor += moveDirection;
+                    }
+                    Debug.LogWarning("[StraightLeg] " + string.Join(" -> ", straight.ToArray()));
+
+                    // Convert straight strings into Vector2Int positions for movement (available to both reservation and fallback)
+                    List<Vector2Int> straightVec = new List<Vector2Int>();
+                    Vector2Int scInit = gridPos + moveDirection;
+                    Vector2Int sc = scInit;
+                    while (sc.x >= 0 && sc.y >= 0 && sc.x < grid.gridWidth && sc.y < grid.gridHeight)
+                    {
+                        var csc = grid.GetCell(sc.x, sc.y);
+                        if (csc == null) break;
+                        straightVec.Add(sc);
+                        if (csc.cellType == GridCellType.Walkable) break;
+                        sc += moveDirection;
+                    }
+
+                    // 3) Reserve a stop (if any) and compute path
+                        var reservation = grid.ReserveFirstFreeStop(this);
+                        if (reservation != null)
+                        {
+                            var (stopPos, stopIndex) = reservation.Value;
+
+                            // Determine walkable start (cursor currently points to first Walkable or edge)
+                            Vector2Int walkableStart = cursor; // cursor was advanced until Walkable or edge
+                            if (straight.Count == 0)
+                            {
+                                // no straight steps, use current gridPos
+                                walkableStart = gridPos;
+                            }
+
+                            // compute a path to the reserved stop starting from the walkableStart and allow reservation (this)
+                            var pathToStop = grid.FindPathToTarget(walkableStart, stopPos, this);
+
+                            // Build combined plan string: straight leg then pathToStop
+                            string straightStr = straight.Count > 0 ? string.Join(" -> ", straight.ToArray()) : "(none)";
+                            var pathStr = pathToStop != null ? string.Join(" -> ", pathToStop.ConvertAll(p => p.ToString()).ToArray()) : "(no path)";
+                            Debug.LogWarning($"[PathPlan] straight: {straightStr} ; pathToStop: {pathStr}");
+                            Debug.LogWarning($"[AssignedStop] index={stopIndex} pos={stopPos}");
+
+                            // Start movement: move along straightVec then follow pathToStop
+                            StartCoroutine(MoveAlongThenFollow(straightVec, pathToStop, stopIndex, stopPos));
+                            return;
+                        }
+
+                        // No reservation available: compute fallback path starting from walkableStart
+                        Vector2Int fallbackStart = cursor;
+                        if (straight.Count == 0) fallbackStart = gridPos;
+                        var fallbackPath = grid.FindNearestStopPath(fallbackStart);
+                        var fallbackStr = fallbackPath != null ? string.Join(" -> ", fallbackPath.ConvertAll(p => p.ToString()).ToArray()) : "(no path)";
+                        Debug.LogWarning($"[PathPlan] planned path (no reservation) from {fallbackStart}: {fallbackStr}");
+                        // Move along straightVec then follow the fallback path
+                        StartCoroutine(MoveAlongThenFollow(straightVec, fallbackPath, -1, new Vector2Int(-1, -1)));
+                        return;
+                }
                 return;
             }
         }
@@ -124,15 +192,7 @@ public class PassengerGroup : MonoBehaviour
         }
 
         // Check occupancy by other PassengerGroup at that cell
-        var groups = FindObjectsOfType<PassengerGroup>();
-        bool occupied = false;
-        foreach (var g in groups)
-        {
-            if (g != null && g != this && g.gridPos == nextPos)
-            {
-                occupied = true; break;
-            }
-        }
+        bool occupied = grid != null && grid.IsOccupied(nextPos);
 
         if (occupied)
         {
@@ -142,16 +202,19 @@ public class PassengerGroup : MonoBehaviour
             {
                 Vector2Int landing = nextPos + moveDirection; // two steps ahead
                 var landCell = grid.GetCell(landing.x, landing.y);
-                bool landOccupied = false;
-                foreach (var g in groups)
+                // Do not allow jumping over blocked/empty/waiting cells
+                var midCell = grid.GetCell(nextPos.x, nextPos.y);
+                if (midCell != null)
                 {
-                    if (g != null && g.gridPos == landing) { landOccupied = true; break; }
-                }
-                if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !landOccupied)
-                {
-                    if (!isMoving)
-                        StartCoroutine(JumpThenFindStop(landing));
-                    return;
+                    bool midAllowed = (midCell.cellType == GridCellType.Walkable || midCell.cellType == GridCellType.Stop);
+                    bool landingAllowed = (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop));
+                    bool landOccupied = grid.IsOccupied(landing);
+                    if (midAllowed && landingAllowed && !landOccupied)
+                    {
+                        if (!isMoving)
+                            StartCoroutine(JumpThenFindStop(landing));
+                        return;
+                    }
                 }
             }
 
@@ -176,6 +239,28 @@ public class PassengerGroup : MonoBehaviour
         if (useGridPosition && grid != null)
         {
             transform.position = grid.GetWorldPosition(gridPos);
+            // Register occupancy for initial placement
+            grid.RegisterOccupant(gridPos, this);
+        }
+        else if (!useGridPosition && grid != null)
+        {
+            // Manual placement: infer logical gridPos from world position and register
+            var gd = grid.gridData;
+            if (gd != null)
+            {
+                Vector3 relative = transform.position - grid.transform.position - gd.worldOffset;
+                int gx = Mathf.RoundToInt(relative.x / gd.cellSize);
+                int gy = Mathf.RoundToInt(relative.z / gd.cellSize);
+                gx = Mathf.Clamp(gx, 0, gd.width - 1);
+                gy = Mathf.Clamp(gy, 0, gd.height - 1);
+                Vector2Int inferred = new Vector2Int(gx, gy);
+                gridPos = inferred;
+                if (grid.IsOccupied(gridPos))
+                {
+                    Debug.LogWarning($"Passenger '{name}' manual placement at {gridPos} conflicts with existing occupant.");
+                }
+                grid.RegisterOccupant(gridPos, this);
+            }
         }
     }
 
@@ -224,6 +309,10 @@ public class PassengerGroup : MonoBehaviour
         // Compute world target
         Vector3 worldTarget = cell.cellTransform != null ? cell.cellTransform.position : grid.GetWorldPosition(newGridPos);
 
+        // Update occupancy map: unregister old, register new (important to prevent others stepping)
+        grid.UnregisterOccupant(gridPos, this);
+        grid.RegisterOccupant(newGridPos, this);
+
         isMoving = true;
         // Use existing axis-aligned MoveToWorld but wait for it to finish
         yield return StartCoroutine(MoveToWorld(worldTarget, newGridPos));
@@ -238,6 +327,30 @@ public class PassengerGroup : MonoBehaviour
 
         // After arriving, attempt BFS to nearest free stop
         if (grid == null) yield break;
+        // Reserve a stop now to avoid race conditions: assign first free stop to this passenger
+        var reservation = grid.ReserveFirstFreeStop(this);
+        if (reservation != null)
+        {
+            // Log assignment and then path towards that specific stop
+            var (stopPos, stopIndex) = reservation.Value;
+            Debug.Log($"Passenger '{name}' assigned to stop index {stopIndex} at {stopPos}");
+            // Find path to the reserved stop using targeted pathfinder
+            var pathToStop = grid.FindPathToTarget(gridPos, stopPos, this);
+            if (pathToStop != null && pathToStop.Count > 0)
+            {
+                yield return StartCoroutine(FollowPath(pathToStop));
+            }
+            // When arrived at stop, release reservation and log arrival
+            // Note: MoveToCoroutine updates gridPos when arriving, so check if gridPos == stopPos
+            if (gridPos == stopPos)
+            {
+                Debug.Log($"Passenger '{name}' reached stop index {stopIndex} at {stopPos}");
+                grid.ReleaseStopReservation(stopIndex, this);
+            }
+            yield break;
+        }
+
+        // If no reservation available, fallback to generic nearest-stop path
         var path = grid.FindNearestStopPath(gridPos);
         if (path != null && path.Count > 0)
         {
@@ -253,7 +366,15 @@ public class PassengerGroup : MonoBehaviour
 
         // After landing, attempt BFS to nearest free stop
         if (grid == null) yield break;
-        var path = grid.FindNearestStopPath(gridPos);
+        // Prefer reserved stop if we have one
+        var reserved = grid.GetReservedStopFor(this);
+        List<Vector2Int> path = null;
+        if (reserved != null)
+        {
+            path = grid.FindPathToTarget(gridPos, reserved.Value.pos, this);
+        }
+        if (path == null)
+            path = grid.FindNearestStopPath(gridPos);
         if (path != null && path.Count > 0)
         {
             yield return StartCoroutine(FollowPath(path));
@@ -263,52 +384,90 @@ public class PassengerGroup : MonoBehaviour
     // Follow a path given as a list of grid positions (each step will be executed sequentially)
     System.Collections.IEnumerator FollowPath(List<Vector2Int> path)
     {
+        // Remember starting position so we can return if blocked
+        Vector2Int origin = gridPos;
         foreach (var step in path)
         {
-            // Before moving, check occupancy again
-            var groups = FindObjectsOfType<PassengerGroup>();
-            bool blocked = false;
-            foreach (var g in groups)
+            // Validate target cell
+            var targetCell = grid.GetCell(step.x, step.y);
+            if (targetCell == null)
             {
-                if (g != null && g != this && g.gridPos == step)
-                {
-                    blocked = true; break;
-                }
+                // invalid cell - go back to origin and stop
+                yield return StartCoroutine(MoveToCoroutine(origin));
+                yield break;
             }
-            if (blocked)
+
+            if (targetCell.cellType == GridCellType.Blocked || targetCell.cellType == GridCellType.Empty)
             {
-                // If current cell allows jumping (Walkable/Stop), try to jump over the blocking passenger
+                // blocked by terrain - return to origin
+                yield return StartCoroutine(MoveToCoroutine(origin));
+                yield break;
+            }
+
+            // If occupied, try jump if allowed, otherwise return to origin
+            if (grid.IsOccupied(step))
+            {
                 var curCell = grid.GetCell(gridPos.x, gridPos.y);
                 if (curCell != null && (curCell.cellType == GridCellType.Walkable || curCell.cellType == GridCellType.Stop))
                 {
                     Vector2Int dir = step - gridPos;
                     Vector2Int landing = step + dir;
                     var landCell = grid.GetCell(landing.x, landing.y);
-                    bool landOccupied = false;
-                    foreach (var g in groups)
+                    if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !grid.IsOccupied(landing))
                     {
-                        if (g != null && g.gridPos == landing) { landOccupied = true; break; }
-                    }
-                    if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !landOccupied)
-                    {
-                        // perform jump
                         yield return StartCoroutine(JumpToCoroutine(landing));
-                        // recompute path from new position
-                        var newPath = grid.FindNearestStopPath(gridPos);
-                        if (newPath == null || newPath.Count == 0) yield break;
+                        // After jump, prefer our reserved stop when recomputing path
+                        var reserved = grid.GetReservedStopFor(this);
+                        List<Vector2Int> newPath = null;
+                        if (reserved != null)
+                        {
+                            newPath = grid.FindPathToTarget(gridPos, reserved.Value.pos, this);
+                        }
+                        if (newPath == null)
+                            newPath = grid.FindNearestStopPath(gridPos);
+                        if (newPath == null || newPath.Count == 0) { yield return StartCoroutine(MoveToCoroutine(origin)); yield break; }
                         path = newPath;
                         continue;
                     }
                 }
 
-                // Try to recompute path from current position
-                var updatedPath = grid.FindNearestStopPath(gridPos);
-                if (updatedPath == null || updatedPath.Count == 0) yield break;
-                path = updatedPath;
-                continue;
+                // cannot pass: go back to origin
+                yield return StartCoroutine(MoveToCoroutine(origin));
+                yield break;
             }
 
+            // Safe to move
             yield return StartCoroutine(MoveToCoroutine(step));
+        }
+    }
+
+    // Move along straight leg then follow the provided path to the reserved stop
+    System.Collections.IEnumerator MoveAlongThenFollow(List<Vector2Int> straightLeg, List<Vector2Int> pathToStop, int stopIndex, Vector2Int stopPos)
+    {
+        // First, move along straight leg (if any)
+        if (straightLeg != null)
+        {
+            foreach (var step in straightLeg)
+            {
+                // If occupied or invalid, abort and return to origin
+                var c = grid.GetCell(step.x, step.y);
+                if (c == null) yield break;
+                if (grid.IsOccupied(step)) { StartCoroutine(BounceVisual()); yield break; }
+                yield return StartCoroutine(MoveToCoroutine(step));
+            }
+        }
+
+        // Then follow pathToStop (which is computed from the walkable start)
+        if (pathToStop != null && pathToStop.Count > 0)
+        {
+            yield return StartCoroutine(FollowPath(pathToStop));
+        }
+
+        // On arrival, if we are at stopPos, release reservation and log
+        if (gridPos == stopPos)
+        {
+            Debug.LogWarning($"Passenger '{name}' reached reserved stop index {stopIndex} at {stopPos}");
+            grid.ReleaseStopReservation(stopIndex, this);
         }
     }
 
@@ -318,6 +477,9 @@ public class PassengerGroup : MonoBehaviour
         if (grid == null) yield break;
         var landCell = grid.GetCell(landingGridPos.x, landingGridPos.y);
         if (landCell == null) yield break;
+        // Update occupancy map: unregister old and register new landing cell
+        grid.UnregisterOccupant(gridPos, this);
+        grid.RegisterOccupant(landingGridPos, this);
 
         Vector3 landWorld = landCell.cellTransform != null ? landCell.cellTransform.position : grid.GetWorldPosition(landingGridPos);
         float jumpPower = 1f;

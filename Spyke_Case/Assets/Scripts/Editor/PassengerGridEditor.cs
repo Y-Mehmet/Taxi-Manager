@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using GridSystem;
 
 [CustomEditor(typeof(PassengerGrid))]
 public class PassengerGridEditor : Editor

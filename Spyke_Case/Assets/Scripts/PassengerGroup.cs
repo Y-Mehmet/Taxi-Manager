@@ -1,6 +1,9 @@
 
 using UnityEngine;
 using System.Collections.Generic;
+using GridSystem;
+using GridSystem.Data;
+using DG.Tweening;
 
 public class PassengerGroup : MonoBehaviour
 {
@@ -12,6 +15,9 @@ public class PassengerGroup : MonoBehaviour
     public float moveSpeed = 2f;
     public Vector2Int gridPos; // Şu anki grid pozisyonu
     public PassengerGrid grid;
+    [Header("Initialization")]
+    [Tooltip("If true, this object will be placed at `gridPos` on Start(). Leave false for manual placement.")]
+    public bool useGridPosition = false;
     [Header("Yolcu Prefabı")]
     public GameObject passengerPrefab;
     private List<GameObject> passengers = new List<GameObject>();
@@ -79,7 +85,8 @@ public class PassengerGroup : MonoBehaviour
             else
             {
                 Debug.Log($"PassengerGroup hareket ediyor. Şu anki slot: {gridPos}, yön: {moveDirection}, hedef: {nextPos}");
-                MoveTo(nextPos);
+                if (!isMoving)
+                    StartCoroutine(MoveThenFindStop(nextPos));
                 return;
             }
         }
@@ -94,8 +101,8 @@ public class PassengerGroup : MonoBehaviour
         Vector2Int nextPos = gridPos + moveDirection;
         var cell = grid.GetCell(nextPos.x, nextPos.y);
         if (cell == null) return false;
-        // Sadece Walkable veya Stop ise ilerlenebilir
-        if (cell.cellType == GridCellType.Walkable || cell.cellType == GridCellType.Stop)
+        // Walkable, WaitingArea veya Stop ise ilerlenebilir
+        if (cell.cellType == GridCellType.Walkable || cell.cellType == GridCellType.WaitingArea || cell.cellType == GridCellType.Stop)
         {
             // Başka yolcu var mı kontrolü (örnek: collider veya başka bir kontrol eklenebilir)
             // Şimdilik sadece griddeki cellType'a bakıyoruz
@@ -107,10 +114,55 @@ public class PassengerGroup : MonoBehaviour
     // Dokunma veya tetikleyici ile çağrılır
     public void TryMoveForward()
     {
-        if (CanMoveForward())
+        Vector2Int nextPos = gridPos + moveDirection;
+        var cell = grid.GetCell(nextPos.x, nextPos.y);
+        // Immediate obstacle or out-of-bounds -> bounce
+        if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
         {
-            MoveTo(gridPos + moveDirection);
+            StartCoroutine(BounceVisual());
+            return;
         }
+
+        // Check occupancy by other PassengerGroup at that cell
+        var groups = FindObjectsOfType<PassengerGroup>();
+        bool occupied = false;
+        foreach (var g in groups)
+        {
+            if (g != null && g != this && g.gridPos == nextPos)
+            {
+                occupied = true; break;
+            }
+        }
+
+        if (occupied)
+        {
+            // Can we jump over? Allowed only if current cell is Walkable or Stop
+            var curCell = grid.GetCell(gridPos.x, gridPos.y);
+            if (curCell != null && (curCell.cellType == GridCellType.Walkable || curCell.cellType == GridCellType.Stop))
+            {
+                Vector2Int landing = nextPos + moveDirection; // two steps ahead
+                var landCell = grid.GetCell(landing.x, landing.y);
+                bool landOccupied = false;
+                foreach (var g in groups)
+                {
+                    if (g != null && g.gridPos == landing) { landOccupied = true; break; }
+                }
+                if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !landOccupied)
+                {
+                    if (!isMoving)
+                        StartCoroutine(JumpThenFindStop(landing));
+                    return;
+                }
+            }
+
+            // otherwise blocked: bounce
+            StartCoroutine(BounceVisual());
+            return;
+        }
+
+        // Otherwise allowed to move: move one step then attempt to find a stop
+        if (!isMoving)
+            StartCoroutine(MoveThenFindStop(nextPos));
     }
 
 
@@ -118,6 +170,13 @@ public class PassengerGroup : MonoBehaviour
     {
         SpawnPassengers();
         SetGroupColor(groupColor);
+
+        // Ensure the group's world position matches its gridPos at start
+        // Only apply if explicitly requested (prevents default 0,0 placement)
+        if (useGridPosition && grid != null)
+        {
+            transform.position = grid.GetWorldPosition(gridPos);
+        }
     }
 
     void SpawnPassengers()
@@ -144,25 +203,197 @@ public class PassengerGroup : MonoBehaviour
     }
 
     // Hareket fonksiyonu (örnek: sağa hareket)
+    // Flag to prevent concurrent movement
+    private bool isMoving = false;
+
+    // Public wrapper to start coroutine
     public void MoveTo(Vector2Int newGridPos)
     {
-        if (grid == null) return;
+        if (!isMoving)
+            StartCoroutine(MoveToCoroutine(newGridPos));
+    }
+
+    // Coroutine that moves to a grid cell and updates gridPos on arrival
+    System.Collections.IEnumerator MoveToCoroutine(Vector2Int newGridPos)
+    {
+        if (grid == null) yield break;
         var cell = grid.GetCell(newGridPos.x, newGridPos.y);
-        if (cell != null && cell.cellType == GridCellType.Walkable)
+        if (cell == null) yield break;
+        if (!(cell.cellType == GridCellType.Walkable || cell.cellType == GridCellType.WaitingArea || cell.cellType == GridCellType.Stop)) yield break;
+
+        // Compute world target
+        Vector3 worldTarget = cell.cellTransform != null ? cell.cellTransform.position : grid.GetWorldPosition(newGridPos);
+
+        isMoving = true;
+        // Use existing axis-aligned MoveToWorld but wait for it to finish
+        yield return StartCoroutine(MoveToWorld(worldTarget, newGridPos));
+        isMoving = false;
+    }
+
+    // Move one step and then attempt to find nearest stop and follow path
+    System.Collections.IEnumerator MoveThenFindStop(Vector2Int stepPos)
+    {
+        // Move one step
+        yield return StartCoroutine(MoveToCoroutine(stepPos));
+
+        // After arriving, attempt BFS to nearest free stop
+        if (grid == null) yield break;
+        var path = grid.FindNearestStopPath(gridPos);
+        if (path != null && path.Count > 0)
         {
-            gridPos = newGridPos;
-            Vector3 worldTarget = cell.cellTransform != null ? cell.cellTransform.position : new Vector3(newGridPos.x * grid.cellSize, 0, newGridPos.y * grid.cellSize);
-            StartCoroutine(MoveToWorld(worldTarget));
+            yield return StartCoroutine(FollowPath(path));
         }
     }
 
-    System.Collections.IEnumerator MoveToWorld(Vector3 target)
+    // Jump two cells ahead then look for nearest stop
+    System.Collections.IEnumerator JumpThenFindStop(Vector2Int landingPos)
     {
-        while (Vector3.Distance(transform.position, target) > 0.05f)
+        // perform jump animation
+        yield return StartCoroutine(JumpToCoroutine(landingPos));
+
+        // After landing, attempt BFS to nearest free stop
+        if (grid == null) yield break;
+        var path = grid.FindNearestStopPath(gridPos);
+        if (path != null && path.Count > 0)
         {
-            transform.position = Vector3.MoveTowards(transform.position, target, moveSpeed * Time.deltaTime);
+            yield return StartCoroutine(FollowPath(path));
+        }
+    }
+
+    // Follow a path given as a list of grid positions (each step will be executed sequentially)
+    System.Collections.IEnumerator FollowPath(List<Vector2Int> path)
+    {
+        foreach (var step in path)
+        {
+            // Before moving, check occupancy again
+            var groups = FindObjectsOfType<PassengerGroup>();
+            bool blocked = false;
+            foreach (var g in groups)
+            {
+                if (g != null && g != this && g.gridPos == step)
+                {
+                    blocked = true; break;
+                }
+            }
+            if (blocked)
+            {
+                // If current cell allows jumping (Walkable/Stop), try to jump over the blocking passenger
+                var curCell = grid.GetCell(gridPos.x, gridPos.y);
+                if (curCell != null && (curCell.cellType == GridCellType.Walkable || curCell.cellType == GridCellType.Stop))
+                {
+                    Vector2Int dir = step - gridPos;
+                    Vector2Int landing = step + dir;
+                    var landCell = grid.GetCell(landing.x, landing.y);
+                    bool landOccupied = false;
+                    foreach (var g in groups)
+                    {
+                        if (g != null && g.gridPos == landing) { landOccupied = true; break; }
+                    }
+                    if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !landOccupied)
+                    {
+                        // perform jump
+                        yield return StartCoroutine(JumpToCoroutine(landing));
+                        // recompute path from new position
+                        var newPath = grid.FindNearestStopPath(gridPos);
+                        if (newPath == null || newPath.Count == 0) yield break;
+                        path = newPath;
+                        continue;
+                    }
+                }
+
+                // Try to recompute path from current position
+                var updatedPath = grid.FindNearestStopPath(gridPos);
+                if (updatedPath == null || updatedPath.Count == 0) yield break;
+                path = updatedPath;
+                continue;
+            }
+
+            yield return StartCoroutine(MoveToCoroutine(step));
+        }
+    }
+
+    // Jump coroutine using DOTween
+    System.Collections.IEnumerator JumpToCoroutine(Vector2Int landingGridPos)
+    {
+        if (grid == null) yield break;
+        var landCell = grid.GetCell(landingGridPos.x, landingGridPos.y);
+        if (landCell == null) yield break;
+
+        Vector3 landWorld = landCell.cellTransform != null ? landCell.cellTransform.position : grid.GetWorldPosition(landingGridPos);
+        float jumpPower = 1f;
+        float duration = 0.45f;
+        // Make sure Y is slightly above current to have a visible arc
+        Vector3 target = new Vector3(landWorld.x, transform.position.y, landWorld.z);
+        Tween t = transform.DOJump(target, jumpPower, 1, duration).SetEase(Ease.OutQuad);
+        yield return t.WaitForCompletion();
+
+        // Arrived: update logical position
+        gridPos = landingGridPos;
+    }
+
+    System.Collections.IEnumerator BounceVisual()
+    {
+        Vector3 original = transform.position;
+        Vector3 back = original - new Vector3(moveDirection.x * 0.2f, 0, moveDirection.y * 0.2f);
+        float t = 0f;
+        while (t < 0.1f)
+        {
+            transform.position = Vector3.Lerp(original, back, t / 0.1f);
+            t += Time.deltaTime;
             yield return null;
         }
-        transform.position = target;
+        t = 0f;
+        while (t < 0.1f)
+        {
+            transform.position = Vector3.Lerp(back, original, t / 0.1f);
+            t += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = original;
+    }
+
+    // Axis-aligned movement: move on X then Z to avoid diagonal paths
+    System.Collections.IEnumerator MoveToWorld(Vector3 target, Vector2Int finalGridPos)
+    {
+        Vector3 start = transform.position;
+
+        // Move along X only
+        Vector3 midX = new Vector3(target.x, start.y, start.z);
+        if (Mathf.Abs(start.x - target.x) > 0.01f)
+        {
+            while (Mathf.Abs(transform.position.x - target.x) > 0.01f)
+            {
+                Vector3 pos = transform.position;
+                pos.x = Mathf.MoveTowards(pos.x, target.x, moveSpeed * Time.deltaTime);
+                transform.position = pos;
+                yield return null;
+            }
+            // snap X
+            var p = transform.position;
+            p.x = target.x;
+            transform.position = p;
+        }
+
+        // Move along Z only
+        if (Mathf.Abs(start.z - target.z) > 0.01f)
+        {
+            while (Mathf.Abs(transform.position.z - target.z) > 0.01f)
+            {
+                Vector3 pos = transform.position;
+                pos.z = Mathf.MoveTowards(pos.z, target.z, moveSpeed * Time.deltaTime);
+                transform.position = pos;
+                yield return null;
+            }
+            // snap Z
+            var p2 = transform.position;
+            p2.z = target.z;
+            transform.position = p2;
+        }
+
+        // Ensure exact target
+        transform.position = new Vector3(target.x, transform.position.y, target.z);
+
+        // Now we arrived: update logical grid position
+        gridPos = finalGridPos;
     }
 }

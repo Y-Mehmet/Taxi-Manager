@@ -20,6 +20,8 @@ public class PassengerGroup : MonoBehaviour
     public bool useGridPosition = false;
     [Header("Yolcu Prefabı")]
     public GameObject passengerPrefab;
+    [Header("Yön Göstergesi")]
+    public Transform directionIndicator;
     private List<GameObject> passengers = new List<GameObject>();
     // --- Convoy / train follow support ---
     [Header("Convoy (train) settings")]
@@ -316,13 +318,28 @@ public class PassengerGroup : MonoBehaviour
 
     void SpawnPassengers()
     {
+        // Hareket yönüne göre rotasyon hesapla.
+        // Vector2Int(x, y) grid yönünü Vector3(x, 0, z) dünya yönüne çeviriyoruz.
+        Vector3 directionVector = new Vector3(moveDirection.x, 0, moveDirection.y);
+        Quaternion targetRotation = Quaternion.identity; // Eğer yön (0,0) ise default rotasyon.
+        if (directionVector != Vector3.zero)
+        {
+            targetRotation = Quaternion.LookRotation(directionVector);
+        }
+
         // Yolcuları grup büyüklüğüne göre spawn et
         for (int i = 0; i < groupSize; i++)
         {
+            // Yolcuyu ana grup nesnesinin içinde spawn et
             GameObject p = Instantiate(passengerPrefab, transform);
+            
             // Yolcuları yan yana veya blok şeklinde diz
             float offset = (groupSize - 1) * 0.25f;
             p.transform.localPosition = new Vector3(i * 0.5f - offset, 0, 0);
+
+            // Her bir yolcunun rotasyonunu ayarla
+            p.transform.rotation = targetRotation;
+            
             passengers.Add(p);
         }
     }
@@ -440,7 +457,7 @@ public class PassengerGroup : MonoBehaviour
             var path = grid.FindPathToTarget(gridPos, stopPos, this);
             if (path != null && path.Count > 0)
             {
-                yield return StartCoroutine(FollowPath(path));
+                yield return StartCoroutine(FollowPath(path, stopIndex));
             }
             else
             {
@@ -530,7 +547,7 @@ public class PassengerGroup : MonoBehaviour
             var pathToStop = grid.FindPathToTarget(gridPos, stopPos, this);
             if (pathToStop != null && pathToStop.Count > 0)
             {
-                yield return StartCoroutine(FollowPath(pathToStop));
+                yield return StartCoroutine(FollowPath(pathToStop, stopIndex));
             }
             // When arrived at stop, release reservation and log arrival
             // Note: MoveToCoroutine updates gridPos when arriving, so check if gridPos == stopPos
@@ -546,7 +563,7 @@ public class PassengerGroup : MonoBehaviour
         var path = grid.FindNearestStopPath(gridPos);
         if (path != null && path.Count > 0)
         {
-            yield return StartCoroutine(FollowPath(path));
+            yield return StartCoroutine(FollowPath(path, -1));
         }
     }
 
@@ -569,12 +586,12 @@ public class PassengerGroup : MonoBehaviour
             path = grid.FindNearestStopPath(gridPos);
         if (path != null && path.Count > 0)
         {
-            yield return StartCoroutine(FollowPath(path));
+            yield return StartCoroutine(FollowPath(path, -1));
         }
     }
 
     // Follow a path given as a list of grid positions (each step will be executed sequentially)
-    System.Collections.IEnumerator FollowPath(List<Vector2Int> path, System.Nullable<Vector2Int> returnOrigin = null)
+    System.Collections.IEnumerator FollowPath(List<Vector2Int> path, int stopIndex, System.Nullable<Vector2Int> returnOrigin = null)
     {
         Vector2Int origin = returnOrigin.HasValue ? returnOrigin.Value : gridPos;
         foreach (var step in path)
@@ -583,6 +600,7 @@ public class PassengerGroup : MonoBehaviour
             if (targetCell == null || targetCell.cellType == GridCellType.Blocked || targetCell.cellType == GridCellType.Empty)
             {
                 Debug.LogWarning($"[FollowPath] Path is blocked by terrain at {step}. Returning to origin.");
+                if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                 yield return StartCoroutine(GoHome(origin));
                 yield break;
             }
@@ -635,16 +653,17 @@ public class PassengerGroup : MonoBehaviour
                                 var newPath = grid.FindPathToTarget(gridPos, reservation.Value.pos, this);
                                 if (newPath != null && newPath.Count > 0)
                                 {
-                                    yield return StartCoroutine(FollowPath(newPath, origin));
+                                    yield return StartCoroutine(FollowPath(newPath, stopIndex, origin));
                                 }
                                 else
                                 {
-                                    StopManager.Instance.CancelReservation(reservation.Value.index, this);
+                                    if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                                     yield return StartCoroutine(GoHome(origin));
                                 }
                             }
                             else
                             {
+                                if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                                 yield return StartCoroutine(GoHome(origin));
                             }
                             yield break; 
@@ -653,6 +672,7 @@ public class PassengerGroup : MonoBehaviour
                 }
                 
                 Debug.LogWarning($"[FollowPath] Path at {step} is blocked and cannot be resolved. Returning to origin.");
+                if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                 yield return StartCoroutine(GoHome(origin));
                 yield break;
             }
@@ -677,6 +697,10 @@ public class PassengerGroup : MonoBehaviour
                 if (c.cellType == GridCellType.Blocked || c.cellType == GridCellType.Empty)
                 {
                     Debug.LogWarning($"[MoveAlongThenFollow] Düz ilerleme yolu ({step}) bir engel tarafından bloke edildi. Başlangıç konumuna ({overallOrigin}) dönülüyor.");
+                    if (stopIndex != -1)
+                    {
+                        StopManager.Instance.CancelReservation(stopIndex, this);
+                    }
                     yield return StartCoroutine(GoHome(overallOrigin));
                     yield break;
                 }
@@ -693,6 +717,10 @@ public class PassengerGroup : MonoBehaviour
                         if (grid.IsOccupied(step))
                         {
                             Debug.LogWarning($"[MoveAlongThenFollow] Yol ({step}) hala dolu. Başlangıç konumuna dönülüyor.");
+                            if (stopIndex != -1)
+                            {
+                                StopManager.Instance.CancelReservation(stopIndex, this);
+                            }
                             yield return StartCoroutine(GoHome(overallOrigin));
                             yield break; // Exit the coroutine
                         }
@@ -706,7 +734,7 @@ public class PassengerGroup : MonoBehaviour
         // Then follow pathToStop (which is computed from the walkable start)
         if (pathToStop != null && pathToStop.Count > 0)
         {
-            yield return StartCoroutine(FollowPath(pathToStop, overallOrigin));
+            yield return StartCoroutine(FollowPath(pathToStop, stopIndex, overallOrigin));
         }
         else if (stopIndex != -1) // Yol bulamadı AMA bir durağa atanmıştı
         {

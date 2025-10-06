@@ -251,4 +251,7 @@ MonoBehaviour:
   passengerGroupPrefab: {fileID: 4167543372237943838, guid: 4cceb67363a57024589d53750c3776f8, type: 3}
   autoSpawnPassengerPositions: []
   waitingAreaSlots: []
-  stopSlots: []
+  stopSlots:
+  - {x: 2, y: 10}
+  - {x: 3, y: 10}
+  - {x: 4, y: 10}

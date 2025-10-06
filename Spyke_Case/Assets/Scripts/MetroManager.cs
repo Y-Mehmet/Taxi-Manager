@@ -35,8 +35,6 @@ public class MetroManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        // Yolcu varış event'ini dinlemeye başla.
-        StopManager.OnPassengerArrivedAtStop += CheckForBoarding;
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoval;
     }
 
@@ -48,8 +46,10 @@ public class MetroManager : MonoBehaviour
     void OnDestroy()
     {
         // Bellek sızıntılarını önlemek için event aboneliğini kaldır.
-        StopManager.OnPassengerArrivedAtStop -= CheckForBoarding;
-        WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
+        if (WagonManager.Instance != null)
+        {
+            WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
+        }
     }
 
     void Start()
@@ -135,41 +135,6 @@ public class MetroManager : MonoBehaviour
         tailWagon.Init(checkpointPath, FindClosestCheckpointIndex(tailObj.transform.position));
         WagonManager.Instance.RegisterWagon(tailWagon);
         wagons.Add(tailWagon);
-    }
-
-    /// <summary>
-    /// Bir yolcu durağa vardığında tetiklenir. Bekleyen tüm yolcular için uygun vagonları arar.
-    /// </summary>
-    private void CheckForBoarding(PassengerGroup arrivedPassenger, int stopIndex)
-    {
-        Debug.Log($"Yolcu varışı algılandı ({arrivedPassenger.name}). Vagon eşleşmesi kontrol ediliyor...");
-
-        // 1. Gerekli bilgileri hazırla.
-        int totalCheckpoints = checkpointPath.checkpoints.Count;
-        int boardingZoneStart = totalCheckpoints - 21;
-
-        // 2. Duraklarda bekleyen tüm yolcuları al (bir kopyasını).
-        var waitingPassengers = StopManager.Instance.GetOccupiedStops();
-
-        // 3. Her bekleyen yolcu için uygun bir vagon ara.
-        foreach (var passengerEntry in waitingPassengers)
-        {
-            int currentStopIndex = passengerEntry.Key;
-            PassengerGroup passenger = passengerEntry.Value;
-
-            // WagonManager'dan bu yolcu için uygun bir vagon iste.
-            MetroWagon availableWagon = WagonManager.Instance.GetAvailableWagon(passenger.groupColor, boardingZoneStart);
-
-            if (availableWagon != null)
-            {
-                Debug.Log($"<color=cyan>EŞLEŞME BULUNDU:</color> {availableWagon.wagonColor} vagonu, {passenger.groupColor} renkli yolcuları alıyor.");
-
-                // Yolcuları bindir, durağı boşalt ve yolcuyu deaktif et.
-                availableWagon.BoardPassengers(passenger.groupSize);
-                StopManager.Instance.FreeStop(currentStopIndex);
-                passenger.gameObject.SetActive(false);
-            }
-        }
     }
 
     /// <summary>

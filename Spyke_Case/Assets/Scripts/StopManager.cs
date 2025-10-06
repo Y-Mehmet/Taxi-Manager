@@ -59,6 +59,17 @@ public class StopManager : MonoBehaviour
     {
         if (passengerGrid == null || passenger == null) return null;
 
+        // YENİ KONTROL: Bu yolcunun zaten bir rezervasyonu var mı?
+        foreach (var kvp in reservedStops)
+        {
+            if (kvp.Value == passenger)
+            {
+                Debug.LogWarning($"'{passenger.name}' yolcusu zaten {kvp.Key} nolu durağı rezerve etmiş. Mevcut rezervasyon kullanılıyor.");
+                return (passengerGrid.gridData.stopSlots[kvp.Key], kvp.Key);
+            }
+        }
+
+        // Mevcut mantık: Boş bir durak bul ve rezerve et
         for (int i = 0; i < passengerGrid.gridData.stopSlots.Count; i++)
         {
             // Eğer durak ne rezerve edilmiş ne de doluysa, bu durağı ata.
@@ -139,6 +150,29 @@ public class StopManager : MonoBehaviour
             Debug.Log($"Durak {stopIndex} serbest bırakıldı ve yeni yolcular için hazır.");
             OnOccupiedStopsChanged?.Invoke();
         }
+    }
+
+    /// <summary>
+    /// Bir yolcunun hedefine ulaşamaması durumunda rezervasyonunu iptal eder.
+    /// </summary>
+    public void CancelReservation(int stopIndex, PassengerGroup passenger)
+    {
+        if (reservedStops.TryGetValue(stopIndex, out var owner) && owner == passenger)
+        {
+            reservedStops.Remove(stopIndex);
+            Debug.LogWarning($"<color=orange>İPTAL:</color> '{passenger.name}' yolcusunun {stopIndex} nolu durak rezervasyonu, hedefe ulaşılamadığı için iptal edildi.");
+        }
+    }
+
+    /// <summary>
+    /// Sistemde herhangi bir boş durak olup olmadığını kontrol eder.
+    /// </summary>
+    public bool HasAvailableStops()
+    {
+        if (passengerGrid == null || passengerGrid.gridData == null) return false;
+        int totalStopCount = passengerGrid.gridData.stopSlots.Count;
+        int unavailableStopCount = reservedStops.Count + occupiedStops.Count;
+        return unavailableStopCount < totalStopCount;
     }
 
     /// <summary>

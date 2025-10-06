@@ -96,6 +96,20 @@ public class PassengerGroup : MonoBehaviour
     // Hareket denemesi ve loglama
     public void TryMoveForwardWithLog()
     {
+        if (isMoving)
+        {
+            Debug.LogWarning($"Yolcu '{name}' zaten hareket halinde olduğu için yeni hareket başlatılamadı.");
+            return;
+        }
+
+        // YENİ KONTROL: Harekete başlamadan önce boş durak var mı?
+        if (StopManager.Instance != null && !StopManager.Instance.HasAvailableStops())
+        {
+            Debug.LogWarning($"Tüm duraklar dolu veya rezerve edilmiş. '{name}' için hareket başlatılamadı.");
+            // İsteğe bağlı olarak burada bir ses veya animasyon tetiklenebilir.
+            return;
+        }
+
         Vector2Int nextPos = gridPos + moveDirection;
         string reason = "";
         if (grid == null)
@@ -113,82 +127,66 @@ public class PassengerGroup : MonoBehaviour
             {
                 reason = $"Gridde cell yok: {nextPos}";
             }
-            else if (cell.cellType != GridCellType.Walkable && cell.cellType != GridCellType.Stop && cell.cellType != GridCellType.WaitingArea)
+            else if (cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
             {
-                // Allow stepping into WaitingArea as well — it's not a hard obstacle
-                reason = $"Hedef cell engelli veya geçilemez: {cell.cellType}";
+                reason = $"Hedef ({nextPos}) bir engel.";
+                StartCoroutine(BounceVisual());
             }
             else
             {
-                // Diagnostic logging before starting movement
-                if (!isMoving)
+                // 1) Temel bilgileri logla
+                Debug.LogWarning($"[MoveStart] Passenger '{name}' at {gridPos} moving {moveDirection}");
+
+                // 2) Düz ilerleme yolunu (straightLeg) ve pathfinding başlangıç noktasını belirle
+                List<Vector2Int> straightVec = new List<Vector2Int>();
+                Vector2Int pathfindingStartPoint = gridPos; // Varsayılan olarak mevcut pozisyon
+                
+                Vector2Int tempCursor = gridPos + moveDirection;
+                while (grid.GetCell(tempCursor.x, tempCursor.y) != null)
                 {
-                    // 1) basic info
-                    Debug.LogWarning($"[MoveStart] Passenger '{name}' at {gridPos} moving {moveDirection}");
-
-                    // 2) straight leg indices/types until Walkable reached (or edge)
-                    var straight = new List<string>();
-                    Vector2Int cursor = gridPos + moveDirection;
-                    while (cursor.x >= 0 && cursor.y >= 0 && cursor.x < grid.gridWidth && cursor.y < grid.gridHeight)
+                    var currentCell = grid.GetCell(tempCursor.x, tempCursor.y);
+                    if (currentCell.cellType == GridCellType.Blocked || currentCell.cellType == GridCellType.Empty)
                     {
-                        var c = grid.GetCell(cursor.x, cursor.y);
-                        if (c == null) break;
-                        straight.Add($"{cursor}:{c.cellType}");
-                        if (c.cellType == GridCellType.Walkable) break;
-                        cursor += moveDirection;
-                    }
-                    Debug.LogWarning("[StraightLeg] " + string.Join(" -> ", straight.ToArray()));
-
-                    // Convert straight strings into Vector2Int positions for movement (available to both reservation and fallback)
-                    List<Vector2Int> straightVec = new List<Vector2Int>();
-                    Vector2Int scInit = gridPos + moveDirection;
-                    Vector2Int sc = scInit;
-                    while (sc.x >= 0 && sc.y >= 0 && sc.x < grid.gridWidth && sc.y < grid.gridHeight)
-                    {
-                        var csc = grid.GetCell(sc.x, sc.y);
-                        if (csc == null) break;
-                        straightVec.Add(sc);
-                        if (csc.cellType == GridCellType.Walkable) break;
-                        sc += moveDirection;
+                        break; // Engele çarptı, düz ilerleme bitti.
                     }
 
-                    // 3) Reserve a stop (if any) and compute path
-                        var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
-                        if (reservation != null)
-                        {
-                            var (stopPos, stopIndex) = reservation.Value;
+                    straightVec.Add(tempCursor); // Adımı listeye ekle
 
-                            // Determine walkable start (cursor currently points to first Walkable or edge)
-                            Vector2Int walkableStart = cursor; // cursor was advanced until Walkable or edge
-                            if (straight.Count == 0)
-                            {
-                                // no straight steps, use current gridPos
-                                walkableStart = gridPos;
-                            }
+                    // Eğer Walkable veya Stop alanına ulaşıldıysa, burası pathfinding başlangıç noktasıdır.
+                    if (currentCell.cellType == GridCellType.Walkable || currentCell.cellType == GridCellType.Stop)
+                    {
+                        pathfindingStartPoint = tempCursor;
+                        break; 
+                    }
 
-                            // compute a path to the reserved stop starting from the walkableStart and allow reservation (this)
-                            var pathToStop = grid.FindPathToTarget(walkableStart, stopPos, this);
+                    tempCursor += moveDirection;
+                }
 
-                            // Build combined plan string: straight leg then pathToStop
-                            string straightStr = straight.Count > 0 ? string.Join(" -> ", straight.ToArray()) : "(none)";
-                            var pathStr = pathToStop != null ? string.Join(" -> ", pathToStop.ConvertAll(p => p.ToString()).ToArray()) : "(no path)";
-                            Debug.LogWarning($"[PathPlan] straight: {straightStr} ; pathToStop: {pathStr}");
-                            Debug.LogWarning($"[AssignedStop] index={stopIndex} pos={stopPos}");
+                // Debug için straightLeg'i logla
+                var straightLog = new List<string>();
+                foreach(var pos in straightVec) straightLog.Add($"{pos}:{grid.GetCell(pos.x, pos.y)?.cellType}");
+                Debug.LogWarning("[StraightLeg] " + string.Join(" -> ", straightLog.ToArray()));
 
-                            // Start movement: move along straightVec then follow pathToStop
-                            StartCoroutine(MoveAlongThenFollow(straightVec, pathToStop, stopIndex, stopPos));
-                            return;
-                        }
+                // 3) Durak rezerve et ve yolu hesapla
+                var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
+                if (reservation != null)
+                {
+                    var (stopPos, stopIndex) = reservation.Value;
+                    var pathToStop = grid.FindPathToTarget(pathfindingStartPoint, stopPos, this);
 
-                        // No reservation available: compute fallback path starting from walkableStart
-                        Vector2Int fallbackStart = cursor;
-                        if (straight.Count == 0) fallbackStart = gridPos;
-                        var fallbackPath = grid.FindNearestStopPath(fallbackStart);
-                        var fallbackStr = fallbackPath != null ? string.Join(" -> ", fallbackPath.ConvertAll(p => p.ToString()).ToArray()) : "(no path)";
-                        Debug.LogWarning($"[PathPlan] planned path (no reservation) from {fallbackStart}: {fallbackStr}");
-                        // Move along straightVec then follow the fallback path
-                        StartCoroutine(MoveAlongThenFollow(straightVec, fallbackPath, -1, new Vector2Int(-1, -1)));
-                        return;
+                    var pathStr = pathToStop != null ? string.Join(" -> ", pathToStop.ConvertAll(p => p.ToString()).ToArray()) : "(no path)";
+                    Debug.LogWarning($"[PathPlan] straight: {string.Join(" -> ", straightVec.ConvertAll(p => p.ToString()).ToArray())} ; pathToStop: {pathStr}");
+                    Debug.LogWarning($"[AssignedStop] index={stopIndex} pos={stopPos}");
+
+                    StartCoroutine(MoveAlongThenFollow(straightVec, pathToStop, stopIndex, stopPos));
+                }
+                else
+                {
+                    // Rezervasyon için boş durak bulunamadı, fallback path dene
+                    var fallbackPath = grid.FindNearestStopPath(pathfindingStartPoint);
+                    var fallbackStr = fallbackPath != null ? string.Join(" -> ", fallbackPath.ConvertAll(p => p.ToString()).ToArray()) : "(no path)";
+                    Debug.LogWarning($"[PathPlan] planned path (no reservation) from {pathfindingStartPoint}: {fallbackStr}");
+                    StartCoroutine(MoveAlongThenFollow(straightVec, fallbackPath, -1, new Vector2Int(-1, -1)));
                 }
                 return;
             }
@@ -578,64 +576,91 @@ public class PassengerGroup : MonoBehaviour
     // Follow a path given as a list of grid positions (each step will be executed sequentially)
     System.Collections.IEnumerator FollowPath(List<Vector2Int> path, System.Nullable<Vector2Int> returnOrigin = null)
     {
-        // Remember starting position so we can return if blocked
         Vector2Int origin = returnOrigin.HasValue ? returnOrigin.Value : gridPos;
         foreach (var step in path)
         {
-            // Validate target cell
             var targetCell = grid.GetCell(step.x, step.y);
-            if (targetCell == null)
+            if (targetCell == null || targetCell.cellType == GridCellType.Blocked || targetCell.cellType == GridCellType.Empty)
             {
-                // invalid cell - go back to origin and stop
-                yield return StartCoroutine(MoveToCoroutine(origin));
+                Debug.LogWarning($"[FollowPath] Path is blocked by terrain at {step}. Returning to origin.");
+                yield return StartCoroutine(GoHome(origin));
                 yield break;
             }
 
-            if (targetCell.cellType == GridCellType.Blocked || targetCell.cellType == GridCellType.Empty)
-            {
-                // blocked by terrain - return to origin
-                yield return StartCoroutine(MoveToCoroutine(origin));
-                yield break;
-            }
-
-            // If occupied, try jump if allowed, otherwise return to origin
             if (grid.IsOccupied(step))
             {
-                var curCell = grid.GetCell(gridPos.x, gridPos.y);
-                if (curCell != null && (curCell.cellType == GridCellType.Walkable || curCell.cellType == GridCellType.Stop))
+                var occupant = grid.GetOccupant(step);
+                if (occupant == this) // Should not happen, but as a safeguard
                 {
-                    Vector2Int dir = step - gridPos;
-                    Vector2Int landing = step + dir;
-                    var landCell = grid.GetCell(landing.x, landing.y);
-                    if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !grid.IsOccupied(landing))
+                    yield return StartCoroutine(MoveToCoroutine(step));
+                    continue;
+                }
+                
+                if (occupant != null && occupant.isMoving)
+                {
+                    Debug.LogWarning($"[FollowPath] Path at {step} is blocked by moving passenger '{occupant.name}'. Waiting.");
+                    yield return new WaitUntil(() => grid.GetOccupant(step) != occupant || !occupant.isMoving);
+                    
+                    if (!grid.IsOccupied(step))
                     {
-                        yield return StartCoroutine(JumpToCoroutine(landing));
-                        // After jump, prefer our reserved stop when recomputing path
-                        var reserved = StopManager.Instance.GetReservedStopFor(this);
-                        List<Vector2Int> newPath = null;
-                        if (reserved != null)
-                        {
-                            newPath = grid.FindPathToTarget(gridPos, reserved.Value.pos, this);
-                        }
-                        if (newPath == null)
-                            newPath = grid.FindNearestStopPath(gridPos);
-                        if (newPath == null || newPath.Count == 0) { yield return StartCoroutine(MoveToCoroutine(origin)); yield break; }
-                        path = newPath;
+                        Debug.LogWarning($"[FollowPath] Path at {step} is now clear. Proceeding.");
+                        yield return StartCoroutine(MoveToCoroutine(step));
                         continue;
                     }
+                    Debug.LogWarning($"[FollowPath] Path at {step} is still occupied. Re-evaluating...");
                 }
 
-                // cannot pass: go back to origin
-                yield return StartCoroutine(MoveToCoroutine(origin));
+                occupant = grid.GetOccupant(step);
+                if (occupant != null)
+                {
+                    var occupiedCell = grid.GetCell(step.x, step.y);
+                    bool occupantIsAtStop = occupiedCell.cellType == GridCellType.Stop && StopManager.Instance.GetPassengerAtStop(occupiedCell.stopIndex) == occupant;
+
+                    if (occupantIsAtStop)
+                    {
+                        Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is stationary at a stop. Attempting to jump.");
+                        Vector2Int dir = step - gridPos;
+                        Vector2Int landing = step + dir;
+                        var landCell = grid.GetCell(landing.x, landing.y);
+
+                        if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !grid.IsOccupied(landing))
+                        {
+                            Debug.LogWarning($"[FollowPath] Jumping over {step} to {landing}.");
+                            yield return StartCoroutine(JumpToCoroutine(landing));
+
+                            Debug.LogWarning($"[FollowPath] Recalculating path from {gridPos}.");
+                            var reservation = StopManager.Instance.GetReservedStopFor(this);
+                            if (reservation != null)
+                            {
+                                var newPath = grid.FindPathToTarget(gridPos, reservation.Value.pos, this);
+                                if (newPath != null && newPath.Count > 0)
+                                {
+                                    yield return StartCoroutine(FollowPath(newPath, origin));
+                                }
+                                else
+                                {
+                                    StopManager.Instance.CancelReservation(reservation.Value.index, this);
+                                    yield return StartCoroutine(GoHome(origin));
+                                }
+                            }
+                            else
+                            {
+                                yield return StartCoroutine(GoHome(origin));
+                            }
+                            yield break; 
+                        }
+                    }
+                }
+                
+                Debug.LogWarning($"[FollowPath] Path at {step} is blocked and cannot be resolved. Returning to origin.");
+                yield return StartCoroutine(GoHome(origin));
                 yield break;
             }
 
-            // Safe to move
             yield return StartCoroutine(MoveToCoroutine(step));
         }
     }
 
-    // Move along straight leg then follow the provided path to the reserved stop
     System.Collections.IEnumerator MoveAlongThenFollow(List<Vector2Int> straightLeg, List<Vector2Int> pathToStop, int stopIndex, Vector2Int stopPos)
     {
         // Remember the overall origin (slot before any movement)
@@ -646,31 +671,34 @@ public class PassengerGroup : MonoBehaviour
         {
             foreach (var step in straightLeg)
             {
-                // If occupied or invalid, abort and return to origin
                 var c = grid.GetCell(step.x, step.y);
-                if (c == null) yield break;
-                // If the step is a blocked or empty tile, treat specially
+                if (c == null) yield break; 
+
                 if (c.cellType == GridCellType.Blocked || c.cellType == GridCellType.Empty)
                 {
-                    var curCell = grid.GetCell(gridPos.x, gridPos.y);
-                    if (curCell != null && curCell.cellType == GridCellType.WaitingArea)
-                    {
-                        Debug.LogWarning($"[MoveAlongThenFollow] blocked ahead at {step} while on WaitingArea — returning to origin {overallOrigin}");
-                        yield return StartCoroutine(MoveToCoroutine(overallOrigin));
-                        yield break;
-                    }
-                    StartCoroutine(BounceVisual()); yield break;
+                    Debug.LogWarning($"[MoveAlongThenFollow] Düz ilerleme yolu ({step}) bir engel tarafından bloke edildi. Başlangıç konumuna ({overallOrigin}) dönülüyor.");
+                    yield return StartCoroutine(GoHome(overallOrigin));
+                    yield break;
                 }
-                if (grid.IsOccupied(step)) {
-                    // If we are currently standing on a WaitingArea, return to the overall origin
-                    var curCell = grid.GetCell(gridPos.x, gridPos.y);
-                    if (curCell != null && curCell.cellType == GridCellType.WaitingArea)
+
+                if (grid.IsOccupied(step))
+                {
+                    var occupant = grid.GetOccupant(step);
+                    if (occupant != null) // Null check for safety
                     {
-                        Debug.LogWarning($"[MoveAlongThenFollow] occupied ahead at {step} while on WaitingArea — returning to origin {overallOrigin}");
-                        yield return StartCoroutine(MoveToCoroutine(overallOrigin));
-                        yield break;
+                        Debug.LogWarning($"[MoveAlongThenFollow] Düz ilerleme yolu ({step}) başka bir yolcu ('{occupant.name}') tarafından dolu. Kısa bir süre bekleniyor.");
+                        yield return new WaitForSeconds(0.5f); // Wait a bit to see if it clears
+
+                        // Check again
+                        if (grid.IsOccupied(step))
+                        {
+                            Debug.LogWarning($"[MoveAlongThenFollow] Yol ({step}) hala dolu. Başlangıç konumuna dönülüyor.");
+                            yield return StartCoroutine(GoHome(overallOrigin));
+                            yield break; // Exit the coroutine
+                        }
                     }
-                    StartCoroutine(BounceVisual()); yield break; }
+                }
+
                 yield return StartCoroutine(MoveToCoroutine(step));
             }
         }
@@ -678,16 +706,29 @@ public class PassengerGroup : MonoBehaviour
         // Then follow pathToStop (which is computed from the walkable start)
         if (pathToStop != null && pathToStop.Count > 0)
         {
-            // Pass overallOrigin so FollowPath can return to the original start if necessary
             yield return StartCoroutine(FollowPath(pathToStop, overallOrigin));
         }
-
-        // On arrival, if we are at stopPos, release reservation and log
-        if (gridPos == stopPos)
+        else if (stopIndex != -1) // Yol bulamadı AMA bir durağa atanmıştı
         {
-            // Durağa vardığımızı StopManager'a bildir.
+            StopManager.Instance.CancelReservation(stopIndex, this);
+            Debug.LogError($"YOL BULUNAMADI: '{name}' yolcusu, atandığı {stopIndex} nolu durağa ({stopPos}) bir yol bulamadı. Başlangıç konumuna geri dönüyor.");
+            yield return StartCoroutine(GoHome(overallOrigin));
+            yield break; 
+        }
+
+        // On arrival, if we are at stopPos, confirm arrival
+        if (gridPos == stopPos && stopIndex != -1)
+        {
             StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
         }
+    }
+
+    // Garantili Geri Dönüş Metodu
+    System.Collections.IEnumerator GoHome(Vector2Int origin)
+    {
+        isMoving = true;
+        yield return StartCoroutine(MoveToCoroutine(origin));
+        isMoving = false;
     }
 
     // Jump coroutine using DOTween

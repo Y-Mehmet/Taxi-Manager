@@ -88,6 +88,10 @@ namespace GridSystem
             int w = gridData.width;
             int h = gridData.height;
 
+            // Gelen 'from' pozisyonunun grid sınırları içinde olduğundan emin ol.
+            if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h)
+                return null; // Eğer sınırlar dışındaysa, yol aramayı durdur.
+
             bool[,] visited = new bool[w, h];
             Vector2Int[,] parent = new Vector2Int[w, h];
             Queue<Vector2Int> q = new Queue<Vector2Int>();
@@ -193,8 +197,10 @@ namespace GridSystem
                         if (visited[nx.x, nx.y]) continue;
                         var nc = GetCell(nx.x, nx.y);
                         if (nc == null) continue;
-                        // check occupancy (do not step into occupied cells)
-                        if (occupancy.ContainsKey(nx)) continue;
+                        
+                        // Doluluk kontrolü: Eğer komşu hücre doluysa, bu hücrenin hedefimiz olup olmadığını kontrol et.
+                        // Eğer hedefimiz değilse, bu hücreye adım atma.
+                        if (occupancy.ContainsKey(nx) && nx != target) continue;
 
                         if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop)
                         {
@@ -225,6 +231,12 @@ namespace GridSystem
         public bool IsOccupied(Vector2Int pos)
         {
             return occupancy.ContainsKey(pos);
+        }
+
+        public PassengerGroup GetOccupant(Vector2Int pos)
+        {
+            occupancy.TryGetValue(pos, out var occupant);
+            return occupant;
         }
 
         public void RegisterOccupant(Vector2Int pos, PassengerGroup g)

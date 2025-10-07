@@ -82,144 +82,123 @@ namespace GridSystem
         // Allowed traversal types: Walkable and Stop. Cells occupied by PassengerGroup are treated as blocked.
         // Returns a list of grid positions (including the target Stop), or null if none found.
     public List<Vector2Int> FindNearestStopPath(Vector2Int from, PassengerGroup requester = null)
+    {
+        if (gridData == null) return null;
+        int w = gridData.width;
+        int h = gridData.height;
+        if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h) return null;
+
+        bool[,] visited = new bool[w, h];
+        Vector2Int[,] parent = new Vector2Int[w, h];
+        Queue<Vector2Int> q = new Queue<Vector2Int>();
+
+        q.Enqueue(from);
+        visited[from.x, from.y] = true;
+        Vector2Int[] dirs = new Vector2Int[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+        while (q.Count > 0)
         {
-            if (gridData == null) return null;
-
-            int w = gridData.width;
-            int h = gridData.height;
-
-            // Gelen 'from' pozisyonunun grid sınırları içinde olduğundan emin ol.
-            if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h)
-                return null; // Eğer sınırlar dışındaysa, yol aramayı durdur.
-
-            bool[,] visited = new bool[w, h];
-            Vector2Int[,] parent = new Vector2Int[w, h];
-            Queue<Vector2Int> q = new Queue<Vector2Int>();
-
-            q.Enqueue(from);
-            visited[from.x, from.y] = true;
-
-            Vector2Int[] dirs = new Vector2Int[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
-            while (q.Count > 0)
+            var cur = q.Dequeue();
+            var cell = GetCell(cur.x, cur.y);
+            if (cell != null && cell.cellType == GridCellType.Stop)
             {
-                var cur = q.Dequeue();
-                var cell = GetCell(cur.x, cur.y);
-                if (cell != null && cell.cellType == GridCellType.Stop)
+                if (!occupancy.ContainsKey(cur))
                 {
-                    // Ensure stop is free (no occupant) OR reserved by the requester
-                    bool occupied = occupancy.ContainsKey(cur);
-                    // TODO: StopManager'dan kontrol edilebilir. Şimdilik sadece occupancy'e bakıyor.
-                    if (!occupied)
-                    {
-                        // Reconstruct path
-                        List<Vector2Int> path = new List<Vector2Int>();
-                        Vector2Int p = cur;
-                        while (p != from)
-                        {
-                            path.Add(p);
-                            p = parent[p.x, p.y];
-                        }
-                        path.Reverse();
-                        return path;
-                    }
-                }
-
-                // expand neighbors (only Walkable or Stop)
-                foreach (var d in dirs)
-                {
-                    Vector2Int nx = cur + d;
-                    if (nx.x < 0 || nx.y < 0 || nx.x >= w || nx.y >= h) continue;
-                    if (visited[nx.x, nx.y]) continue;
-                    var nc = GetCell(nx.x, nx.y);
-                    if (nc == null) continue;
-                    // check occupancy
-                    if (occupancy.ContainsKey(nx)) continue;
-
-                    if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop)
-                    {
-                        visited[nx.x, nx.y] = true;
-                        parent[nx.x, nx.y] = cur;
-                        q.Enqueue(nx);
-                    }
+                    List<Vector2Int> path = new List<Vector2Int>();
+                    Vector2Int p = cur;
+                    while (p != from) { path.Add(p); p = parent[p.x, p.y]; }
+                    path.Reverse();
+                    return path;
                 }
             }
 
-            return null;
+            foreach (var d in dirs)
+            {
+                Vector2Int nx = cur + d;
+                if (nx.x < 0 || nx.y < 0 || nx.x >= w || nx.y >= h) continue;
+                if (visited[nx.x, nx.y]) continue;
+                var nc = GetCell(nx.x, nx.y);
+                if (nc == null) continue;
+
+                if (occupancy.ContainsKey(nx))
+                {
+                    if (nc.cellType == GridCellType.WaitingArea)
+                    {
+                        continue;
+                    }
+                }
+
+                if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop || nc.cellType == GridCellType.WaitingArea)
+                {
+                    visited[nx.x, nx.y] = true;
+                    parent[nx.x, nx.y] = cur;
+                    q.Enqueue(nx);
+                }
+            }
         }
+        return null;
+    }
 
-            // Find shortest path from 'from' to the specific 'target' cell (goal).
-            // Allows traversal over Walkable and Stop cells. If the target is a Stop cell,
-            // it will be allowed if it's free or reserved by the requester.
-            public List<Vector2Int> FindPathToTarget(Vector2Int from, Vector2Int target, PassengerGroup requester = null)
+    // Find shortest path from 'from' to the specific 'target' cell (goal).
+    // Allows traversal over Walkable and Stop cells. If the target is a Stop cell,
+    // it will be allowed if it's free or reserved by the requester.
+    public List<Vector2Int> FindPathToTarget(Vector2Int from, Vector2Int target, PassengerGroup requester = null)
+    {
+        if (gridData == null) return null;
+        int w = gridData.width;
+        int h = gridData.height;
+        if (target.x < 0 || target.y < 0 || target.x >= w || target.y >= h) return null;
+        if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h) return null;
+
+        bool[,] visited = new bool[w, h];
+        Vector2Int[,] parent = new Vector2Int[w, h];
+        Queue<Vector2Int> q = new Queue<Vector2Int>();
+
+        q.Enqueue(from);
+        visited[from.x, from.y] = true;
+        Vector2Int[] dirs = new Vector2Int[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+        while (q.Count > 0)
+        {
+            var cur = q.Dequeue();
+            if (cur == target)
             {
-                if (gridData == null) return null;
+                List<Vector2Int> path = new List<Vector2Int>();
+                Vector2Int p = cur;
+                while (p != from) { path.Add(p); p = parent[p.x, p.y]; }
+                path.Reverse();
+                return path;
+            }
 
-                int w = gridData.width;
-                int h = gridData.height;
+            foreach (var d in dirs)
+            {
+                Vector2Int nx = cur + d;
+                if (nx.x < 0 || nx.y < 0 || nx.x >= w || nx.y >= h) continue;
+                if (visited[nx.x, nx.y]) continue;
+                var nc = GetCell(nx.x, nx.y);
+                if (nc == null) continue;
 
-                // Validate bounds
-                if (target.x < 0 || target.y < 0 || target.x >= w || target.y >= h) return null;
-                if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h) return null;
-
-                bool[,] visited = new bool[w, h];
-                Vector2Int[,] parent = new Vector2Int[w, h];
-                Queue<Vector2Int> q = new Queue<Vector2Int>();
-
-                q.Enqueue(from);
-                visited[from.x, from.y] = true;
-
-                Vector2Int[] dirs = new Vector2Int[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
-                while (q.Count > 0)
+                // Allow pathing through Walkable and Stop cells, even if occupied.
+                // Block pathing through occupied WaitingArea cells.
+                if (occupancy.ContainsKey(nx))
                 {
-                    var cur = q.Dequeue();
-
-                    // If we've reached the target, reconstruct path
-                    if (cur == target)
+                    if (nc.cellType == GridCellType.WaitingArea)
                     {
-                        List<Vector2Int> path = new List<Vector2Int>();
-                        Vector2Int p = cur;
-                        while (p != from)
-                        {
-                            path.Add(p);
-                            p = parent[p.x, p.y];
-                        }
-                        path.Reverse();
-                        return path;
+                        continue; // Occupied WaitingArea is a blocker.
                     }
-
-                    // expand neighbors (only Walkable or Stop)
-                    foreach (var d in dirs)
-                    {
-                        Vector2Int nx = cur + d;
-                        if (nx.x < 0 || nx.y < 0 || nx.x >= w || nx.y >= h) continue;
-                        if (visited[nx.x, nx.y]) continue;
-                        var nc = GetCell(nx.x, nx.y);
-                        if (nc == null) continue;
-                        
-                        // Doluluk kontrolü: Eğer komşu hücre doluysa, bu hücrenin hedefimiz olup olmadığını kontrol et.
-                        // Eğer hedefimiz değilse, bu hücreye adım atma.
-                        if (occupancy.ContainsKey(nx) && nx != target) continue;
-
-                        if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop)
-                        {
-                            // If this neighbor is the target and is a Stop, ensure reservation rules allow reaching it
-                            if (nx == target && nc.cellType == GridCellType.Stop)
-                            {
-                                bool occupied = occupancy.ContainsKey(nx); // Sadece fiziksel doluluğa bak
-                                if (occupied) continue; // cannot step into the target
-                            }
-
-                            visited[nx.x, nx.y] = true;
-                            parent[nx.x, nx.y] = cur;
-                            q.Enqueue(nx);
-                        }
-                    }
+                    // For Walkable/Stop, we allow pathing through.
                 }
 
-                return null;
+                if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop || nc.cellType == GridCellType.WaitingArea)
+                {
+                    visited[nx.x, nx.y] = true;
+                    parent[nx.x, nx.y] = cur;
+                    q.Enqueue(nx);
+                }
             }
+        }
+        return null;
+    }
 
             // Return the reserved stop (pos,index) for a given passenger, or null if none
             public (Vector2Int pos, int index)? GetReservedStopFor(PassengerGroup g)

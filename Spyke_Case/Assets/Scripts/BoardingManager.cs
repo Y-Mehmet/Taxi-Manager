@@ -88,7 +88,7 @@ public class BoardingManager : MonoBehaviour
         if (hasChanged)
         {
             availableWagonColors = currentColorsInZone;
-            Debug.Log($"<color=lightblue>Yolcu Alma Bölgesi Güncellendi:</color> Mevcut Renkler: {string.Join(", ", availableWagonColors)}");
+           // Debug.Log($"<color=lightblue>Yolcu Alma Bölgesi Güncellendi:</color> Mevcut Renkler: {string.Join(", ", availableWagonColors)}");
             
             // Rengi değişen vagonlar olduğu için event'i tetikle.
             OnAvailableColorsChanged?.Invoke(availableWagonColors);

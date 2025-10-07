@@ -60,6 +60,6 @@ public class ChildDirectionRotator : MonoBehaviour
 
         // Hesaplanmış olan hedef rotasyonu objeye uygula.
         // Quaternion.Euler, derece cinsinden açıları bir Quaternion rotasyonuna çevirir.
-        transform.rotation = Quaternion.Euler(90, targetYRotation, 0);
+        transform.rotation = Quaternion.Euler(0, targetYRotation, 0);
     }
 }

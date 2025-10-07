@@ -18,11 +18,9 @@ public class PassengerGroup : MonoBehaviour
     [Header("Initialization")]
     [Tooltip("If true, this object will be placed at `gridPos` on Start(). Leave false for manual placement.")]
     public bool useGridPosition = false;
-    [Header("Yolcu Prefabı")]
-    public GameObject passengerPrefab;
     [Header("Yön Göstergesi")]
     public Transform directionIndicator;
-    private List<GameObject> passengers = new List<GameObject>();
+
     // --- Convoy / train follow support ---
     [Header("Convoy (train) settings")]
     //[Tooltip("If set, this PassengerGroup will follow the movements of the given leader group (rail-like behavior)")]
@@ -266,7 +264,6 @@ public class PassengerGroup : MonoBehaviour
 
     void Start()
     {
-        SpawnPassengers();
         SetGroupColor(groupColor);
 
         // Ensure the group's world position matches its gridPos at start
@@ -316,41 +313,25 @@ public class PassengerGroup : MonoBehaviour
         }
     }
 
-    void SpawnPassengers()
-    {
-        // Hareket yönüne göre rotasyon hesapla.
-        // Vector2Int(x, y) grid yönünü Vector3(x, 0, z) dünya yönüne çeviriyoruz.
-        Vector3 directionVector = new Vector3(moveDirection.x, 0, moveDirection.y);
-        Quaternion targetRotation = Quaternion.identity; // Eğer yön (0,0) ise default rotasyon.
-        if (directionVector != Vector3.zero)
-        {
-            targetRotation = Quaternion.LookRotation(directionVector);
-        }
 
-        // Yolcuları grup büyüklüğüne göre spawn et
-        for (int i = 0; i < groupSize; i++)
-        {
-            // Yolcuyu ana grup nesnesinin içinde spawn et
-            GameObject p = Instantiate(passengerPrefab, transform);
-            
-            // Yolcuları yan yana veya blok şeklinde diz
-            float offset = (groupSize - 1) * 0.25f;
-            p.transform.localPosition = new Vector3(i * 0.5f - offset, 0, 0);
-
-            // Her bir yolcunun rotasyonunu ayarla
-            p.transform.rotation = targetRotation;
-            
-            passengers.Add(p);
-        }
-    }
 
     public void SetGroupColor(HyperCasualColor color)
     {
-        foreach (var p in passengers)
+        // Yolcular artık prefab'dan instantiate edilmediği için,
+        // renk ataması doğrudan child objelere yapılır.
+        foreach (Transform child in transform)
         {
-            var renderer = p.GetComponentInChildren<Renderer>();
+            // Yön göstergesi bu mantığın dışında tutulur.
+            if (directionIndicator != null && child == directionIndicator)
+            {
+                continue;
+            }
+
+            var renderer = child.GetComponentInChildren<Renderer>();
             if (renderer != null)
+            {
                 renderer.material.color = color.ToColor();
+            }
         }
     }
 
@@ -594,8 +575,9 @@ public class PassengerGroup : MonoBehaviour
     System.Collections.IEnumerator FollowPath(List<Vector2Int> path, int stopIndex, System.Nullable<Vector2Int> returnOrigin = null)
     {
         Vector2Int origin = returnOrigin.HasValue ? returnOrigin.Value : gridPos;
-        foreach (var step in path)
+        for (int i = 0; i < path.Count; i++)
         {
+            var step = path[i];
             var targetCell = grid.GetCell(step.x, step.y);
             if (targetCell == null || targetCell.cellType == GridCellType.Blocked || targetCell.cellType == GridCellType.Empty)
             {
@@ -608,73 +590,86 @@ public class PassengerGroup : MonoBehaviour
             if (grid.IsOccupied(step))
             {
                 var occupant = grid.GetOccupant(step);
-                if (occupant == this) // Should not happen, but as a safeguard
+                if (occupant == this)
                 {
                     yield return StartCoroutine(MoveToCoroutine(step));
                     continue;
                 }
-                
+
                 if (occupant != null && occupant.isMoving)
                 {
                     Debug.LogWarning($"[FollowPath] Path at {step} is blocked by moving passenger '{occupant.name}'. Waiting.");
                     yield return new WaitUntil(() => grid.GetOccupant(step) != occupant || !occupant.isMoving);
-                    
-                    if (!grid.IsOccupied(step))
-                    {
-                        Debug.LogWarning($"[FollowPath] Path at {step} is now clear. Proceeding.");
-                        yield return StartCoroutine(MoveToCoroutine(step));
-                        continue;
-                    }
-                    Debug.LogWarning($"[FollowPath] Path at {step} is still occupied. Re-evaluating...");
                 }
 
-                occupant = grid.GetOccupant(step);
-                if (occupant != null)
+                if (grid.IsOccupied(step) && grid.GetOccupant(step) != this)
                 {
+                    occupant = grid.GetOccupant(step);
                     var occupiedCell = grid.GetCell(step.x, step.y);
-                    bool occupantIsAtStop = occupiedCell.cellType == GridCellType.Stop && StopManager.Instance.GetPassengerAtStop(occupiedCell.stopIndex) == occupant;
+                    bool occupantIsAtStop = occupant != null && !occupant.isMoving && occupiedCell.cellType == GridCellType.Stop;
 
                     if (occupantIsAtStop)
                     {
-                        Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is stationary at a stop. Attempting to jump.");
-                        Vector2Int dir = step - gridPos;
-                        Vector2Int landing = step + dir;
-                        var landCell = grid.GetCell(landing.x, landing.y);
+                        Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is stationary at a stop. Waiting 1s.");
+                        yield return new WaitForSeconds(1f);
 
-                        if (landCell != null && (landCell.cellType == GridCellType.Walkable || landCell.cellType == GridCellType.Stop) && !grid.IsOccupied(landing))
+                        if (grid.GetOccupant(step) == occupant) // Still there
                         {
-                            Debug.LogWarning($"[FollowPath] Jumping over {step} to {landing}.");
-                            yield return StartCoroutine(JumpToCoroutine(landing));
+                            Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is still at stop. Attempting to find a free spot to jump to.");
+                            Vector2Int dir = step - gridPos;
+                            if (dir == Vector2Int.zero) dir = moveDirection; // Fallback if stuck
 
-                            Debug.LogWarning($"[FollowPath] Recalculating path from {gridPos}.");
-                            var reservation = StopManager.Instance.GetReservedStopFor(this);
-                            if (reservation != null)
+                            Vector2Int landingPos = step;
+                            bool foundLandingSpot = false;
+
+                            for (int j = 1; j < 10; j++) // Limit search to 10 cells
                             {
-                                var newPath = grid.FindPathToTarget(gridPos, reservation.Value.pos, this);
-                                if (newPath != null && newPath.Count > 0)
+                                landingPos += dir;
+                                var landingCell = grid.GetCell(landingPos.x, landingPos.y);
+
+                                if (landingCell == null || (landingCell.cellType != GridCellType.Walkable && landingCell.cellType != GridCellType.Stop))
                                 {
-                                    yield return StartCoroutine(FollowPath(newPath, stopIndex, origin));
+                                    Debug.LogWarning($"[FollowPath] Chain-jump check hit a non-walkable cell at {landingPos}. Aborting jump.");
+                                    break;
+                                }
+
+                                if (!grid.IsOccupied(landingPos))
+                                {
+                                    Debug.LogWarning($"[FollowPath] Found a free landing spot at {landingPos}. Jumping.");
+                                    yield return StartCoroutine(JumpToCoroutine(landingPos));
+
+                                    int landingIndexInPath = path.IndexOf(landingPos);
+                                    if (landingIndexInPath > i)
+                                    {
+                                        i = landingIndexInPath -1;
+                                    }
+
+                                    foundLandingSpot = true;
+                                    break;
                                 }
                                 else
                                 {
-                                    if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                                    yield return StartCoroutine(GoHome(origin));
+                                    Debug.LogWarning($"[FollowPath] Chain-jump check: cell {landingPos} is also occupied. Checking next one.");
                                 }
                             }
-                            else
+
+                            if (foundLandingSpot)
                             {
-                                if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                                yield return StartCoroutine(GoHome(origin));
+                                continue;
                             }
-                            yield break; 
+                        }
+                        else
+                        {
+                            yield return StartCoroutine(MoveToCoroutine(step));
+                            continue;
                         }
                     }
+
+                    Debug.LogWarning($"[FollowPath] Path at {step} is blocked and cannot be resolved. Returning to origin.");
+                    if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
+                    yield return StartCoroutine(GoHome(origin));
+                    yield break;
                 }
-                
-                Debug.LogWarning($"[FollowPath] Path at {step} is blocked and cannot be resolved. Returning to origin.");
-                if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                yield return StartCoroutine(GoHome(origin));
-                yield break;
             }
 
             yield return StartCoroutine(MoveToCoroutine(step));
@@ -736,7 +731,12 @@ public class PassengerGroup : MonoBehaviour
         {
             yield return StartCoroutine(FollowPath(pathToStop, stopIndex, overallOrigin));
         }
-        else if (stopIndex != -1) // Yol bulamadı AMA bir durağa atanmıştı
+        else if (gridPos == stopPos)
+        {
+            // Path is empty, but we are already at the destination stop. This is not an error.
+            // The final arrival confirmation will handle it.
+        }
+        else if (stopIndex != -1) // Path not found AND we are not at the destination
         {
             StopManager.Instance.CancelReservation(stopIndex, this);
             Debug.LogError($"YOL BULUNAMADI: '{name}' yolcusu, atandığı {stopIndex} nolu durağa ({stopPos}) bir yol bulamadı. Başlangıç konumuna geri dönüyor.");

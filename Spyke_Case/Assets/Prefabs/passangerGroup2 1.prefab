@@ -68,13 +68,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveDirection: {x: 0, y: 1}
+  modelTransform: {fileID: 6221884853323111485}
   groupSize: 2
   groupColor: 3
   moveSpeed: 2
   gridPos: {x: 0, y: 0}
   grid: {fileID: 8369232995520237688, guid: d6fa140e6a31d134a981f2cbb1968787, type: 3}
   useGridPosition: 0
-  passengerPrefab: {fileID: 3098900145251320976, guid: aadc72fa92878624f9d0d6a8881e9e83, type: 3}
   directionIndicator: {fileID: 0}
   followTarget: {fileID: 0}
   followStepDelay: 1

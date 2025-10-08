@@ -10,6 +10,8 @@ public class PassengerGroup : MonoBehaviour
     [Header("Yolcu grubunun yönü (sağ, sol, yukarı, aşağı)")]
     public Vector2Int moveDirection = Vector2Int.up;
     [Header("Yolcu Grubu Ayarları")]
+    [Tooltip("Dönüş animasyonlarının uygulanacağı görsel model.")]
+    public Transform modelTransform;
     public int groupSize = 4; // 2, 4, 6, 8
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
     public float moveSpeed = 2f;
@@ -467,6 +469,10 @@ public class PassengerGroup : MonoBehaviour
         isMoving = true;
         // Use existing axis-aligned MoveToWorld but wait for it to finish
         yield return StartCoroutine(MoveToWorld(worldTarget, newGridPos));
+        
+        // MOVED FROM MoveToWorld: Update logical grid position AFTER movement is complete.
+        gridPos = newGridPos;
+
         // After finishing move, notify any followers (leader broadcasts its previous position)
    // NotifyFollowersOfMove(gridPos);
    // // Record leader route for rail-mode
@@ -606,16 +612,17 @@ public class PassengerGroup : MonoBehaviour
                 {
                     occupant = grid.GetOccupant(step);
                     var occupiedCell = grid.GetCell(step.x, step.y);
-                    bool occupantIsAtStop = occupant != null && !occupant.isMoving && occupiedCell.cellType == GridCellType.Stop;
+                    // MODIFIED: An obstacle is jumpable if it's stationary on a Stop OR a Walkable tile.
+                    bool isJumpableObstacle = occupant != null && !occupant.isMoving && (occupiedCell.cellType == GridCellType.Stop || occupiedCell.cellType == GridCellType.Walkable);
 
-                    if (occupantIsAtStop)
+                    if (isJumpableObstacle)
                     {
-                        Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is stationary at a stop. Waiting 1s.");
+                        Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is stationary on a jumpable tile. Waiting 1s.");
                         yield return new WaitForSeconds(1f);
 
                         if (grid.GetOccupant(step) == occupant) // Still there
                         {
-                            Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is still at stop. Attempting to find a free spot to jump to.");
+                            Debug.LogWarning($"[FollowPath] Occupant '{occupant.name}' is still there. Attempting to find a free spot to jump to.");
                             Vector2Int dir = step - gridPos;
                             if (dir == Vector2Int.zero) dir = moveDirection; // Fallback if stuck
 
@@ -641,7 +648,7 @@ public class PassengerGroup : MonoBehaviour
                                     int landingIndexInPath = path.IndexOf(landingPos);
                                     if (landingIndexInPath > i)
                                     {
-                                        i = landingIndexInPath -1;
+                                        i = landingIndexInPath - 1;
                                     }
 
                                     foundLandingSpot = true;
@@ -665,7 +672,7 @@ public class PassengerGroup : MonoBehaviour
                         }
                     }
 
-                    Debug.LogWarning($"[FollowPath] Path at {step} is blocked and cannot be resolved. Returning to origin.");
+                    Debug.LogWarning($"[FollowPath] Path at {step} is blocked by a non-jumpable obstacle ('{occupant?.name}' in a {occupiedCell.cellType} cell). Returning to origin.");
                     if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                     yield return StartCoroutine(GoHome(origin));
                     yield break;
@@ -755,7 +762,33 @@ public class PassengerGroup : MonoBehaviour
     System.Collections.IEnumerator GoHome(Vector2Int origin)
     {
         isMoving = true;
+
+        // First, move back to the origin position smoothly.
         yield return StartCoroutine(MoveToCoroutine(origin));
+
+        // --- NEW Burnout/Drift Animation ---
+        Debug.LogWarning($"[GoHome] Returned to {origin}. Performing burnout turn.");
+
+        // 1. Calculate the final target rotation based on moveDirection.
+        Vector3 finalDirVector = new Vector3(moveDirection.x, 0, moveDirection.y);
+        Quaternion finalRotation = transform.rotation; // Default to current if direction is zero
+        if (finalDirVector != Vector3.zero)
+        {
+            finalRotation = Quaternion.LookRotation(finalDirVector);
+        }
+
+        // 2. Perform the 360 spin + correction animation.
+        float spinDuration = 0.5f; // Duration for the spin.
+        Transform transformToRotate = modelTransform != null ? modelTransform : transform;
+        
+        // Use DORotate with FastBeyond360 to ensure it makes at least a full spin towards the target rotation.
+        yield return transformToRotate.DORotate(finalRotation.eulerAngles + new Vector3(0, 360, 0), spinDuration, RotateMode.FastBeyond360)
+            .SetEase(Ease.OutSine)
+            .WaitForCompletion();
+
+        // Ensure final rotation is exact.
+        transformToRotate.rotation = finalRotation;
+
         isMoving = false;
     }
 
@@ -805,46 +838,35 @@ public class PassengerGroup : MonoBehaviour
     // Axis-aligned movement: move on X then Z to avoid diagonal paths
     System.Collections.IEnumerator MoveToWorld(Vector3 target, Vector2Int finalGridPos)
     {
-        Vector3 start = transform.position;
+        Vector3 startPos = transform.position;
+        Vector3 direction = target - startPos;
+        direction.y = 0;
 
-        // Move along X only
-        Vector3 midX = new Vector3(target.x, start.y, start.z);
-        if (Mathf.Abs(start.x - target.x) > 0.01f)
+        // Determine target rotation to face the direction of movement
+        Quaternion targetRotation = transform.rotation;
+        if (direction.sqrMagnitude > 0.01f)
         {
-            while (Mathf.Abs(transform.position.x - target.x) > 0.01f)
-            {
-                Vector3 pos = transform.position;
-                pos.x = Mathf.MoveTowards(pos.x, target.x, moveSpeed * Time.deltaTime);
-                transform.position = pos;
-                yield return null;
-            }
-            // snap X
-            var p = transform.position;
-            p.x = target.x;
-            transform.position = p;
+            targetRotation = Quaternion.LookRotation(direction);
         }
 
-        // Move along Z only
-        if (Mathf.Abs(start.z - target.z) > 0.01f)
-        {
-            while (Mathf.Abs(transform.position.z - target.z) > 0.01f)
-            {
-                Vector3 pos = transform.position;
-                pos.z = Mathf.MoveTowards(pos.z, target.z, moveSpeed * Time.deltaTime);
-                transform.position = pos;
-                yield return null;
-            }
-            // snap Z
-            var p2 = transform.position;
-            p2.z = target.z;
-            transform.position = p2;
-        }
+        // Calculate durations
+        float moveDuration = Vector3.Distance(startPos, target) / moveSpeed;
+        float rotationDuration = moveDuration * 0.8f; // Make rotation a bit faster than movement
 
-        // Ensure exact target
-        transform.position = new Vector3(target.x, transform.position.y, target.z);
+        // Get the transform to rotate, fallback to the main transform if not set.
+        Transform transformToRotate = modelTransform != null ? modelTransform : transform;
 
-        // Now we arrived: update logical grid position
-        gridPos = finalGridPos;
+        // Create a sequence for smooth, combined animation
+        Sequence sequence = DOTween.Sequence();
+        
+        // Join rotation and movement to happen simultaneously
+        sequence.Join(transformToRotate.DORotateQuaternion(targetRotation, rotationDuration).SetEase(Ease.OutQuad));
+        sequence.Join(transform.DOMove(target, moveDuration).SetEase(Ease.InOutSine));
+
+        yield return sequence.WaitForCompletion();
+
+        // The logical grid position is updated in the calling coroutine (MoveToCoroutine)
+        // to ensure it's handled in one place.
     }
 
 }

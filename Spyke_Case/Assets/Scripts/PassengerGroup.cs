@@ -121,20 +121,53 @@ public class PassengerGroup : MonoBehaviour
         var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
         if (reservation != null)
         {
-            var (stopPos, stopIndex) = reservation.Value;
-            var pathToStop = grid.FindPathToTarget(pathfindingStartPoint, stopPos, this);
+            var (stopWorldPos, stopIndex) = reservation.Value;
 
             List<Vector2Int> fullPath = new List<Vector2Int>(straightVec);
+            // find path to nearest walkable if needed, but we will truncate to ascend target later
+            var pathToStop = grid.FindPathToTarget(pathfindingStartPoint, pathfindingStartPoint, this); // dummy to satisfy API
             if (pathToStop != null)
             {
                 fullPath.AddRange(pathToStop);
             }
 
-            var pathStr = fullPath.Count > 0 ? string.Join(" -> ", fullPath.ConvertAll(p => p.ToString()).ToArray()) : "(no path)";
-            Debug.LogWarning($"[PathPlan] Full path: {pathStr}");
-            Debug.LogWarning($"[AssignedStop] index={stopIndex} pos={stopPos}");
+            // Ascend target selection: choose Walkable with highest Y in fullPath
+            Vector2Int ascendTarget = new Vector2Int(-1, -1);
+            int maxY = int.MinValue;
+            for (int i = 0; i < fullPath.Count; i++)
+            {
+                var p = fullPath[i];
+                var c = grid.GetCell(p.x, p.y);
+                if (c != null && c.cellType == GridCellType.Walkable)
+                {
+                    if (p.y > maxY)
+                    {
+                        maxY = p.y;
+                        ascendTarget = p;
+                    }
+                }
+            }
 
-            StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopPos));
+            if (ascendTarget.x != -1)
+            {
+                int idx = fullPath.FindIndex(p => p == ascendTarget);
+                var truncated = fullPath.GetRange(0, idx + 1);
+                Debug.LogWarning($"[PathPlan] Ascend target: {ascendTarget}. Truncated path length {truncated.Count}.");
+                StartCoroutine(ExecuteContinuousPath(truncated, stopIndex, stopWorldPos));
+                return;
+            }
+
+            // fallback behavior: use nearest path
+            var fallbackPath = grid.FindNearestStopPath(pathfindingStartPoint);
+            if (fallbackPath != null)
+            {
+                List<Vector2Int> full = new List<Vector2Int>(straightVec);
+                full.AddRange(fallbackPath);
+                var fallbackStr = string.Join(" -> ", full.ConvertAll(p => p.ToString()).ToArray());
+                Debug.LogWarning($"[PathPlan] planned path (no ascend) from {pathfindingStartPoint}: {fallbackStr}");
+                StartCoroutine(ExecuteContinuousPath(full, stopIndex, stopWorldPos));
+                return;
+            }
         }
         else
         {
@@ -145,7 +178,7 @@ public class PassengerGroup : MonoBehaviour
                 fullPath.AddRange(fallbackPath);
                 var fallbackStr = string.Join(" -> ", fullPath.ConvertAll(p => p.ToString()).ToArray());
                 Debug.LogWarning($"[PathPlan] planned path (no reservation) from {pathfindingStartPoint}: {fallbackStr}");
-                StartCoroutine(ExecuteContinuousPath(fullPath, -1, new Vector2Int(-1, -1)));
+                StartCoroutine(ExecuteContinuousPath(fullPath, -1, Vector3.zero));
             }
         }
     }
@@ -274,12 +307,12 @@ public class PassengerGroup : MonoBehaviour
             if (isMoving) { yield return null; continue; }
             int stopIndex = checkpointQueue.Dequeue();
             if (grid == null || grid.gridData == null) continue;
-            if (stopIndex < 0 || stopIndex >= grid.gridData.stopSlots.Count) continue;
-            var stopPos = grid.gridData.stopSlots[stopIndex];
-            var path = grid.FindPathToTarget(gridPos, stopPos, this);
+            if (stopIndex < 0) continue;
+            var stopWorldPos = StopManager.Instance.GetStopWorldPosition(stopIndex);
+            var path = grid.FindPathToTarget(gridPos, grid.gridData.stopSlots[Mathf.Clamp(stopIndex,0,grid.gridData.stopSlots.Count-1)], this);
             if (path != null && path.Count > 0)
             {
-                StartCoroutine(ExecuteContinuousPath(path, stopIndex, stopPos));
+                StartCoroutine(ExecuteContinuousPath(path, stopIndex, stopWorldPos));
             }
             else
             {
@@ -321,7 +354,8 @@ public class PassengerGroup : MonoBehaviour
         }
     }
 
-    System.Collections.IEnumerator ExecuteContinuousPath(List<Vector2Int> fullPath, int stopIndex, Vector2Int stopPos)
+    // signature changed: stopPos now is world position (off-grid)
+    System.Collections.IEnumerator ExecuteContinuousPath(List<Vector2Int> fullPath, int stopIndex, Vector3 stopWorldPos)
     {
         isMoving = true;
         Vector2Int overallOrigin = gridPos;
@@ -392,7 +426,12 @@ public class PassengerGroup : MonoBehaviour
 
                     if (Vector3.Distance(transform.position, lookAtPos) > 0.1f)
                     {
-                        transformToRotate.LookAt(lookAtPos);
+                        // Only rotate around Y axis: project look target to the same Y as the transform to avoid X tilt
+                        Vector3 lookTarget = new Vector3(lookAtPos.x, transformToRotate.position.y, lookAtPos.z);
+                        transformToRotate.LookAt(lookTarget, Vector3.up);
+                        // force X and Z euler to 0 to prevent any tilt
+                        Vector3 e = transformToRotate.eulerAngles;
+                        transformToRotate.rotation = Quaternion.Euler(0f, e.y, 0f);
                     }
                 });
 
@@ -440,8 +479,14 @@ public class PassengerGroup : MonoBehaviour
             }
         }
 
-        if (gridPos == stopPos && stopIndex != -1)
+        // Eğer bir stopIndex verildiyse, artık grid üzerindeki son hücreden direkt olarak stop world pozisyonuna DOTween ile geç.
+        if (stopIndex != -1)
         {
+            // current gridPos şimdi end segment'tir ve grid'de kayıtlıyız -> önce hareketle stop'a git
+            yield return StartCoroutine(MoveToWorld(stopWorldPos, gridPos));
+            // griddeki occupation'ı temizle (yolcu artık durağa geçti)
+            grid.UnregisterOccupant(gridPos, this);
+            // rapor et
             StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
         }
         isMoving = false;
@@ -455,12 +500,15 @@ public class PassengerGroup : MonoBehaviour
         Quaternion finalRotation = transform.rotation;
         if (finalDirVector != Vector3.zero)
         {
-            finalRotation = Quaternion.LookRotation(finalDirVector);
+            var rot = Quaternion.LookRotation(finalDirVector);
+            // Keep only Y rotation to avoid X tilt
+            finalRotation = Quaternion.Euler(0f, rot.eulerAngles.y, 0f);
         }
 
         float spinDuration = 0.5f;
         Transform transformToRotate = modelTransform != null ? modelTransform : transform;
         
+        // Rotate visually around Y only, then apply finalRotation
         yield return transformToRotate.DORotate(finalRotation.eulerAngles + new Vector3(0, 360, 0), spinDuration, RotateMode.FastBeyond360)
             .SetEase(Ease.OutSine)
             .WaitForCompletion();
@@ -516,7 +564,9 @@ public class PassengerGroup : MonoBehaviour
         Quaternion targetRotation = transform.rotation;
         if (direction.sqrMagnitude > 0.01f)
         {
-            targetRotation = Quaternion.LookRotation(direction);
+            var rot = Quaternion.LookRotation(direction);
+            // Keep only Y rotation to avoid X tilt
+            targetRotation = Quaternion.Euler(0f, rot.eulerAngles.y, 0f);
         }
 
         float moveDuration = Vector3.Distance(startPos, target) / moveSpeed;

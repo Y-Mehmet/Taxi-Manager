@@ -13,6 +13,11 @@ public class StopManager : MonoBehaviour
 
     [Tooltip("Sahnedeki PassengerGrid referansı")]
     public PassengerGrid passengerGrid;
+    [Tooltip("Stop noktalarını içeren parent. Stop pozisyonları child Transform'lar olarak burada tutulacak.")]
+    public Transform stopsParent;
+
+    // runtime list of stop transforms (ordered by hierarchy)
+    private List<Transform> stopTransforms = new List<Transform>();
 
     // YENİ EVENT: Belirli bir yolcu, belirli bir durağa vardığında tetiklenir.
     public static event Action<PassengerGroup, int> OnPassengerArrivedAtStop;
@@ -37,6 +42,18 @@ public class StopManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        // Build stopTransforms from parent children (if provided)
+        stopTransforms.Clear();
+        if (stopsParent != null)
+        {
+            var comps = stopsParent.GetComponentsInChildren<Transform>(true);
+            foreach (var t in comps)
+            {
+                if (t == stopsParent) continue;
+                stopTransforms.Add(t);
+            }
+        }
+
         // Yeni event'i dinlemeye başla.
         OnPassengerArrivedAtStop += HandlePassengerArrival;
     }
@@ -52,53 +69,40 @@ public class StopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Bir yolcu için ilk boş durağı rezerve eder.
+    /// Bir yolcu için ilk boş durağı rezerve eder (stopTransforms kullanır).
+    /// Dönen değer: (worldPosition, index) ya da null.
     /// </summary>
-    /// <returns>Rezerve edilen durağın pozisyonu ve indeksi.</returns>
-    public (Vector2Int pos, int index)? ReserveFirstFreeStop(PassengerGroup passenger)
+    public (Vector3 pos, int index)? ReserveFirstFreeStop(PassengerGroup passenger)
     {
-        if (passengerGrid == null || passenger == null) return null;
+        if (passenger == null) return null;
 
-        // YENİ KONTROL: Bu yolcunun zaten bir rezervasyonu var mı?
+        // Eğer zaten rezervesi varsa onu döndür
         foreach (var kvp in reservedStops)
         {
             if (kvp.Value == passenger)
             {
-                Debug.LogWarning($"'{passenger.name}' yolcusu zaten {kvp.Key} nolu durağı rezerve etmiş. Mevcut rezervasyon kullanılıyor.");
-                return (passengerGrid.gridData.stopSlots[kvp.Key], kvp.Key);
+                int idx = kvp.Key;
+                Vector3 pos = GetStopWorldPosition(idx);
+                Debug.LogWarning($"'{passenger.name}' yolcusu zaten {idx} nolu durağı rezerve etmiş. Mevcut rezervasyon kullanılıyor.");
+                return (pos, idx);
             }
         }
 
-        // Mevcut mantık: Boş bir durak bul ve rezerve et
-        for (int i = 0; i < passengerGrid.gridData.stopSlots.Count; i++)
+        // stopTransforms listesinden ilk uygun (aktif ve boş) durağı bul
+        for (int i = 0; i < stopTransforms.Count; i++)
         {
-            // Eğer durak ne rezerve edilmiş ne de doluysa, bu durağı ata.
-            if (!reservedStops.ContainsKey(i) && !occupiedStops.ContainsKey(i))
-            {
-                var stopPos = passengerGrid.gridData.stopSlots[i];
-                reservedStops[i] = passenger; // Rezervasyon listesine ekle
-                Debug.Log($"<color=#00FFFF>ATAMA:</color> <color={passenger.groupColor.ToString().ToLower()}>{passenger.groupColor}</color> renkli '{passenger.name}' yolcusu, {i} index'li durağa atandı.");
-                return (stopPos, i);
-            }
+            if (reservedStops.ContainsKey(i) || occupiedStops.ContainsKey(i)) continue;
+            var t = stopTransforms[i];
+            if (t == null) continue;
+            if (!t.gameObject.activeInHierarchy) continue; // kapalıysa atla
+            reservedStops[i] = passenger;
+            Vector3 worldPos = t.position;
+            Debug.Log($"<color=#00FFFF>ATAMA:</color> <color={passenger.groupColor.ToString().ToLower()}>{passenger.groupColor}</color> renkli '{passenger.name}' yolcusu, {i} index'li durağa atandı.");
+            return (worldPos, i);
         }
 
-        // --- Hata Ayıklama Logları ---
-        // Eğer buraya ulaştıysak, boş durak bulunamamıştır. Nedenini detaylıca loglayalım.
-        System.Text.StringBuilder report = new System.Text.StringBuilder();
-        report.AppendLine($"[Reserve] Passenger '{passenger.name}' için boş durak bulunamadı. Durak Durum Raporu:");
-        report.AppendLine($"Toplam Rezerve Durak: {reservedStops.Count}, Toplam Dolu Durak: {occupiedStops.Count}");
-        report.AppendLine($"Kontrol Edilen Toplam Durak Sayısı: {passengerGrid.gridData.stopSlots.Count}, Rezerve: {reservedStops.Count}, Dolu: {occupiedStops.Count}");
-
-        if (reservedStops.Count > 0)
-        {
-            report.AppendLine("--- Rezerve Edilmiş Duraklar ---");
-            foreach (var item in reservedStops)
-            {
-                report.AppendLine($"Durak [{item.Key}] -> Rezerve Eden: '{item.Value.name}'");
-            }
-        }
-
-        Debug.LogWarning(report.ToString());
+        // Debug raporu
+        Debug.LogWarning($"[Reserve] Passenger '{passenger.name}' için boş durak bulunamadı. Durak Durum Raporu: Total stops: {stopTransforms.Count}, Reserved: {reservedStops.Count}, Occupied: {occupiedStops.Count}");
         return null;
     }
 
@@ -193,23 +197,27 @@ public class StopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Belirtilen yolcu için rezerve edilmiş durağı (pozisyon ve index) döndürür.
+    /// Belirtilen yolcu için rezerve edilmiş durağı (world pozisyon ve index) döndürür.
     /// </summary>
-    public (Vector2Int pos, int index)? GetReservedStopFor(PassengerGroup passenger)
+    public (Vector3 pos, int index)? GetReservedStopFor(PassengerGroup g)
     {
-        if (passengerGrid == null || passenger == null) return null;
+        if (g == null) return null;
         foreach (var kvp in reservedStops)
         {
-            if (kvp.Value == passenger)
+            if (kvp.Value == g)
             {
-                int stopIndex = kvp.Key;
-                if (stopIndex >= 0 && stopIndex < passengerGrid.gridData.stopSlots.Count)
-                {
-                    return (passengerGrid.gridData.stopSlots[stopIndex], stopIndex);
-                }
+                int idx = kvp.Key;
+                return (GetStopWorldPosition(idx), idx);
             }
         }
         return null;
+    }
+
+    public Vector3 GetStopWorldPosition(int index)
+    {
+        if (index < 0 || index >= stopTransforms.Count) return Vector3.zero;
+        var t = stopTransforms[index];
+        return t != null ? t.position : Vector3.zero;
     }
 
     // --- Gizmo ve Debug için Yardımcı Metotlar ---

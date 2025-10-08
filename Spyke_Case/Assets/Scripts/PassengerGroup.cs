@@ -147,13 +147,13 @@ public class PassengerGroup : MonoBehaviour
                 }
             }
 
-            // From the pathfindingStartPoint, pick the nearest candidate by path length
+            // From the pathfindingStartPoint, pick the nearest candidate by path length, using only Walkable cells
             List<Vector2Int> bestPath = null;
             Vector2Int bestTarget = new Vector2Int(-1, -1);
             int bestLen = int.MaxValue;
             foreach (var cand in candidates)
             {
-                var p = grid.FindPathToTarget(pathfindingStartPoint, cand, this);
+                var p = grid.FindPathToTarget(pathfindingStartPoint, cand, this, new List<GridCellType> { GridCellType.Walkable });
                 if (p != null && p.Count > 0 && p.Count < bestLen)
                 {
                     bestLen = p.Count;
@@ -370,9 +370,6 @@ public class PassengerGroup : MonoBehaviour
         }
     }
 
-    // signature changed: stopPos now is world position (off-grid)
-    // ascendIndex: optional path index (inclusive) where passenger reaches highest-Y walkable.
-    // After ascendIndex is reached, we'll immediately DOTween to stopWorldPos.
     System.Collections.IEnumerator ExecuteContinuousPath(List<Vector2Int> fullPath, int stopIndex, Vector3 stopWorldPos, int ascendIndex = -1)
     {
         isMoving = true;
@@ -400,14 +397,12 @@ public class PassengerGroup : MonoBehaviour
                 var occupant = grid.GetOccupant(step);
                 if (occupant != null && occupant != this)
                 {
-                    // If this obstacle is beyond ascendIndex and is on walkable/stop and stationary, we can ignore it
                     if (ascendIndex >= 0 && i > ascendIndex)
                     {
                         var c = cell;
                         bool isJumpable = (c.cellType == GridCellType.Stop || c.cellType == GridCellType.Walkable);
                         if (isJumpable && !occupant.isMoving)
                         {
-                            // ignore this stationary obstacle beyond ascend point
                             continue;
                         }
                     }
@@ -438,6 +433,10 @@ public class PassengerGroup : MonoBehaviour
 
                 float duration = (worldSegment.Count * grid.gridData.cellSize) / moveSpeed;
 
+                var segmentLog = new List<string>();
+                foreach(var pos in gridSegment) segmentLog.Add($"{pos}:{grid.GetCell(pos.x, pos.y)?.cellType}");
+                Debug.Log("[ContinuousPath] Segment: " + string.Join(" -> ", segmentLog.ToArray()));
+
                 Debug.Log($"[ContinuousPath] Moving along segment of {gridSegment.Count} cells.");
                 
                 Transform transformToRotate = modelTransform != null ? modelTransform : transform;
@@ -456,10 +455,8 @@ public class PassengerGroup : MonoBehaviour
 
                     if (Vector3.Distance(transform.position, lookAtPos) > 0.1f)
                     {
-                        // Only rotate around Y axis: project look target to the same Y as the transform to avoid X tilt
                         Vector3 lookTarget = new Vector3(lookAtPos.x, transformToRotate.position.y, lookAtPos.z);
                         transformToRotate.LookAt(lookTarget, Vector3.up);
-                        // force X and Z euler to 0 to prevent any tilt
                         Vector3 e = transformToRotate.eulerAngles;
                         transformToRotate.rotation = Quaternion.Euler(0f, e.y, 0f);
                     }
@@ -509,14 +506,10 @@ public class PassengerGroup : MonoBehaviour
             }
         }
 
-        // Eğer bir stopIndex verildiyse, artık grid üzerindeki son hücreden direkt olarak stop world pozisyonuna DOTween ile geç.
         if (stopIndex != -1)
         {
-            // current gridPos şimdi end segment'tir ve grid'de kayıtlıyız -> önce hareketle stop'a git
             yield return StartCoroutine(MoveToWorld(stopWorldPos, gridPos));
-            // griddeki occupation'ı temizle (yolcu artık durağa geçti)
             grid.UnregisterOccupant(gridPos, this);
-            // rapor et
             StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
         }
         isMoving = false;
@@ -531,14 +524,12 @@ public class PassengerGroup : MonoBehaviour
         if (finalDirVector != Vector3.zero)
         {
             var rot = Quaternion.LookRotation(finalDirVector);
-            // Keep only Y rotation to avoid X tilt
             finalRotation = Quaternion.Euler(0f, rot.eulerAngles.y, 0f);
         }
 
         float spinDuration = 0.5f;
         Transform transformToRotate = modelTransform != null ? modelTransform : transform;
         
-        // Rotate visually around Y only, then apply finalRotation
         yield return transformToRotate.DORotate(finalRotation.eulerAngles + new Vector3(0, 360, 0), spinDuration, RotateMode.FastBeyond360)
             .SetEase(Ease.OutSine)
             .WaitForCompletion();
@@ -595,7 +586,6 @@ public class PassengerGroup : MonoBehaviour
         if (direction.sqrMagnitude > 0.01f)
         {
             var rot = Quaternion.LookRotation(direction);
-            // Keep only Y rotation to avoid X tilt
             targetRotation = Quaternion.Euler(0f, rot.eulerAngles.y, 0f);
         }
 

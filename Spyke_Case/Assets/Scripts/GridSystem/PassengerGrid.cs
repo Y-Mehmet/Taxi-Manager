@@ -139,10 +139,7 @@ namespace GridSystem
         return null;
     }
 
-    // Find shortest path from 'from' to the specific 'target' cell (goal).
-    // Allows traversal over Walkable and Stop cells. If the target is a Stop cell,
-    // it will be allowed if it's free or reserved by the requester.
-    public List<Vector2Int> FindPathToTarget(Vector2Int from, Vector2Int target, PassengerGroup requester = null)
+    public List<Vector2Int> FindPathToTarget(Vector2Int from, Vector2Int target, PassengerGroup requester = null, List<GridCellType> allowedCellTypes = null)
     {
         if (gridData == null) return null;
         int w = gridData.width;
@@ -178,18 +175,31 @@ namespace GridSystem
                 var nc = GetCell(nx.x, nx.y);
                 if (nc == null) continue;
 
-                // Allow pathing through Walkable and Stop cells, even if occupied.
-                // Block pathing through occupied WaitingArea cells.
                 if (occupancy.ContainsKey(nx))
                 {
                     if (nc.cellType == GridCellType.WaitingArea)
                     {
-                        continue; // Occupied WaitingArea is a blocker.
+                        continue;
                     }
-                    // For Walkable/Stop, we allow pathing through.
                 }
 
-                if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop || nc.cellType == GridCellType.WaitingArea)
+                bool isAllowed = false;
+                if (allowedCellTypes != null)
+                {
+                    if (allowedCellTypes.Contains(nc.cellType))
+                    {
+                        isAllowed = true;
+                    }
+                }
+                else
+                {
+                    if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop || nc.cellType == GridCellType.WaitingArea)
+                    {
+                        isAllowed = true;
+                    }
+                }
+
+                if (isAllowed)
                 {
                     visited[nx.x, nx.y] = true;
                     parent[nx.x, nx.y] = cur;
@@ -200,13 +210,11 @@ namespace GridSystem
         return null;
     }
 
-            // Return the reserved stop (pos,index) for a given passenger, or null if none
             public (Vector2Int pos, int index)? GetReservedStopFor(PassengerGroup g)
             {
                 return null;
             }
 
-        // Occupancy API
         public bool IsOccupied(Vector2Int pos)
         {
             return occupancy.ContainsKey(pos);
@@ -232,15 +240,8 @@ namespace GridSystem
             }
         }
 
-
-
-        /// <summary>
-        /// Belirtilen durak indeksindeki yolcu grubunu döndürür.
-        /// Sadece durağa varmış ve rezerve etmiş yolcuları dikkate alır.
-        /// </summary>
         public PassengerGroup GetPassengerAtStop(int stopIndex)
         {
-            // Bu mantık StopManager'a taşındı.
             if (StopManager.Instance != null)
             {
                 return StopManager.Instance.GetPassengerAtStop(stopIndex);
@@ -263,7 +264,6 @@ namespace GridSystem
 
             Gizmos.color = gridLineColor;
             
-            // Yatay çizgiler
             for (int z = 0; z <= gridData.height; z++)
             {
                 Vector3 start = transform.position + new Vector3(0, 0, z * gridData.cellSize) + gridData.worldOffset;
@@ -271,7 +271,6 @@ namespace GridSystem
                 Gizmos.DrawLine(start, end);
             }
             
-            // Dikey çizgiler
             for (int x = 0; x <= gridData.width; x++)
             {
                 Vector3 start = transform.position + new Vector3(x * gridData.cellSize, 0, 0) + gridData.worldOffset;
@@ -284,21 +283,19 @@ namespace GridSystem
         {
             if (gridData == null || gridData.stopSlots == null) return;
 
-            // Sadece oyun çalışırken durak durumlarını çiz
             if (!Application.isPlaying) return;
 
             for (int i = 0; i < gridData.stopSlots.Count; i++)
             {
                 Vector3 worldPos = GetWorldPosition(gridData.stopSlots[i]);
                 
-                // Durağın durumunu StopManager'dan al
                 if (StopManager.Instance != null && (StopManager.Instance.IsStopOccupied(i) || StopManager.Instance.IsStopReserved(i)))
                 {
-                    Gizmos.color = new Color(1, 0, 0, 0.5f); // Kırmızı (Dolu)
+                    Gizmos.color = new Color(1, 0, 0, 0.5f);
                 }
                 else
                 {
-                    Gizmos.color = new Color(0, 1, 0, 0.5f); // Yeşil (Boş)
+                    Gizmos.color = new Color(0, 1, 0, 0.5f);
                 }
                 Gizmos.DrawCube(worldPos + Vector3.up * 0.5f, new Vector3(gridData.cellSize, 1, gridData.cellSize));
             }

@@ -92,4 +92,4 @@ MonoBehaviour:
   speed: 2
   rotationSpeed: 2
   isHead: 0
-  maxPassengerCount: 4
+  maxPassengerCount: 1

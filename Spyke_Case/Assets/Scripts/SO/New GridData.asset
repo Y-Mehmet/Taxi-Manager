@@ -208,19 +208,19 @@ MonoBehaviour:
   - cellType: 2
     position: {x: 0, y: 9}
     stopIndex: -1
-  - cellType: 2
+  - cellType: 3
     position: {x: 1, y: 9}
     stopIndex: -1
-  - cellType: 2
+  - cellType: 3
     position: {x: 2, y: 9}
     stopIndex: -1
-  - cellType: 2
+  - cellType: 3
     position: {x: 3, y: 9}
     stopIndex: -1
-  - cellType: 2
+  - cellType: 3
     position: {x: 4, y: 9}
     stopIndex: -1
-  - cellType: 2
+  - cellType: 3
     position: {x: 5, y: 9}
     stopIndex: -1
   - cellType: 2
@@ -232,13 +232,13 @@ MonoBehaviour:
   - cellType: 2
     position: {x: 1, y: 10}
     stopIndex: -1
-  - cellType: 4
+  - cellType: 2
     position: {x: 2, y: 10}
     stopIndex: -1
-  - cellType: 4
+  - cellType: 2
     position: {x: 3, y: 10}
     stopIndex: -1
-  - cellType: 4
+  - cellType: 2
     position: {x: 4, y: 10}
     stopIndex: -1
   - cellType: 2

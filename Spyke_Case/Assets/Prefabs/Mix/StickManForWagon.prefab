@@ -175,7 +175,7 @@ MonoBehaviour:
   speed: 1
   rotationSpeed: 2
   isHead: 0
-  maxPassengerCount: 4
+  maxPassengerCount: 1
 --- !u!4 &8956799793174328872 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6596675482088050665, guid: 2c672c75a9231b74aa583571c1de3ab5, type: 3}

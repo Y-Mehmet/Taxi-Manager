@@ -45,3 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   passengerGrid: {fileID: 0}
+  stopsParent: {fileID: 7944434872791137144, guid: 54c2eb616ea9a764aa68d98aabf12134, type: 3}

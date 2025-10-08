@@ -6,14 +6,41 @@ using DG.Tweening;
 
 public class PassengerGroup : MonoBehaviour
 {
-    [Header("Yolcu grubunun yönü (sağ, sol, yukarı, aşağı)")]
+    // Grup boyutu azaldığında tetiklenen event
+    public event System.Action<int> OnGroupSizeDecreased;
+    // Slot event'i (kalan slot sayısı değiştiğinde tetiklenir)
+    public event System.Action<int> OnAvailableSlotsChanged;
+    [Header("Slot Event/Capacity")]
+    public int maxGroupSize = 4; // Başlangıç kapasitesi (dilerseniz inspector'dan ayarlayın)
+    private int _groupSize = 4;
+    private int _lastAvailableSlots = -1;
+    public int GroupSize
+    {
+        get => _groupSize;
+        set
+        {
+            int oldSlots = AvailableSlots;
+            int oldGroupSize = _groupSize;
+            _groupSize = value;
+            int newSlots = AvailableSlots;
+            // Sadece slot sayısı azaldıysa, grup aktif ve hareket etmiyorsa event tetikle
+            if (newSlots < oldSlots && gameObject.activeInHierarchy && !isMoving)
+            {
+                OnAvailableSlotsChanged?.Invoke(newSlots);
+            }
+            // Grup boyutu azaldıysa event tetikle
+            if (_groupSize < oldGroupSize)
+            {
+                OnGroupSizeDecreased?.Invoke(_groupSize);
+            }
+            _lastAvailableSlots = newSlots;
+        }
+    }
+    public int AvailableSlots => Mathf.Max(0, maxGroupSize - GroupSize);
     public Vector2Int moveDirection = Vector2Int.up;
-    [Header("Yolcu Grubu Ayarları")]
-    [Tooltip("Dönüş animasyonlarının uygulanacağı görsel model.")]
-    public Transform modelTransform;
-    public int groupSize = 4; // 2, 4, 6, 8
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
     public float moveSpeed = 2f;
+    public Transform modelTransform;
     public Vector2Int gridPos; // Şu anki grid pozisyonu
     public PassengerGrid grid;
     [Header("Initialization")]
@@ -201,6 +228,12 @@ public class PassengerGroup : MonoBehaviour
 
     void Start()
     {
+        // Debug amaçlı: slot değişimini logla
+        OnAvailableSlotsChanged += (slots) => Debug.Log($"[PassengerGroup] {name} kalan slot: {slots}");
+        // İlk değer için tetikle
+        _lastAvailableSlots = AvailableSlots;
+        OnAvailableSlotsChanged?.Invoke(_lastAvailableSlots);
+
         SetGroupColor(groupColor);
 
         if (useGridPosition && grid != null)

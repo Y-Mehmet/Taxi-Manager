@@ -9,6 +9,8 @@ using System;
 /// </summary>
 public class BoardingManager : MonoBehaviour
 {
+    // Her yolcu binişinden sonra tetiklenen event
+    public static event Action OnPassengerBoarded;
     public static BoardingManager Instance { get; private set; }
 
     [Header("Bağlantılar")]
@@ -36,6 +38,7 @@ public class BoardingManager : MonoBehaviour
 
     void Start()
     {
+        OnPassengerBoarded += TryBoardPassengers;
         if (checkpointPath == null)
         {
             Debug.LogError("BoardingManager için CheckpointPath atanmamış!");
@@ -53,6 +56,7 @@ public class BoardingManager : MonoBehaviour
 
     void OnDestroy()
     {
+        OnPassengerBoarded -= TryBoardPassengers;
         // Bellek sızıntılarını önle.
         StopManager.OnPassengerArrivedAtStop -= HandlePassengerOrWagonChange;
         if (WagonManager.Instance != null)
@@ -126,23 +130,32 @@ public class BoardingManager : MonoBehaviour
         foreach (var passengerEntry in waitingPassengers.ToList())
         {
             PassengerGroup passenger = passengerEntry.Value;
-            
-            // Eğer yolcunun rengi, bölgedeki uygun vagon renklerinden biriyle eşleşiyorsa
+            int stopIndex = passengerEntry.Key;
+
             if (availableWagonColors.Contains(passenger.groupColor))
             {
-                // Bu renk ve bölgedeki ilk uygun vagonu al.
                 MetroWagon availableWagon = WagonManager.Instance.GetAvailableWagon(passenger.groupColor, boardingZoneStart);
-
                 if (availableWagon != null)
                 {
-                    Debug.Log($"<color=cyan>EŞLEŞME BULUNDU (Yeni Sistem):</color> {availableWagon.wagonColor} vagonu, {passenger.groupColor} renkli yolcuları alıyor.");
+                    int boardCount = Mathf.Min(availableWagon.maxPassengerCount - availableWagon.passengerCount, passenger.GroupSize);
+                    passenger.GroupSize -= boardCount;
+                    availableWagon.BoardPassengers(boardCount);
 
-                    int stopIndex = passengerEntry.Key;
-                    
-                    // Aksiyonları gerçekleştir.
-                    availableWagon.BoardPassengers(passenger.groupSize);
-                    StopManager.Instance.FreeStop(stopIndex);
-                    passenger.gameObject.SetActive(false);
+                    Debug.Log($"<color=cyan>EŞLEŞME BULUNDU (Yeni Sistem):</color> {availableWagon.wagonColor} vagonu, {passenger.groupColor} renkli yolcuya biniyor. Kalan grup: {passenger.GroupSize}");
+
+                    if (availableWagon.IsFull)
+                    {
+                        availableWagon.gameObject.SetActive(false);
+                    }
+
+                    if (passenger.GroupSize <= 0)
+                    {
+                        StopManager.Instance.FreeStop(stopIndex);
+                        passenger.gameObject.SetActive(false);
+                    }
+
+                    // Her başarılı binişten sonra event tetikle
+                    OnPassengerBoarded?.Invoke();
                 }
             }
         }

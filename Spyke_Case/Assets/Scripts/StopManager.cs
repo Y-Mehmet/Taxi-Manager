@@ -46,11 +46,21 @@ public class StopManager : MonoBehaviour
         stopTransforms.Clear();
         if (stopsParent != null)
         {
-            var comps = stopsParent.GetComponentsInChildren<Transform>(true);
-            foreach (var t in comps)
+            stopTransforms.Clear();
+            for (int i = 0; i < stopsParent.childCount; i++)
             {
-                if (t == stopsParent) continue;
-                stopTransforms.Add(t);
+                var child = stopsParent.GetChild(i);
+                stopTransforms.Add(child);
+            }
+        }
+
+        // Oyun başında stopların index ve pozisyonunu kırmızı logla yazdır
+        for (int i = 0; i < stopTransforms.Count; i++)
+        {
+            var t = stopTransforms[i];
+            if (t != null)
+            {
+                Debug.Log($"<color=red>[STOP-DEBUG]</color> Index: {i}, Pos: {t.position}");
             }
         }
 
@@ -141,6 +151,16 @@ public class StopManager : MonoBehaviour
     private void HandlePassengerArrival(PassengerGroup passenger, int stopIndex)
     {
         // Bu metot, OnPassengerArrivedAtStop event'i tarafından çağrılır.
+        // Stop'taki UI'ya yolcu referansını ilet
+        if (stopIndex >= 0 && stopIndex < stopTransforms.Count)
+        {
+            var stopGO = stopTransforms[stopIndex].gameObject;
+            var slotUpdater = stopGO.GetComponent<StopSlotTextUpdater>();
+            if (slotUpdater != null)
+            {
+                slotUpdater.SetPassengerGroup(passenger);
+            }
+        }
         OnOccupiedStopsChanged?.Invoke();
     }
 
@@ -152,6 +172,16 @@ public class StopManager : MonoBehaviour
         if (occupiedStops.Remove(stopIndex))
         {
             Debug.Log($"Durak {stopIndex} serbest bırakıldı ve yeni yolcular için hazır.");
+            // Stop'taki UI'dan yolcu referansını kaldır
+            if (stopIndex >= 0 && stopIndex < stopTransforms.Count)
+            {
+                var stopGO = stopTransforms[stopIndex].gameObject;
+                var slotUpdater = stopGO.GetComponent<StopSlotTextUpdater>();
+                if (slotUpdater != null)
+                {
+                    slotUpdater.SetPassengerGroup(null);
+                }
+            }
             OnOccupiedStopsChanged?.Invoke();
         }
     }

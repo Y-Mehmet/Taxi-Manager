@@ -123,37 +123,53 @@ public class PassengerGroup : MonoBehaviour
         {
             var (stopWorldPos, stopIndex) = reservation.Value;
 
-            List<Vector2Int> fullPath = new List<Vector2Int>(straightVec);
-            // find path to nearest walkable if needed, but we will truncate to ascend target later
-            var pathToStop = grid.FindPathToTarget(pathfindingStartPoint, pathfindingStartPoint, this); // dummy to satisfy API
-            if (pathToStop != null)
-            {
-                fullPath.AddRange(pathToStop);
-            }
-
-            // Ascend target selection: choose Walkable with highest Y in fullPath
-            Vector2Int ascendTarget = new Vector2Int(-1, -1);
+            // Find global highest Y among walkable cells
             int maxY = int.MinValue;
-            for (int i = 0; i < fullPath.Count; i++)
+            List<Vector2Int> candidates = new List<Vector2Int>();
+            for (int y = 0; y < grid.gridData.height; y++)
             {
-                var p = fullPath[i];
-                var c = grid.GetCell(p.x, p.y);
-                if (c != null && c.cellType == GridCellType.Walkable)
+                for (int x = 0; x < grid.gridData.width; x++)
                 {
-                    if (p.y > maxY)
+                    var c = grid.GetCell(x, y);
+                    if (c != null && c.cellType == GridCellType.Walkable)
                     {
-                        maxY = p.y;
-                        ascendTarget = p;
+                        if (y > maxY)
+                        {
+                            maxY = y;
+                            candidates.Clear();
+                            candidates.Add(new Vector2Int(x, y));
+                        }
+                        else if (y == maxY)
+                        {
+                            candidates.Add(new Vector2Int(x, y));
+                        }
                     }
                 }
             }
 
-            if (ascendTarget.x != -1)
+            // From the pathfindingStartPoint, pick the nearest candidate by path length
+            List<Vector2Int> bestPath = null;
+            Vector2Int bestTarget = new Vector2Int(-1, -1);
+            int bestLen = int.MaxValue;
+            foreach (var cand in candidates)
             {
-                int idx = fullPath.FindIndex(p => p == ascendTarget);
-                var truncated = fullPath.GetRange(0, idx + 1);
-                Debug.LogWarning($"[PathPlan] Ascend target: {ascendTarget}. Truncated path length {truncated.Count}.");
-                StartCoroutine(ExecuteContinuousPath(truncated, stopIndex, stopWorldPos));
+                var p = grid.FindPathToTarget(pathfindingStartPoint, cand, this);
+                if (p != null && p.Count > 0 && p.Count < bestLen)
+                {
+                    bestLen = p.Count;
+                    bestPath = p;
+                    bestTarget = cand;
+                }
+            }
+
+            if (bestPath != null)
+            {
+                // fullPath is straightVec + bestPath
+                List<Vector2Int> fullPath = new List<Vector2Int>(straightVec);
+                fullPath.AddRange(bestPath);
+                int ascendIndex = fullPath.Count - 1; // index where highest walkable is reached
+                Debug.LogWarning($"[PathPlan] Chosen highest-Y target: {bestTarget}. Path length {fullPath.Count}.");
+                StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos, ascendIndex));
                 return;
             }
 
@@ -164,7 +180,7 @@ public class PassengerGroup : MonoBehaviour
                 List<Vector2Int> full = new List<Vector2Int>(straightVec);
                 full.AddRange(fallbackPath);
                 var fallbackStr = string.Join(" -> ", full.ConvertAll(p => p.ToString()).ToArray());
-                Debug.LogWarning($"[PathPlan] planned path (no ascend) from {pathfindingStartPoint}: {fallbackStr}");
+                Debug.LogWarning($"[PathPlan] planned path (no ascend candidate) from {pathfindingStartPoint}: {fallbackStr}");
                 StartCoroutine(ExecuteContinuousPath(full, stopIndex, stopWorldPos));
                 return;
             }
@@ -355,7 +371,9 @@ public class PassengerGroup : MonoBehaviour
     }
 
     // signature changed: stopPos now is world position (off-grid)
-    System.Collections.IEnumerator ExecuteContinuousPath(List<Vector2Int> fullPath, int stopIndex, Vector3 stopWorldPos)
+    // ascendIndex: optional path index (inclusive) where passenger reaches highest-Y walkable.
+    // After ascendIndex is reached, we'll immediately DOTween to stopWorldPos.
+    System.Collections.IEnumerator ExecuteContinuousPath(List<Vector2Int> fullPath, int stopIndex, Vector3 stopWorldPos, int ascendIndex = -1)
     {
         isMoving = true;
         Vector2Int overallOrigin = gridPos;
@@ -382,6 +400,18 @@ public class PassengerGroup : MonoBehaviour
                 var occupant = grid.GetOccupant(step);
                 if (occupant != null && occupant != this)
                 {
+                    // If this obstacle is beyond ascendIndex and is on walkable/stop and stationary, we can ignore it
+                    if (ascendIndex >= 0 && i > ascendIndex)
+                    {
+                        var c = cell;
+                        bool isJumpable = (c.cellType == GridCellType.Stop || c.cellType == GridCellType.Walkable);
+                        if (isJumpable && !occupant.isMoving)
+                        {
+                            // ignore this stationary obstacle beyond ascend point
+                            continue;
+                        }
+                    }
+
                     segmentEndIdx = i;
                     obstacle = occupant;
                     break;

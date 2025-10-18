@@ -39,7 +39,7 @@ public class PassengerGroup : MonoBehaviour
     public int AvailableSlots => Mathf.Max(0, maxGroupSize - GroupSize);
     public Vector2Int moveDirection = Vector2Int.up;
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
-    public float moveSpeed = 2f;
+     float moveSpeed = 7f; 
     public Transform modelTransform;
     public Vector2Int gridPos; // Şu anki grid pozisyonu
     public PassengerGrid grid;
@@ -68,6 +68,13 @@ public class PassengerGroup : MonoBehaviour
     private Queue<int> checkpointQueue = new Queue<int>();
     private bool processingCheckpointQueue = false;
     private bool isMoving = false;
+    // Aktif hareket tween referansı (varsa) - hız değişikliklerini anında uygulamak için kullanılır
+    private Tween activeMovementTween = null;
+    private float activeTweenBaseSpeed = 1f;
+    private enum MovementType { None, Path, Move, Jump }
+    private MovementType activeMovementType = MovementType.None;
+    private Vector3[] activeMovementPathPoints = null; // for Path
+    private Vector3 activeMovementTarget = Vector3.zero; // for Move/Jump
 
     void Update()
     {
@@ -476,6 +483,13 @@ public class PassengerGroup : MonoBehaviour
                 var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear)
                     .SetEase(Ease.Linear);
 
+                // Aktif hareket tween kaydı — hız değişikliklerini uygulamak için
+                activeMovementTween = pathTween;
+                activeTweenBaseSpeed = moveSpeed;
+                activeMovementType = MovementType.Path;
+                activeMovementPathPoints = worldSegment.ToArray();
+                pathTween.OnComplete(() => { if (activeMovementTween == pathTween) { activeMovementTween = null; activeMovementType = MovementType.None; activeMovementPathPoints = null; } });
+
                 pathTween.OnUpdate(() =>
                 {
                     float lookAheadPercentage = pathTween.ElapsedPercentage() + 0.05f; 
@@ -583,8 +597,13 @@ public class PassengerGroup : MonoBehaviour
         float jumpPower = 1f;
         float duration = 0.45f;
         Vector3 target = new Vector3(landWorld.x, transform.position.y, landWorld.z);
-        Tween t = transform.DOJump(target, jumpPower, 1, duration).SetEase(Ease.OutQuad);
-        yield return t.WaitForCompletion();
+    Tween t = transform.DOJump(target, jumpPower, 1, duration).SetEase(Ease.OutQuad);
+    activeMovementTween = t;
+    activeTweenBaseSpeed = moveSpeed;
+    activeMovementType = MovementType.Jump;
+    activeMovementTarget = target;
+    t.OnComplete(() => { if (activeMovementTween == t) { activeMovementTween = null; activeMovementType = MovementType.None; } });
+    yield return t.WaitForCompletion();
         gridPos = landingGridPos;
     }
 
@@ -632,6 +651,117 @@ public class PassengerGroup : MonoBehaviour
         sequence.Join(transformToRotate.DORotateQuaternion(targetRotation, rotationDuration).SetEase(Ease.OutQuad));
         sequence.Join(transform.DOMove(target, moveDuration).SetEase(Ease.InOutSine));
 
+    // Kayıt: hareket tween'i üzerinde hız değişikliği uygulanabilir
+    activeMovementTween = sequence;
+    activeTweenBaseSpeed = moveSpeed;
+    activeMovementType = MovementType.Move;
+    activeMovementTarget = target;
+    sequence.OnComplete(() => { if (activeMovementTween == sequence) { activeMovementTween = null; activeMovementType = MovementType.None; } });
+
         yield return sequence.WaitForCompletion();
+    }
+
+    // Runtime'da moveSpeed'i değiştirir ve varsa aktif tween'in timeScale'ini günceller
+    public void SetMoveSpeed(float newSpeed)
+    {
+        if (newSpeed <= 0f) return;
+        float old = moveSpeed;
+        moveSpeed = newSpeed;
+
+        // Eğer aktif bir tween varsa, yeniden oluşturmayı deneyelim (daha doğru sonuç verir)
+        if (activeMovementTween != null && activeMovementTween.IsActive() && activeMovementTween.active)
+        {
+            // Kaydedilen hareket tipine göre kalan mesafeyi hesapla ve yeni tween başlat
+            try
+            {
+                activeMovementTween.Kill();
+            }
+            catch { }
+
+            if (activeMovementType == MovementType.Move)
+            {
+                Vector3 currPos = transform.position;
+                float remaining = Vector3.Distance(currPos, activeMovementTarget);
+                if (remaining > 0.001f)
+                {
+                    float newDur = remaining / moveSpeed;
+                    Sequence seq = DOTween.Sequence();
+                    Transform transformToRotate = modelTransform != null ? modelTransform : transform;
+                    Quaternion rot = transformToRotate.rotation; // keep current rotation target handled elsewhere
+                    seq.Join(transform.DOMove(activeMovementTarget, newDur).SetEase(Ease.InOutSine));
+                    activeMovementTween = seq;
+                    activeTweenBaseSpeed = moveSpeed;
+                    activeMovementType = MovementType.Move;
+                    seq.OnComplete(() => { if (activeMovementTween == seq) { activeMovementTween = null; activeMovementType = MovementType.None; } });
+                }
+                else
+                {
+                    activeMovementTween = null;
+                    activeMovementType = MovementType.None;
+                }
+            }
+            else if (activeMovementType == MovementType.Path && activeMovementPathPoints != null && activeMovementPathPoints.Length > 0)
+            {
+                // Find nearest point index on path and compute remaining segment
+                Vector3 currPos = transform.position;
+                int startIdx = 0;
+                float bestDist = float.MaxValue;
+                for (int i = 0; i < activeMovementPathPoints.Length; i++)
+                {
+                    float d = Vector3.Distance(currPos, activeMovementPathPoints[i]);
+                    if (d < bestDist) { bestDist = d; startIdx = i; }
+                }
+                List<Vector3> remaining = new List<Vector3>();
+                for (int i = startIdx; i < activeMovementPathPoints.Length; i++) remaining.Add(activeMovementPathPoints[i]);
+                if (remaining.Count > 0)
+                {
+                    float totalDist = 0f;
+                    Vector3 prev = currPos;
+                    foreach (var p in remaining) { totalDist += Vector3.Distance(prev, p); prev = p; }
+                    float newDur = totalDist / moveSpeed;
+                    var pathTween = transform.DOPath(remaining.ToArray(), newDur, PathType.Linear).SetEase(Ease.Linear);
+                    activeMovementTween = pathTween;
+                    activeTweenBaseSpeed = moveSpeed;
+                    activeMovementPathPoints = remaining.ToArray();
+                    activeMovementType = MovementType.Path;
+                    pathTween.OnComplete(() => { if (activeMovementTween == pathTween) { activeMovementTween = null; activeMovementType = MovementType.None; activeMovementPathPoints = null; } });
+                }
+                else
+                {
+                    activeMovementTween = null;
+                    activeMovementType = MovementType.None;
+                }
+            }
+            else if (activeMovementType == MovementType.Jump)
+            {
+                // Jump tween: kısa animasyon, yeniden başlatmak karmaşık olabilir. Yeni tween başlatmayı deneyelim basitçe
+                Vector3 currPos = transform.position;
+                float remaining = Vector3.Distance(currPos, activeMovementTarget);
+                if (remaining > 0.001f)
+                {
+                    float estDur = remaining / moveSpeed;
+                    var t = transform.DOMove(activeMovementTarget, estDur).SetEase(Ease.OutQuad);
+                    activeMovementTween = t;
+                    activeTweenBaseSpeed = moveSpeed;
+                    activeMovementType = MovementType.Move;
+                    t.OnComplete(() => { if (activeMovementTween == t) { activeMovementTween = null; activeMovementType = MovementType.None; } });
+                }
+                else
+                {
+                    activeMovementTween = null;
+                    activeMovementType = MovementType.None;
+                }
+            }
+            else
+            {
+                activeMovementTween = null;
+                activeMovementType = MovementType.None;
+            }
+        }
+    }
+
+    public void DoubleMoveSpeed()
+    {
+        SetMoveSpeed(moveSpeed * 2f);
     }
 }

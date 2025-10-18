@@ -22,6 +22,9 @@ public class MetroManager : MonoBehaviour
     public PassengerGrid passengerGrid; // Yolcu grid'i referansı
 
     private List<MetroWagon> wagons = new List<MetroWagon>();
+    private Dictionary<MetroWagon, float> originalWagonSpeeds = new Dictionary<MetroWagon, float>();
+    private bool speedsBoosted = false;
+    private float initialSpeedMultiplier = 4f;
 
     public static MetroManager Instance { get; private set; }
 
@@ -36,6 +39,8 @@ public class MetroManager : MonoBehaviour
         else Destroy(gameObject);
 
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoval;
+        // Dinle: bir yolcu grubuna ilk tıklama gerçekleştiğinde hızları eski haline getir
+        PassengerGroup.OnGroupClicked += HandleFirstGroupClicked;
     }
 
     public static void StopMovement()
@@ -50,6 +55,7 @@ public class MetroManager : MonoBehaviour
         {
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
         }
+         PassengerGroup.OnGroupClicked -= HandleFirstGroupClicked;
     }
 
     void Start()
@@ -135,6 +141,46 @@ public class MetroManager : MonoBehaviour
         tailWagon.Init(checkpointPath, FindClosestCheckpointIndex(tailObj.transform.position));
         WagonManager.Instance.RegisterWagon(tailWagon);
         wagons.Add(tailWagon);
+
+        // Oyuna başlarken tüm vagonların hızını çarpanla arttır
+        ApplyInitialWagonSpeedMultiplier();
+    }
+
+
+    private void ApplyInitialWagonSpeedMultiplier()
+    {
+        if (speedsBoosted) return;
+        foreach (var w in wagons)
+        {
+            if (w == null) continue;
+            originalWagonSpeeds[w] = w.speed;
+            w.speed *= initialSpeedMultiplier;
+        }
+        speedsBoosted = true;
+        Debug.Log($"MetroManager: Applied initial wagon speed multiplier x{initialSpeedMultiplier} to {wagons.Count} wagons.");
+    }
+
+    private void HandleFirstGroupClicked()
+    {
+        if (!speedsBoosted) return;
+        RestoreOriginalWagonSpeeds();
+        // Sadece ilk tıklamada çalışsın
+        PassengerGroup.OnGroupClicked -= HandleFirstGroupClicked;
+    }
+
+    private void RestoreOriginalWagonSpeeds()
+    {
+        foreach (var kv in originalWagonSpeeds)
+        {
+            var w = kv.Key;
+            if (w != null)
+            {
+                w.speed = kv.Value;
+            }
+        }
+        originalWagonSpeeds.Clear();
+        speedsBoosted = false;
+        Debug.Log("MetroManager: Restored original wagon speeds after first passenger group click.");
     }
 
     /// <summary>

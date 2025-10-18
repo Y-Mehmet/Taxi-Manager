@@ -6,6 +6,7 @@ using DG.Tweening;
 
 public class PassengerGroup : MonoBehaviour
 {
+    public static event System.Action OnGroupClicked;
     // Grup boyutu azaldığında tetiklenen event
     public event System.Action<int> OnGroupSizeDecreased;
     // Slot event'i (kalan slot sayısı değiştiğinde tetiklenir)
@@ -86,6 +87,8 @@ public class PassengerGroup : MonoBehaviour
             {
                 if (hit.transform == this.transform)
                 {
+                    // Kullanıcının bir yolcu grubuna tıklaması: global event tetikle (MetroManager dinleyecek)
+                    OnGroupClicked?.Invoke();
                     TryMoveForwardWithLog();
                 }
             }
@@ -99,6 +102,8 @@ public class PassengerGroup : MonoBehaviour
             {
                 if (hit.transform == this.transform)
                 {
+                    // Editor/mouse tıklaması
+                    OnGroupClicked?.Invoke();
                     TryMoveForwardWithLog();
                 }
             }

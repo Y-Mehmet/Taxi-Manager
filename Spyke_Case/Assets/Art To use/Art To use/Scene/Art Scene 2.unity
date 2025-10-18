@@ -12597,20 +12597,24 @@ PrefabInstance:
       value: 52
       objectReference: {fileID: 0}
     - target: {fileID: 2674849222815711849, guid: fc1168188f2bc034db80301b3a209bb2, type: 3}
+      propertyPath: 'midWagonColors.Array.data[0]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2674849222815711849, guid: fc1168188f2bc034db80301b3a209bb2, type: 3}
       propertyPath: 'midWagonColors.Array.data[1]'
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2674849222815711849, guid: fc1168188f2bc034db80301b3a209bb2, type: 3}
       propertyPath: 'midWagonColors.Array.data[2]'
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2674849222815711849, guid: fc1168188f2bc034db80301b3a209bb2, type: 3}
       propertyPath: 'midWagonColors.Array.data[3]'
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2674849222815711849, guid: fc1168188f2bc034db80301b3a209bb2, type: 3}
       propertyPath: 'midWagonColors.Array.data[4]'
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2674849222815711849, guid: fc1168188f2bc034db80301b3a209bb2, type: 3}
       propertyPath: 'midWagonColors.Array.data[5]'

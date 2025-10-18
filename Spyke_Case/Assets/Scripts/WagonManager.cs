@@ -16,6 +16,9 @@ public class WagonManager : MonoBehaviour
     // YENİ EVENT: Bir vagon sistemden kaldırıldığında (deaktif edildiğinde) tetiklenir.
     public event Action<Transform> OnWagonRemoved;
 
+    // Pending removals to avoid starting multiple coroutines for same wagon
+    private HashSet<MetroWagon> pendingRemovals = new HashSet<MetroWagon>();
+
     private readonly List<MetroWagon> allWagons = new List<MetroWagon>();
 
     void Awake()
@@ -46,15 +49,39 @@ public class WagonManager : MonoBehaviour
     /// </summary>
     public void ReportWagonFilled(MetroWagon wagon)
     {
-        Debug.Log($"<color=orange>VAGON DOLDU:</color> {wagon.wagonColor} renkli vagon kapasitesine ulaştı ve devre dışı bırakıldı.");
+        Debug.LogWarning($"WagonManager: VAGON DOLDU -> Enqueue removal wait for wagon '{wagon?.name ?? "null"}' at pos {wagon?.transform.position}");
         OnWagonFilled?.Invoke(wagon);
 
-        Transform removedWagonTransform = wagon.transform;
-        // Vagonu deaktif et ve listeden kaldır.
-        wagon.gameObject.SetActive(false);
-        allWagons.Remove(wagon);
-        OnWagonRemoved?.Invoke(removedWagonTransform);
-        // Burada vagonun görünümünü değiştirecek bir işlem yapılabilir (örn. ışıkları söndürmek).
+        if (wagon == null) return;
+
+        // If already pending, don't start another waiter
+        if (pendingRemovals.Contains(wagon)) return;
+        pendingRemovals.Add(wagon);
+        // Start coroutine to wait until wagon arrives at a checkpoint then remove it
+        StartCoroutine(WaitAndRemoveWagon(wagon));
+    }
+
+    private System.Collections.IEnumerator WaitAndRemoveWagon(MetroWagon wagon)
+    {
+        float timeout = 5f; // safety timeout
+        float elapsed = 0f;
+        // Wait until wagon is at/near a checkpoint
+        while (wagon != null && !wagon.IsAtCheckpoint() && elapsed < timeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (wagon != null)
+        {
+            Transform removedWagonTransform = wagon.transform;
+            Debug.LogWarning($"WagonManager: Removing wagon '{wagon.name}' at pos {removedWagonTransform.position} after waiting {elapsed:F2}s (timeout {timeout}s)");
+            wagon.gameObject.SetActive(false);
+            allWagons.Remove(wagon);
+            OnWagonRemoved?.Invoke(removedWagonTransform);
+        }
+
+        pendingRemovals.Remove(wagon);
     }
 
     /// <summary>

@@ -70,6 +70,23 @@ public class MetroWagon : MonoBehaviour
     }
 
     /// <summary>
+    /// Check if the wagon is currently at (or very near) a checkpoint.
+    /// Used to ensure we only disable a wagon while it's parked at a checkpoint.
+    /// </summary>
+    public bool IsAtCheckpoint(float threshold = 0.15f)
+    {
+        if (path == null || path.checkpoints == null || path.checkpoints.Count == 0) return true;
+
+        float minDist = float.MaxValue;
+        for (int i = 0; i < path.checkpoints.Count; i++)
+        {
+            float d = Vector3.Distance(transform.position, path.checkpoints[i].position);
+            if (d < minDist) minDist = d;
+        }
+        return minDist <= threshold;
+    }
+
+    /// <summary>
     /// Vagonun mevcut checkpoint hedefini günceller.
     /// </summary>
     /// <param name="newIndex">Yeni checkpoint indeksi.</param>

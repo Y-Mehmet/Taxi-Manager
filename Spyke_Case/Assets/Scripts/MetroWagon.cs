@@ -41,13 +41,21 @@ public class MetroWagon : MonoBehaviour
             }
         }
         
-        // Yolu tamamlayan vagonları UberManager'a gönder.
+        // Yolu tamamlayan vagonları işle.
         if (currentCheckpointIndex >= path.checkpoints.Count)
         {
+            // Eğer bu vagon Head ise, tüm trenin hareketini durdur.
+            if (isHead)
+            {
+                MetroManager.StopMovement();
+            }
+
+            // İster Head olsun ister olmasın, yolu bitiren her vagon Uber'e bildirilir.
             if (UberManager.Instance != null)
             {
                 UberManager.Instance.ProcessFinishedWagon(this);
             }
+            
             // Bu script'i devre dışı bırak ki tekrar tekrar çağrılmasın.
             this.enabled = false;
         }

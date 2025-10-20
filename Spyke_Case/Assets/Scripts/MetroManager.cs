@@ -57,6 +57,20 @@ public class MetroManager : MonoBehaviour
          PassengerGroup.OnGroupClicked -= HandleFirstGroupClicked;
     }
 
+    public static void StopMovement()
+    {
+        if (IsMovementStopped) return;
+        IsMovementStopped = true;
+        Debug.Log("<color=red>TRAIN MOVEMENT STOPPED.</color>");
+    }
+
+    public static void StartMovement()
+    {
+        if (!IsMovementStopped) return;
+        IsMovementStopped = false;
+        Debug.Log("<color=green>TRAIN MOVEMENT RESTARTED.</color>");
+    }
+
     void Start()
     {
         if (checkpointPath == null || checkpointPath.checkpoints == null || checkpointPath.checkpoints.Count == 0)
@@ -162,15 +176,20 @@ public class MetroManager : MonoBehaviour
 
     private void HandleWagonRemoval(MetroWagon removedWagon, Transform removedWagonTransform)
     {
-        // --- Head Promotion ---
+        // --- Head Promotion & Restart Logic ---
         if (removedWagon != null && removedWagon.isHead)
         {
-            // Güvenilir olan ana listeyi kullanarak bir sonraki aktif vagonu bul.
             MetroWagon newHead = masterWagonList.FirstOrDefault(w => w != null && w.gameObject.activeInHierarchy && w != removedWagon);
             if (newHead != null)
             {
                 newHead.isHead = true;
                 Debug.LogWarning($"HEAD DEĞİŞTİ! Yeni head vagon: {newHead.name}");
+                StartMovement(); // Hareketi yeniden başlat
+            }
+            else
+            {
+                Debug.LogError("Last wagon removed! Train cannot move.");
+                StopMovement(); // Terfi edecek vagon kalmadı, hareketi kalıcı olarak durdur.
             }
         }
 
@@ -202,7 +221,6 @@ public class MetroManager : MonoBehaviour
 
         yield return null;
 
-        // Animasyon için güncel aktif vagon listesini al
         activeWagons = WagonManager.Instance.GetActiveWagons();
 
         var items = new List<(Transform t, float progress)>();

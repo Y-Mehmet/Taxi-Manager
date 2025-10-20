@@ -21,7 +21,11 @@ public class MetroManager : MonoBehaviour
     [Header("Bağlantılar")]
     public PassengerGrid passengerGrid; // Yolcu grid'i referansı
 
-    private List<MetroWagon> wagons = new List<MetroWagon>();
+    // Vagonların oyun başındaki orijinal sırasını tutan, değişmez ana liste.
+    private readonly List<MetroWagon> masterWagonList = new List<MetroWagon>();
+    // Sadece aktif olan vagonları tutan ve güncellenen liste.
+    private List<MetroWagon> activeWagons = new List<MetroWagon>();
+    
     private Dictionary<MetroWagon, float> originalWagonSpeeds = new Dictionary<MetroWagon, float>();
     private bool speedsBoosted = false;
     private float initialSpeedMultiplier = 4f;
@@ -30,33 +34,22 @@ public class MetroManager : MonoBehaviour
 
     public static event System.Action<bool> OnTrainAdjustmentStateChanged;
 
-    // Tüm vagonların hareketini kontrol etmek için statik değişken
     public static bool IsMovementStopped { get; private set; }
-    private bool isAdjusting = false; // Tren pozisyon ayarlaması yaparken true olur.
-    // Pending removals collection: collect removed wagon transforms arriving within a short window
+    private bool isAdjusting = false; 
     private List<Transform> pendingRemovedTransforms = new List<Transform>();
     private Coroutine pendingRemovalCoroutine = null;
-    private float pendingRemovalDelay = 0.05f; // small aggregation window
 
     void Awake()
     {
-        // Singleton pattern
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoval;
-        // Dinle: bir yolcu grubuna ilk tıklama gerçekleştiğinde hızları eski haline getir
         PassengerGroup.OnGroupClicked += HandleFirstGroupClicked;
-    }
-
-    public static void StopMovement()
-    {
-        IsMovementStopped = true;
     }
 
     void OnDestroy()
     {
-        // Bellek sızıntılarını önlemek için event aboneliğini kaldır.
         if (WagonManager.Instance != null)
         {
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
@@ -82,30 +75,24 @@ public class MetroManager : MonoBehaviour
             return;
         }
 
-        // Oyuna başlarken hareketi başlat
         IsMovementStopped = false;
 
-        // --- 1. Spawn all wagons and add to a temporary list of GameObjects ---
         List<GameObject> wagonObjects = new List<GameObject>();
         Vector3 basePos = checkpointPath.checkpoints[0].position;
         Vector3 forward = (checkpointPath.checkpoints.Count > 1) ?
             (checkpointPath.checkpoints[1].position - checkpointPath.checkpoints[0].position).normalized : Vector3.forward;
 
-        // HEAD
         wagonObjects.Add(Instantiate(headPrefab, basePos, Quaternion.LookRotation(forward)));
 
-        // MID
         for (int i = 0; i < midCount; i++)
         {
             Vector3 spawnPos = basePos - forward * wagonSpacing * (i + 1);
             wagonObjects.Add(Instantiate(midPrefab, spawnPos, Quaternion.LookRotation(forward)));
         }
 
-        // TAIL
         Vector3 tailPos = basePos - forward * wagonSpacing * (midCount + 1);
         wagonObjects.Add(Instantiate(endPrefab, tailPos, Quaternion.LookRotation(forward)));
 
-        // --- 2. Initialize, name, color, and register all wagons ---
         for (int i = 0; i < wagonObjects.Count; i++)
         {
             GameObject wagonObj = wagonObjects[i];
@@ -117,61 +104,47 @@ public class MetroManager : MonoBehaviour
                 continue;
             }
 
-            // Set head property for the first wagon
-            if (i == 0)
-            {
-                wagon.isHead = true;
-            }
+            if (i == 0) wagon.isHead = true;
             
-            // Name the wagon
             wagonObj.name = $"Wagon_{i}";
 
-            // Determine color
-            HyperCasualColor colorToAssign = HyperCasualColor.White; // Default
+            HyperCasualColor colorToAssign = HyperCasualColor.White;
             if (midWagonColors != null && midWagonColors.Count > 0)
             {
                 int colorIndex = i % midWagonColors.Count;
                 colorToAssign = midWagonColors[colorIndex];
             }
 
-            // Initialize with path and color
             wagon.Init(checkpointPath, FindClosestCheckpointIndex(wagonObj.transform.position), colorToAssign);
 
-            // Apply color to renderer
             var renderer = wagon.GetComponentInChildren<Renderer>();
-            if (renderer != null)
-            {
-                renderer.material.color = colorToAssign.ToColor();
-            }
+            if (renderer != null) renderer.material.color = colorToAssign.ToColor();
             
-            // Register and add to the final list
             WagonManager.Instance.RegisterWagon(wagon);
-            wagons.Add(wagon);
+            masterWagonList.Add(wagon);
+            activeWagons.Add(wagon);
         }
 
-        // Oyuna başlarken tüm vagonların hızını çarpanla arttır
         ApplyInitialWagonSpeedMultiplier();
     }
-
 
     private void ApplyInitialWagonSpeedMultiplier()
     {
         if (speedsBoosted) return;
-        foreach (var w in wagons)
+        foreach (var w in masterWagonList) // Ana liste üzerinden git
         {
             if (w == null) continue;
             originalWagonSpeeds[w] = w.speed;
             w.speed *= initialSpeedMultiplier;
         }
         speedsBoosted = true;
-        Debug.Log($"MetroManager: Applied initial wagon speed multiplier x{initialSpeedMultiplier} to {wagons.Count} wagons.");
+        Debug.Log($"MetroManager: Applied initial wagon speed multiplier x{initialSpeedMultiplier} to {masterWagonList.Count} wagons.");
     }
 
     private void HandleFirstGroupClicked()
     {
         if (!speedsBoosted) return;
         RestoreOriginalWagonSpeeds();
-        // Sadece ilk tıklamada çalışsın
         PassengerGroup.OnGroupClicked -= HandleFirstGroupClicked;
     }
 
@@ -180,10 +153,7 @@ public class MetroManager : MonoBehaviour
         foreach (var kv in originalWagonSpeeds)
         {
             var w = kv.Key;
-            if (w != null)
-            {
-                w.speed = kv.Value;
-            }
+            if (w != null) w.speed = kv.Value;
         }
         originalWagonSpeeds.Clear();
         speedsBoosted = false;
@@ -195,26 +165,21 @@ public class MetroManager : MonoBehaviour
         // --- Head Promotion ---
         if (removedWagon != null && removedWagon.isHead)
         {
-            // The `wagons` list is the master list, ordered by spawn, and never changes.
-            // We find the first wagon in our master list that is still active in the game.
-            MetroWagon newHead = wagons.FirstOrDefault(w => w != null && w.gameObject.activeInHierarchy);
+            // Güvenilir olan ana listeyi kullanarak bir sonraki aktif vagonu bul.
+            MetroWagon newHead = masterWagonList.FirstOrDefault(w => w != null && w.gameObject.activeInHierarchy && w != removedWagon);
             if (newHead != null)
             {
                 newHead.isHead = true;
-                Debug.Log($"<color=#00FFFF>HEAD PROMOTION:</color> New head wagon is {newHead.name}.");
+                Debug.LogWarning($"HEAD DEĞİŞTİ! Yeni head vagon: {newHead.name}");
             }
         }
-        // --- End Head Promotion ---
 
-        // --- Original visual removal logic ---
         if (removedWagonTransform == null) return;
 
         Debug.LogWarning($"MetroManager: OnWagonRemoved enqueued for transform '{removedWagonTransform.name}' at pos {removedWagonTransform.position}");
 
-        // Add to the queue
         pendingRemovedTransforms.Add(removedWagonTransform);
 
-        // If a processing coroutine isn't already running, start one.
         if (pendingRemovalCoroutine == null)
         {
             pendingRemovalCoroutine = StartCoroutine(ProcessPendingRemovals());
@@ -223,7 +188,6 @@ public class MetroManager : MonoBehaviour
 
     private System.Collections.IEnumerator ProcessPendingRemovals()
     {
-        // If we are already adjusting, or there's nothing to process, exit.
         if (isAdjusting || pendingRemovedTransforms.Count == 0)
         {
             pendingRemovalCoroutine = null;
@@ -233,17 +197,13 @@ public class MetroManager : MonoBehaviour
         isAdjusting = true;
         OnTrainAdjustmentStateChanged?.Invoke(true);
 
-        // Take only the FIRST wagon from the pending list.
         var removedTransform = pendingRemovedTransforms[0];
         pendingRemovedTransforms.RemoveAt(0);
 
-        // Wait a frame to ensure all states are updated
         yield return null;
 
-        // --- Logic for a SINGLE removal ---
-
-        // Active wagons list
-        wagons = WagonManager.Instance.GetActiveWagons();
+        // Animasyon için güncel aktif vagon listesini al
+        activeWagons = WagonManager.Instance.GetActiveWagons();
 
         var items = new List<(Transform t, float progress)>();
 
@@ -271,7 +231,7 @@ public class MetroManager : MonoBehaviour
             return bestProgress;
         }
 
-        foreach (var w in wagons)
+        foreach (var w in activeWagons)
         {
             if (w == null) continue;
             float prog = 0f;
@@ -324,7 +284,7 @@ public class MetroManager : MonoBehaviour
 
         if (movePairs.Count == 0)
         {
-            isAdjusting = false; // No one to move, just continue processing.
+            isAdjusting = false;
             if (pendingRemovedTransforms.Count > 0)
             {
                 pendingRemovalCoroutine = StartCoroutine(ProcessPendingRemovals());
@@ -356,7 +316,6 @@ public class MetroManager : MonoBehaviour
             }
 
             isAdjusting = false;
-            // Check for more pending removals and restart the process.
             if (pendingRemovedTransforms.Count > 0)
             {
                 Debug.Log($"More removals pending ({pendingRemovedTransforms.Count}), processing next.");
@@ -371,7 +330,6 @@ public class MetroManager : MonoBehaviour
         });
     }
 
-    // Verilen pozisyona en yakın checkpoint'in index'ini bulur.
     private int FindClosestCheckpointIndex(Vector3 position)
     {
         int closestIndex = 0;
@@ -387,15 +345,9 @@ public class MetroManager : MonoBehaviour
             }
         }
 
-        // En yakın checkpoint'ten bir sonraki hedef olarak başla, eğer son checkpoint değilse.
-        // Bu, vagonun geriye gitmesini engeller.
         return Mathf.Min(closestIndex + 1, checkpointPath.checkpoints.Count - 1);
     }
 
-    /// <summary>
-    /// Finds the index of the absolutely nearest checkpoint to a given position, without any offset.
-    /// This is used for post-animation adjustments where the wagon needs to snap to the truly closest point.
-    /// </summary>
     private int FindNearestCheckpointIndexExact(Vector3 position)
     {
         int closestIndex = 0;

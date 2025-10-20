@@ -14,7 +14,7 @@ public class WagonManager : MonoBehaviour
     public event Action<MetroWagon> OnWagonFilled;
 
     // YENİ EVENT: Bir vagon sistemden kaldırıldığında (deaktif edildiğinde) tetiklenir.
-    public event Action<Transform> OnWagonRemoved;
+    public event Action<MetroWagon, Transform> OnWagonRemoved;
 
     // Pending removals to avoid starting multiple coroutines for same wagon
     private HashSet<MetroWagon> pendingRemovals = new HashSet<MetroWagon>();
@@ -76,9 +76,12 @@ public class WagonManager : MonoBehaviour
         {
             Transform removedWagonTransform = wagon.transform;
             Debug.LogWarning($"WagonManager: Removing wagon '{wagon.name}' at pos {removedWagonTransform.position} after waiting {elapsed:F2}s (timeout {timeout}s)");
+            
+            // Invoke the event BEFORE deactivating/removing, so listeners can inspect the wagon.
+            OnWagonRemoved?.Invoke(wagon, removedWagonTransform);
+
             wagon.gameObject.SetActive(false);
             allWagons.Remove(wagon);
-            OnWagonRemoved?.Invoke(removedWagonTransform);
         }
 
         pendingRemovals.Remove(wagon);
@@ -94,7 +97,6 @@ public class WagonManager : MonoBehaviour
     {
         // LINQ kullanarak hem verimli hem de okunaklı bir arama yapalım.
         return allWagons.FirstOrDefault(wagon =>
-            !wagon.isHead &&                  // Lider vagon olmamalı.
             !wagon.IsFull &&                  // Kapasitesi dolu olmamalı.
             wagon.wagonColor == color &&      // Rengi eşleşmeli.
             wagon.GetCurrentCheckpointIndex() >= boardingZoneStart // Yolcu alma bölgesinde olmalı.

@@ -99,7 +99,7 @@ public class BoardingManager : MonoBehaviour
         
         // Yolcu alma bölgesindeki vagonların renklerini bul.
         var currentColorsInZone = activeWagons
-            .Where(wagon => !wagon.isHead && !wagon.IsFull && wagon.GetCurrentCheckpointIndex() >= boardingZoneStart)
+            .Where(wagon => !wagon.IsFull && wagon.GetCurrentCheckpointIndex() >= boardingZoneStart)
             .Select(wagon => wagon.wagonColor)
             .Distinct()
             .ToList();
@@ -121,7 +121,7 @@ public class BoardingManager : MonoBehaviour
         TryBoardPassengers();
     }
     
-    private void HandleWagonRemoved(Transform removedWagonTransform)
+    private void HandleWagonRemoved(MetroWagon removedWagon, Transform removedWagonTransform)
     {
         CheckAvailableWagons();
     }

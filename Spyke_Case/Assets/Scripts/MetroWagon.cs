@@ -37,17 +37,19 @@ public class MetroWagon : MonoBehaviour
             // Hedefe yeterince yaklaştıysak bir sonraki checkpoint'e geç
             if (Vector3.Distance(transform.position, target) < 0.1f)
             {
-                // Yeni bir checkpoint'e ulaştık, yolcu kontrolü yap.
-                // Sadece renkli vagonlar yolcu alabilir.
-                // BU MANTIK ARTIK METROMANAGER'DA EVENT İLE YÖNETİLİYOR.
-                // if (!isHead) MetroManager.Instance?.CheckForPassengers(this, currentCheckpointIndex);
                 currentCheckpointIndex++;
             }
         }
-        else if (isHead)
+        
+        // Yolu tamamlayan vagonları UberManager'a gönder.
+        if (currentCheckpointIndex >= path.checkpoints.Count)
         {
-            // Eğer bu lider vagonsa ve yolu tamamladıysa, tüm vagonları durdur.
-            MetroManager.StopMovement();
+            if (UberManager.Instance != null)
+            {
+                UberManager.Instance.ProcessFinishedWagon(this);
+            }
+            // Bu script'i devre dışı bırak ki tekrar tekrar çağrılmasın.
+            this.enabled = false;
         }
     }
     

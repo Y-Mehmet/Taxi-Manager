@@ -85,76 +85,69 @@ public class MetroManager : MonoBehaviour
         // Oyuna başlarken hareketi başlat
         IsMovementStopped = false;
 
-        // HEAD vagonu en önde spawn et
-        // Head vagonu en küçük z'de, tail en büyük z'de olacak şekilde spawn et
+        // --- 1. Spawn all wagons and add to a temporary list of GameObjects ---
+        List<GameObject> wagonObjects = new List<GameObject>();
         Vector3 basePos = checkpointPath.checkpoints[0].position;
         Vector3 forward = (checkpointPath.checkpoints.Count > 1) ?
             (checkpointPath.checkpoints[1].position - checkpointPath.checkpoints[0].position).normalized : Vector3.forward;
 
-    // Head vagonu
-    GameObject headObj = Instantiate(headPrefab, basePos, Quaternion.LookRotation(forward));
-        MetroWagon headWagon = headObj.GetComponent<MetroWagon>();
-        if (headWagon == null)
-        {
-            Debug.LogError("Head prefabında MetroWagon scripti yok!");
-            return;
-        }
-        // Head vagonu en yakın checkpoint'ten başlat
-    headWagon.isHead = true; // Bu vagonun lider olduğunu belirt
-    // Name wagons sequentially: head = Wagon_0
-    headObj.name = $"Wagon_0";
-        headWagon.Init(checkpointPath, FindClosestCheckpointIndex(headObj.transform.position));
-        WagonManager.Instance.RegisterWagon(headWagon);
-        wagons.Add(headWagon);
+        // HEAD
+        wagonObjects.Add(Instantiate(headPrefab, basePos, Quaternion.LookRotation(forward)));
 
-        for (int i = 0; i < midCount; i++) // Mid vagonlar
+        // MID
+        for (int i = 0; i < midCount; i++)
         {
             Vector3 spawnPos = basePos - forward * wagonSpacing * (i + 1);
-            GameObject midObj = Instantiate(midPrefab, spawnPos, Quaternion.LookRotation(forward));
-            MetroWagon midWagon = midObj.GetComponent<MetroWagon>();
-            if (midWagon == null)
+            wagonObjects.Add(Instantiate(midPrefab, spawnPos, Quaternion.LookRotation(forward)));
+        }
+
+        // TAIL
+        Vector3 tailPos = basePos - forward * wagonSpacing * (midCount + 1);
+        wagonObjects.Add(Instantiate(endPrefab, tailPos, Quaternion.LookRotation(forward)));
+
+        // --- 2. Initialize, name, color, and register all wagons ---
+        for (int i = 0; i < wagonObjects.Count; i++)
+        {
+            GameObject wagonObj = wagonObjects[i];
+            MetroWagon wagon = wagonObj.GetComponent<MetroWagon>();
+
+            if (wagon == null)
             {
-                Debug.LogError($"Mid prefabında MetroWagon scripti yok! Index: {i}");
+                Debug.LogError($"Prefab for wagon at index {i} is missing MetroWagon script!");
                 continue;
             }
-            // Her vagonu kendi en yakın checkpoint'inden başlat
-            midWagon.Init(checkpointPath, FindClosestCheckpointIndex(midObj.transform.position));
 
-            // Renk ata
+            // Set head property for the first wagon
+            if (i == 0)
+            {
+                wagon.isHead = true;
+            }
+            
+            // Name the wagon
+            wagonObj.name = $"Wagon_{i}";
+
+            // Determine color
+            HyperCasualColor colorToAssign = HyperCasualColor.White; // Default
             if (midWagonColors != null && midWagonColors.Count > 0)
             {
                 int colorIndex = i % midWagonColors.Count;
-                HyperCasualColor color = midWagonColors[colorIndex];
-                var renderer = midWagon.GetComponentInChildren<Renderer>();
-                if (renderer != null) // Init metoduna rengi de gönder
-                {
-                    midWagon.Init(checkpointPath, FindClosestCheckpointIndex(midObj.transform.position), color);
-                    renderer.material.color = color.ToColor();
-                }
+                colorToAssign = midWagonColors[colorIndex];
             }
-            // name sequentially: Wagon_1 .. Wagon_midCount
-            int midIndex = 1 + i; // head=0
-            midObj.name = $"Wagon_{midIndex}";
-            WagonManager.Instance.RegisterWagon(midWagon);
-            wagons.Add(midWagon);
-        }
 
-        // Tail vagon
-        Vector3 tailPos = basePos - forward * wagonSpacing * (midCount + 1);
-    GameObject tailObj = Instantiate(endPrefab, tailPos, Quaternion.LookRotation(forward));
-        MetroWagon tailWagon = tailObj.GetComponent<MetroWagon>();
-        if (tailWagon == null)
-        {
-            Debug.LogError("End prefabında MetroWagon scripti yok!");
-            return;
+            // Initialize with path and color
+            wagon.Init(checkpointPath, FindClosestCheckpointIndex(wagonObj.transform.position), colorToAssign);
+
+            // Apply color to renderer
+            var renderer = wagon.GetComponentInChildren<Renderer>();
+            if (renderer != null)
+            {
+                renderer.material.color = colorToAssign.ToColor();
+            }
+            
+            // Register and add to the final list
+            WagonManager.Instance.RegisterWagon(wagon);
+            wagons.Add(wagon);
         }
-        // Tail vagonu kendi en yakın checkpoint'inden başlat
-    // name tail sequentially
-    int tailIndex = 1 + midCount; // head=0
-    tailObj.name = $"Wagon_{tailIndex}";
-    tailWagon.Init(checkpointPath, FindClosestCheckpointIndex(tailObj.transform.position));
-        WagonManager.Instance.RegisterWagon(tailWagon);
-        wagons.Add(tailWagon);
 
         // Oyuna başlarken tüm vagonların hızını çarpanla arttır
         ApplyInitialWagonSpeedMultiplier();
@@ -197,15 +190,23 @@ public class MetroManager : MonoBehaviour
         Debug.Log("MetroManager: Restored original wagon speeds after first passenger group click.");
     }
 
-    /// <summary>
-    /// A wagon was removed (disabled). Aggregate multiple removals and then reassign positions
-    /// for the wagons that were ahead of the removed wagons. This method avoids relying on world Z
-    /// and instead orders wagons by their checkpoint progress (and fallback along the path).
-    /// Each preceding wagon will be animated to the position of the wagon behind it (or to the
-    /// removed wagon's transform position placeholder) using DOTween.
-    /// </summary>
-    private void HandleWagonRemoval(Transform removedWagonTransform)
+    private void HandleWagonRemoval(MetroWagon removedWagon, Transform removedWagonTransform)
     {
+        // --- Head Promotion ---
+        if (removedWagon != null && removedWagon.isHead)
+        {
+            // The `wagons` list is the master list, ordered by spawn, and never changes.
+            // We find the first wagon in our master list that is still active in the game.
+            MetroWagon newHead = wagons.FirstOrDefault(w => w != null && w.gameObject.activeInHierarchy);
+            if (newHead != null)
+            {
+                newHead.isHead = true;
+                Debug.Log($"<color=#00FFFF>HEAD PROMOTION:</color> New head wagon is {newHead.name}.");
+            }
+        }
+        // --- End Head Promotion ---
+
+        // --- Original visual removal logic ---
         if (removedWagonTransform == null) return;
 
         Debug.LogWarning($"MetroManager: OnWagonRemoved enqueued for transform '{removedWagonTransform.name}' at pos {removedWagonTransform.position}");

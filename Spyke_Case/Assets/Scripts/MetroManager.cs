@@ -28,6 +28,8 @@ public class MetroManager : MonoBehaviour
 
     public static MetroManager Instance { get; private set; }
 
+    public static event System.Action<bool> OnTrainAdjustmentStateChanged;
+
     // Tüm vagonların hareketini kontrol etmek için statik değişken
     public static bool IsMovementStopped { get; private set; }
     private bool isAdjusting = false; // Tren pozisyon ayarlaması yaparken true olur.
@@ -208,9 +210,10 @@ public class MetroManager : MonoBehaviour
 
         Debug.LogWarning($"MetroManager: OnWagonRemoved enqueued for transform '{removedWagonTransform.name}' at pos {removedWagonTransform.position}");
 
-        // collect removed transforms within a short time window
+        // Add to the queue
         pendingRemovedTransforms.Add(removedWagonTransform);
 
+        // If a processing coroutine isn't already running, start one.
         if (pendingRemovalCoroutine == null)
         {
             pendingRemovalCoroutine = StartCoroutine(ProcessPendingRemovals());
@@ -219,31 +222,30 @@ public class MetroManager : MonoBehaviour
 
     private System.Collections.IEnumerator ProcessPendingRemovals()
     {
-        // Small delay so simultaneous removals are aggregated
-        yield return new WaitForSeconds(pendingRemovalDelay);
-
-        if (isAdjusting)
+        // If we are already adjusting, or there's nothing to process, exit.
+        if (isAdjusting || pendingRemovedTransforms.Count == 0)
         {
-            pendingRemovedTransforms.Clear();
             pendingRemovalCoroutine = null;
             yield break;
         }
 
         isAdjusting = true;
+        OnTrainAdjustmentStateChanged?.Invoke(true);
 
-        // Copy and clear pending list
-        var removedList = new List<Transform>(pendingRemovedTransforms);
-        pendingRemovedTransforms.Clear();
-        pendingRemovalCoroutine = null;
+        // Take only the FIRST wagon from the pending list.
+        var removedTransform = pendingRemovedTransforms[0];
+        pendingRemovedTransforms.RemoveAt(0);
+
+        // Wait a frame to ensure all states are updated
+        yield return null;
+
+        // --- Logic for a SINGLE removal ---
 
         // Active wagons list
         wagons = WagonManager.Instance.GetActiveWagons();
 
-        // Build a combined ordered list of items along the path: active wagons and placeholders for removed ones
-        // We'll compute a continuous 'progress' along the path (segmentIndex + t) and sort by that.
         var items = new List<(Transform t, float progress)>();
 
-        // Helper: compute continuous progress along checkpoint path
         float GetPathProgress(Vector3 pos)
         {
             if (checkpointPath == null || checkpointPath.checkpoints == null || checkpointPath.checkpoints.Count < 2) return 0f;
@@ -268,13 +270,11 @@ public class MetroManager : MonoBehaviour
             return bestProgress;
         }
 
-        // Add all active wagons with their path progress based on their checkpoint index + fraction
         foreach (var w in wagons)
         {
             if (w == null) continue;
             float prog = 0f;
             int idx = w.GetCurrentCheckpointIndex();
-            // compute fraction between checkpoint idx-1 and idx using positions if possible
             if (checkpointPath != null && checkpointPath.checkpoints != null && checkpointPath.checkpoints.Count > 1)
             {
                 int seg = Mathf.Clamp(idx - 1, 0, checkpointPath.checkpoints.Count - 2);
@@ -283,10 +283,7 @@ public class MetroManager : MonoBehaviour
                 Vector3 ab = b - a;
                 float denom = ab.sqrMagnitude;
                 float t = 0f;
-                if (denom > 0f)
-                {
-                    t = Mathf.Clamp01(Vector3.Dot(w.transform.position - a, ab) / denom);
-                }
+                if (denom > 0f) t = Mathf.Clamp01(Vector3.Dot(w.transform.position - a, ab) / denom);
                 prog = seg + t;
             }
             else
@@ -295,161 +292,81 @@ public class MetroManager : MonoBehaviour
             }
             items.Add((w.transform, prog));
         }
+        items.Add((removedTransform, GetPathProgress(removedTransform.position)));
 
-        // Add placeholders for removed wagons using their path progress
-        foreach (var r in removedList)
-        {
-            if (r == null) continue;
-            float prog = GetPathProgress(r.position);
-            items.Add((r, prog));
-        }
-
-
-        // Sort items by continuous path progress descending (head first)
         items = items.OrderByDescending(i => i.progress).ToList();
 
-        // Build richer item model (named tuple) so placeholders don't rely on transform state
         var rich = items.Select(i => (
             origTransform: i.t,
             pos: i.t != null ? i.t.position : Vector3.zero,
             rot: i.t != null ? i.t.rotation : Quaternion.identity,
-            progress: i.progress,
             wagon: i.t != null ? i.t.GetComponent<MetroWagon>() : null
         )).ToList();
 
-        var removedSet = new HashSet<Transform>(removedList);
+        var wagonTargetMap = new Dictionary<MetroWagon, (Vector3 pos, Quaternion rot)>();
+        int removedIdx = rich.FindIndex(item => item.origTransform == removedTransform);
 
-    // Map wagons to their final target slot (pos, rot)
-    var wagonTargetMap = new Dictionary<MetroWagon, (Vector3 pos, Quaternion rot)>();
-    // For reporting, a batch-affected list (we'll list only wagons that actually change slot)
-    var affectedWagons = new List<(MetroWagon wagon, float srcProg, Vector3 srcPos, Vector3 targetPos, Quaternion targetRot)>();
-    // Map removed transform to final head slot (we'll apply at the end)
-    var removedFinalPositions = new Dictionary<Transform, (Vector3 pos, Quaternion rot)>();
-
-    // --- Batch rotate: compute final order once for all removals to avoid cascading effects ---
-    // Original 'rich' is head-first (index 0 = head). We'll compute finalRich by:
-    // 1) taking the original rich list
-    // 2) removing all removed entries
-    // 3) prepending the removed transforms (in the same order as removedList) into the head area using the original head-slot positions
-    // This produces a single final ordering equivalent to performing all rotates at once.
-
-    // Snapshot original head-slot positions (for assigning removed wagons)
-    int removeCount = removedList.Count;
-    var headSlotPositions = new List<(Vector3 pos, Quaternion rot)>();
-    for (int i = 0; i < Mathf.Min(removeCount, rich.Count); i++) headSlotPositions.Add((rich[i].pos, rich[i].rot));
-
-    // Build finalRich: first add placeholders for removed transforms (they will occupy the original head slots)
-    var finalRich = new List<(Transform origTransform, Vector3 pos, Quaternion rot, float progress, MetroWagon wagon)>();
-    for (int i = 0; i < removedList.Count; i++)
-    {
-        var rtr = removedList[i];
-        Vector3 p = Vector3.zero; Quaternion q = Quaternion.identity;
-        if (i < headSlotPositions.Count) { p = headSlotPositions[i].pos; q = headSlotPositions[i].rot; }
-        finalRich.Add((rtr, p, q, 0f, rtr != null ? rtr.GetComponent<MetroWagon>() : null));
-        removedFinalPositions[rtr] = (p, q);
-    }
-
-    // Then add the non-removed original entries in the same relative order
-    for (int i = 0; i < rich.Count; i++)
-    {
-        var entry = rich[i];
-        if (entry.origTransform != null && removedSet.Contains(entry.origTransform)) continue; // skip removed
-        finalRich.Add(entry);
-    }
-
-    // Now compute mapping: for each wagon that remains (non-removed), compare its original index vs new index
-    for (int origIdx = 0; origIdx < rich.Count; origIdx++)
-    {
-        var entry = rich[origIdx];
-        if (entry.wagon == null) continue;
-        // find new index of this wagon in finalRich
-        int newIdx = finalRich.FindIndex(f => f.origTransform == entry.origTransform);
-        if (newIdx == -1) continue; // shouldn't happen
-        if (newIdx != origIdx)
+        if (removedIdx != -1)
         {
-            var target = finalRich[newIdx];
-            wagonTargetMap[entry.wagon] = (target.pos, target.rot);
-            affectedWagons.Add((entry.wagon, entry.progress, entry.pos, target.pos, target.rot));
+            for (int i = removedIdx - 1; i >= 0; i--)
+            {
+                var itemToMove = rich[i];
+                var targetSlot = rich[i + 1];
+                if (itemToMove.wagon != null)
+                {
+                    wagonTargetMap[itemToMove.wagon] = (targetSlot.pos, targetSlot.rot);
+                }
+            }
         }
-    }
 
-        // Prepare final movePairs from wagonTargetMap
         var movePairs = wagonTargetMap.Select(kv => (wagon: kv.Key, targetPos: kv.Value.pos, targetRot: kv.Value.rot)).ToList();
-
-        // --- Concise batch report: removed wagons final head positions + the set of wagons that actually change slot ---
-        Debug.LogWarning("--- Removal report (concise) start ---");
-        foreach (var kv in removedFinalPositions)
-        {
-            var removedTr = kv.Key;
-            var removedPos = kv.Value.pos; // final head slot pos
-            MetroWagon removedWagonComp = removedTr != null ? removedTr.GetComponent<MetroWagon>() : null;
-            int removedCheckpoint = -1;
-            if (removedWagonComp != null) removedCheckpoint = removedWagonComp.GetCurrentCheckpointIndex();
-            else removedCheckpoint = FindClosestCheckpointIndex(removedTr != null ? removedTr.position : removedPos);
-
-            Debug.LogWarning($"Removed wagon: '{(removedTr != null ? removedTr.name : "null")}' checkpoint={removedCheckpoint} finalHeadPos={removedPos}");
-        }
-
-        Debug.LogWarning($"Affected wagons count (will move): {affectedWagons.Count}");
-        foreach (var a in affectedWagons)
-        {
-            Debug.LogWarning($"  -> '{a.wagon.name}' from prog={a.srcProg:F3} pos={a.srcPos} -> targetPos={a.targetPos}");
-        }
-        Debug.LogWarning("--- Removal report (concise) end ---");
-
-        // Condensed final slot ordering: only show first N slots and a total count to avoid huge logs
-        int maxShownSlots = 10;
-        Debug.LogWarning($"--- Final slot ordering (Head=0) — showing first {maxShownSlots} of {rich.Count} slots ---");
-        for (int s = 0; s < Mathf.Min(maxShownSlots, rich.Count); s++)
-        {
-            var slot = rich[s];
-            string name = slot.origTransform != null ? slot.origTransform.name : (slot.wagon != null ? slot.wagon.name : "(empty)");
-            Debug.LogWarning($"Slot {s} -> '{name}' pos={slot.pos} prog={slot.progress:F3}");
-        }
-        if (rich.Count > maxShownSlots) Debug.LogWarning($"... (+{rich.Count - maxShownSlots} more slots not printed)");
-        Debug.LogWarning("--- End slot ordering (condensed) ---");
 
         if (movePairs.Count == 0)
         {
-            isAdjusting = false;
+            isAdjusting = false; // No one to move, just continue processing.
+            if (pendingRemovedTransforms.Count > 0)
+            {
+                pendingRemovalCoroutine = StartCoroutine(ProcessPendingRemovals());
+            }
+            else
+            {
+                pendingRemovalCoroutine = null;
+                OnTrainAdjustmentStateChanged?.Invoke(false);
+            }
             yield break;
         }
 
-        float moveDuration = 0.7f;
+        float moveDuration = 0.5f;
         Sequence seq = DOTween.Sequence();
 
         foreach (var mp in movePairs)
         {
             if (mp.wagon == null) continue;
-            var tr = mp.wagon.transform;
-            seq.Join(tr.DOMove(mp.targetPos, moveDuration).SetEase(Ease.InOutCubic));
-            seq.Join(tr.DORotateQuaternion(mp.targetRot, moveDuration).SetEase(Ease.InOutCubic));
+            seq.Join(mp.wagon.transform.DOMove(mp.targetPos, moveDuration).SetEase(Ease.InOutCubic));
+            seq.Join(mp.wagon.transform.DORotateQuaternion(mp.targetRot, moveDuration).SetEase(Ease.InOutCubic));
         }
 
         seq.OnComplete(() => {
-            Debug.Log($"Tren yeniden düzenlendi ({movePairs.Count} vagon hareket etti).");
-            // After animation, update each wagon's checkpoint to nearest checkpoint of its target position
+            Debug.Log($"Single wagon adjustment complete for: {removedTransform.name}");
             foreach (var mp in movePairs)
             {
                 if (mp.wagon == null) continue;
-                int newIdx = FindClosestCheckpointIndex(mp.targetPos);
-                mp.wagon.SetTargetCheckpoint(newIdx);
-                Debug.LogWarning($"MetroManager: Post-move set '{mp.wagon.name}' checkpoint -> {newIdx}");
+                mp.wagon.SetTargetCheckpoint(FindNearestCheckpointIndexExact(mp.targetPos));
             }
-            // Apply final positions to removed (disabled) wagon transforms
-            foreach (var kv in removedFinalPositions)
-            {
-                var tr = kv.Key;
-                var p = kv.Value.pos;
-                var r = kv.Value.rot;
-                if (tr != null)
-                {
-                    tr.position = p;
-                    tr.rotation = r;
-                    Debug.LogWarning($"MetroManager: Applied final head-slot pos to removed '{tr.name}' -> {p}");
-                }
-            }
+
             isAdjusting = false;
+            // Check for more pending removals and restart the process.
+            if (pendingRemovedTransforms.Count > 0)
+            {
+                Debug.Log($"More removals pending ({pendingRemovedTransforms.Count}), processing next.");
+                pendingRemovalCoroutine = StartCoroutine(ProcessPendingRemovals());
+            }
+            else
+            {
+                Debug.Log("All wagon removals processed.");
+                pendingRemovalCoroutine = null;
+                OnTrainAdjustmentStateChanged?.Invoke(false);
+            }
         });
     }
 
@@ -472,6 +389,29 @@ public class MetroManager : MonoBehaviour
         // En yakın checkpoint'ten bir sonraki hedef olarak başla, eğer son checkpoint değilse.
         // Bu, vagonun geriye gitmesini engeller.
         return Mathf.Min(closestIndex + 1, checkpointPath.checkpoints.Count - 1);
+    }
+
+    /// <summary>
+    /// Finds the index of the absolutely nearest checkpoint to a given position, without any offset.
+    /// This is used for post-animation adjustments where the wagon needs to snap to the truly closest point.
+    /// </summary>
+    private int FindNearestCheckpointIndexExact(Vector3 position)
+    {
+        int closestIndex = 0;
+        float minDistance = float.MaxValue;
+
+        if (checkpointPath == null || checkpointPath.checkpoints == null) return 0;
+
+        for (int i = 0; i < checkpointPath.checkpoints.Count; i++)
+        {
+            float dist = Vector3.Distance(position, checkpointPath.checkpoints[i].position);
+            if (dist < minDistance)
+            {
+                minDistance = dist;
+                closestIndex = i;
+            }
+        }
+        return closestIndex;
     }
 
     public bool IsAdjusting()

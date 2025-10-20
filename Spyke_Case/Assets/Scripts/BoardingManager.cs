@@ -9,8 +9,6 @@ using System;
 /// </summary>
 public class BoardingManager : MonoBehaviour
 {
-    // Her yolcu binişinden sonra tetiklenen event
-    public static event Action OnPassengerBoarded;
     public static BoardingManager Instance { get; private set; }
 
     [Header("Bağlantılar")]
@@ -23,6 +21,9 @@ public class BoardingManager : MonoBehaviour
     private List<HyperCasualColor> availableWagonColors = new List<HyperCasualColor>();
     
     private int boardingZoneStart;
+
+    // MetroManager treni ayarlarken yolcu bindirmeyi duraklatmak için bayrak.
+    private static bool isTrainAdjusting = false;
 
     void Awake()
     {
@@ -38,7 +39,6 @@ public class BoardingManager : MonoBehaviour
 
     void Start()
     {
-        OnPassengerBoarded += TryBoardPassengers;
         if (checkpointPath == null)
         {
             Debug.LogError("BoardingManager için CheckpointPath atanmamış!");
@@ -52,21 +52,37 @@ public class BoardingManager : MonoBehaviour
         // Diğer sistemlerden gelen olayları dinlemeye başla.
         StopManager.OnPassengerArrivedAtStop += HandlePassengerOrWagonChange;
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoved;
+        MetroManager.OnTrainAdjustmentStateChanged += HandleTrainAdjustmentStateChanged;
     }
 
     void OnDestroy()
     {
-        OnPassengerBoarded -= TryBoardPassengers;
         // Bellek sızıntılarını önle.
         StopManager.OnPassengerArrivedAtStop -= HandlePassengerOrWagonChange;
         if (WagonManager.Instance != null)
         {
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoved;
         }
+        MetroManager.OnTrainAdjustmentStateChanged -= HandleTrainAdjustmentStateChanged;
+    }
+
+    private static void HandleTrainAdjustmentStateChanged(bool isAdjusting)
+    {
+        isTrainAdjusting = isAdjusting;
+        Debug.Log($"<color=orange>BoardingManager notified: Train adjusting is now {isTrainAdjusting}</color>");
+        // If we are no longer adjusting, immediately check for new matches.
+        if (!isAdjusting && Instance != null)
+        {
+            // By clearing the list, we force CheckAvailableWagons to detect a change
+            // and re-evaluate boarding, even if the set of colors in the zone is coincidentally the same.
+            Instance.availableWagonColors.Clear();
+            Instance.CheckAvailableWagons();
+        }
     }
 
     void Update()
     {
+        if (isTrainAdjusting) return;
         CheckAvailableWagons();
     }
 
@@ -76,6 +92,8 @@ public class BoardingManager : MonoBehaviour
     /// </summary>
     private void CheckAvailableWagons()
     {
+        if (isTrainAdjusting) return;
+
         // Aktif ve uygun vagonları WagonManager'dan al.
         var activeWagons = WagonManager.Instance.GetActiveWagons();
         
@@ -92,27 +110,19 @@ public class BoardingManager : MonoBehaviour
         if (hasChanged)
         {
             availableWagonColors = currentColorsInZone;
-           // Debug.Log($"<color=lightblue>Yolcu Alma Bölgesi Güncellendi:</color> Mevcut Renkler: {string.Join(", ", availableWagonColors)}");
-            
-            // Rengi değişen vagonlar olduğu için event'i tetikle.
             OnAvailableColorsChanged?.Invoke(availableWagonColors);
-            
-            // Eşleştirme mantığını çalıştır.
             TryBoardPassengers();
         }
     }
 
     private void HandlePassengerOrWagonChange(PassengerGroup passenger, int stopIndex)
     {
-        // Bir yolcu durağa vardığında, eşleştirmeyi dene.
         Debug.Log($"<color=lightblue>Yeni Yolcu Geldi:</color> Eşleştirme kontrolü tetiklendi.");
         TryBoardPassengers();
     }
     
     private void HandleWagonRemoved(Transform removedWagonTransform)
     {
-        // Bir vagon sistemden kalktığında, anında kontrol tetikle.
-        // Update zaten bir sonraki frame'de değişikliği yakalayacak ama bu daha reaktif olmasını sağlar.
         CheckAvailableWagons();
     }
 
@@ -121,12 +131,12 @@ public class BoardingManager : MonoBehaviour
     /// </summary>
     private void TryBoardPassengers()
     {
-        if (availableWagonColors.Count == 0) return; // Bölgede uygun vagon yoksa denemeye gerek yok.
+        if (isTrainAdjusting) return; 
+        if (availableWagonColors.Count == 0) return;
 
         var waitingPassengers = StopManager.Instance.GetOccupiedStops();
-        if (waitingPassengers.Count == 0) return; // Bekleyen yolcu yoksa denemeye gerek yok.
+        if (waitingPassengers.Count == 0) return;
 
-        // Bekleyen yolcular üzerinden döngüye gir (döngü sırasında liste değişebileceği için kopyasını al).
         foreach (var passengerEntry in waitingPassengers.ToList())
         {
             PassengerGroup passenger = passengerEntry.Value;
@@ -141,21 +151,16 @@ public class BoardingManager : MonoBehaviour
                     passenger.GroupSize -= boardCount;
                     availableWagon.BoardPassengers(boardCount);
 
-                    Debug.Log($"<color=cyan>EŞLEŞME BULUNDU (Yeni Sistem):</color> {availableWagon.wagonColor} vagonu, {passenger.groupColor} renkli yolcuya biniyor. Kalan grup: {passenger.GroupSize}");
-
-                    if (availableWagon.IsFull)
-                    {
-                        availableWagon.gameObject.SetActive(false);
-                    }
+                    Debug.Log($"<color=cyan>EŞLEŞME BULUNDU (Tekli İşlem):</color> {availableWagon.wagonColor} vagonu, {passenger.groupColor} renkli yolcuya biniyor.");
 
                     if (passenger.GroupSize <= 0)
                     {
                         StopManager.Instance.FreeStop(stopIndex);
                         passenger.gameObject.SetActive(false);
                     }
-
-                    // Her başarılı binişten sonra event tetikle
-                    OnPassengerBoarded?.Invoke();
+                    
+                    // Bir yolcu grubu bindikten sonra döngüden çık, böylece her seferinde sadece bir eşleşme olur.
+                    return; 
                 }
             }
         }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 
 /// <summary>
-/// Yolunu tamamlayan vagonları, sıralı bir havuz sistemiyle yönetir.
+/// Yolculuğunu tamamlayan vagonları, sıralı bir havuz sistemiyle yönetir.
 /// Her vagon için bir Uber gönderir ve Uber'ler arasında döngüsel bir animasyon mantığı uygular.
 /// </summary>
 public class UberManager : MonoBehaviour
@@ -25,11 +25,12 @@ public class UberManager : MonoBehaviour
     [Header("Gameplay")]
     [Tooltip("Bu sayıya ulaşıldığında oyun biter.")]
     public int maxUberCount = 10;
-    public int UberCount { get; private set; } = 0;
+    public int UberCount { get; private set; } = 1;
 
     [Header("Animation Settings")]
     [SerializeField] private float targetZOffset = 10f;
     [SerializeField] private float animationDuration = 2.5f;
+    [SerializeField] private Ease animationEase = Ease.InQuad;
 
     private Queue<MetroWagon> wagonQueue = new Queue<MetroWagon>();
     private LinkedList<GameObject> uberPool = new LinkedList<GameObject>();
@@ -95,6 +96,21 @@ public class UberManager : MonoBehaviour
             MetroWagon wagonToCollect = wagonQueue.Dequeue();
             if (wagonToCollect == null) continue;
 
+            // Gameplay sayacını GÖREV BAŞINDA artır ve kontrol et
+            UberCount++;
+            OnUberCountChanged?.Invoke(UberCount);
+            Debug.Log($"<color=magenta>UBER:</color> Mission started. Total count: {UberCount}");
+
+            if (UberCount >= maxUberCount+2)
+            {
+                OnGameOver?.Invoke();
+                Debug.LogError("GAME OVER: Max Uber count reached!");
+                // Burada oyun bitirme mantığı eklenebilir.
+                // Oyun bittiği için yeni görev almayı durdur.
+                isSequenceRunning = false;
+                yield break;
+            }
+
             // Pool'dan Uber'leri al
             GameObject uber1_mission = uberPool.First.Value;
             GameObject uber2_waiting = uberPool.First.Next.Value;
@@ -106,16 +122,16 @@ public class UberManager : MonoBehaviour
                 WagonManager.Instance.TriggerWagonRemovalEvent(wagonToCollect, wagonToCollect.transform);
             }
 
-            // Adım 2: Vagonu deaktif et, Uber'i onun yerine koy.
-            Vector3 startPos = wagonToCollect.transform.position;
+            // Adım 2: Vagonu deaktif et.
             wagonToCollect.gameObject.SetActive(false);
-            uber1_mission.transform.position = startPos;
 
             // Adım 3: Senkronize animasyonları başlat.
-            Sequence sequence = DOTween.Sequence();
-            Vector3 targetPos1 = new Vector3(startPos.x, startPos.y, startPos.z + targetZOffset);
+            Vector3 uber1_startPos = uber1_mission.transform.position;
+            Vector3 targetPos1 = new Vector3(uber1_startPos.x, uber1_startPos.y, uber1_startPos.z + targetZOffset);
 
-            sequence.Append(uber1_mission.transform.DOMove(targetPos1, animationDuration).SetEase(Ease.InQuad));
+            Sequence sequence = DOTween.Sequence();
+
+            sequence.Append(uber1_mission.transform.DOMove(targetPos1, animationDuration).SetEase(animationEase));
             sequence.Join(uber2_waiting.transform.DOMove(waitingPoint.position, animationDuration).SetEase(Ease.InOutSine));
 
             // Animasyonun bitmesini bekle
@@ -131,18 +147,6 @@ public class UberManager : MonoBehaviour
 
             // Yeni 2. sıradaki Uber'i aktif et
             uberPool.First.Next.Value.SetActive(true);
-
-            // Gameplay sayacını artır ve kontrol et
-            UberCount++;
-            OnUberCountChanged?.Invoke(UberCount);
-            Debug.Log($"<color=magenta>UBER:</color> Mission complete. Total count: {UberCount}");
-
-            if (UberCount >= maxUberCount)
-            {
-                OnGameOver?.Invoke();
-                Debug.LogError("GAME OVER: Max Uber count reached!");
-                // Burada oyun bitirme mantığı eklenebilir.
-            }
         }
 
         isSequenceRunning = false;

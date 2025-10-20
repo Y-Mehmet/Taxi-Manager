@@ -93,60 +93,71 @@ public class UberManager : MonoBehaviour
 
         while (wagonQueue.Count > 0)
         {
+            // Kuyruktan bir sonraki vagonu al
             MetroWagon wagonToCollect = wagonQueue.Dequeue();
             if (wagonToCollect == null) continue;
 
-            // Gameplay sayacını GÖREV BAŞINDA artır ve kontrol et
+            // Sayacı GÖREV BAŞINDA artır
             UberCount++;
             OnUberCountChanged?.Invoke(UberCount);
             Debug.Log($"<color=magenta>UBER:</color> Mission started. Total count: {UberCount}");
 
-            if (UberCount >= maxUberCount+2)
-            {
-                OnGameOver?.Invoke();
-                Debug.LogError("GAME OVER: Max Uber count reached!");
-                // Burada oyun bitirme mantığı eklenebilir.
-                // Oyun bittiği için yeni görev almayı durdur.
-                isSequenceRunning = false;
-                yield break;
-            }
+            bool isLastMission = UberCount >= maxUberCount;
 
-            // Pool'dan Uber'leri al
+            // Görevdeki Uber'i ve sıradakini (varsa) al
             GameObject uber1_mission = uberPool.First.Value;
-            GameObject uber2_waiting = uberPool.First.Next.Value;
+            GameObject uber2_waiting = isLastMission ? null : uberPool.First.Next.Value;
 
-            // Adım 1: Trenin kendini ayarlaması için vagonun kaldırıldığını bildir.
+            // Trenin kendini ayarlaması için vagonun kaldırıldığını bildir
             if (WagonManager.Instance != null)
             {
                 WagonManager.Instance.DeregisterWagon(wagonToCollect);
                 WagonManager.Instance.TriggerWagonRemovalEvent(wagonToCollect, wagonToCollect.transform);
             }
 
-            // Adım 2: Vagonu deaktif et.
+            // Vagonu deaktif et
             wagonToCollect.gameObject.SetActive(false);
 
-            // Adım 3: Senkronize animasyonları başlat.
+            // Animasyonları oluştur
+            Sequence sequence = DOTween.Sequence();
             Vector3 uber1_startPos = uber1_mission.transform.position;
             Vector3 targetPos1 = new Vector3(uber1_startPos.x, uber1_startPos.y, uber1_startPos.z + targetZOffset);
-
-            Sequence sequence = DOTween.Sequence();
-
             sequence.Append(uber1_mission.transform.DOMove(targetPos1, animationDuration).SetEase(animationEase));
-            sequence.Join(uber2_waiting.transform.DOMove(waitingPoint.position, animationDuration).SetEase(Ease.InOutSine));
+
+            if (uber2_waiting != null)
+            {
+                // NORMAL GÖREV: Sıradaki Uber'i bekleme noktasına getir.
+                sequence.Join(uber2_waiting.transform.DOMove(waitingPoint.position, animationDuration).SetEase(Ease.InOutSine));
+            }
+            else
+            {
+                // SON GÖREV: Diğer tüm Uber'leri deaktif et.
+                if(uberPool.First.Next != null) uberPool.First.Next.Value.SetActive(false);
+                if(uberPool.Last != null) uberPool.Last.Value.SetActive(false);
+            }
 
             // Animasyonun bitmesini bekle
             yield return sequence.WaitForCompletion();
 
-            // Adım 4: Sırayı güncelle ve durumu ayarla
-            uber1_mission.SetActive(false); // Görevdeki Uber'i pasif yap
-            uberPool.RemoveFirst(); // Görevdekini sıranın başından kaldır
-            uberPool.AddLast(uber1_mission); // Sıranın en sonuna ekle
+            // --- Animasyon Sonrası Mantık ---
+            uber1_mission.SetActive(false); // Görevdeki Uber her zaman pasif olur
 
-            // Yeni 3. sıradaki (az önce sona eklenen) Uber'in pozisyonunu park noktasına ayarla
-            uber1_mission.transform.position = parkingSpots[2].position;
-
-            // Yeni 2. sıradaki Uber'i aktif et
-            uberPool.First.Next.Value.SetActive(true);
+            if (isLastMission)
+            {
+                // SON GÖREV TAMAMLANDI: Oyunu bitir.
+                OnGameOver?.Invoke();
+                Debug.LogError("GAME OVER: Last Uber has completed its mission!");
+                isSequenceRunning = false;
+                yield break; // Coroutine'i tamamen sonlandır.
+            }
+            else
+            {
+                // NORMAL GÖREV: Uber havuzunu bir sonraki tura hazırla.
+                uberPool.RemoveFirst();
+                uberPool.AddLast(uber1_mission);
+                uber1_mission.transform.position = parkingSpots[parkingSpots.Count - 1].position;
+                uberPool.First.Next.Value.SetActive(true);
+            }
         }
 
         isSequenceRunning = false;

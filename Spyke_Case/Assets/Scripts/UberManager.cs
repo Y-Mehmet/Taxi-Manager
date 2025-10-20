@@ -5,29 +5,38 @@ using System.Collections.Generic;
 using DG.Tweening;
 
 /// <summary>
-/// Yolculuğunu tamamlayan vagonları "Uber" nesneleriyle toplar.
-/// Bir nesne havuzu (object pool) kullanarak Uber prefab'larını yönetir.
+/// Yolunu tamamlayan vagonları, sıralı bir havuz sistemiyle yönetir.
+/// Her vagon için bir Uber gönderir ve Uber'ler arasında döngüsel bir animasyon mantığı uygular.
 /// </summary>
 public class UberManager : MonoBehaviour
 {
     public static UberManager Instance { get; private set; }
 
-    [Header("Uber Settings")]
+    [Header("Uber Pool Settings")]
     [Tooltip("Sahneye spawn edilecek Uber arabası prefabı.")]
     public GameObject uberPrefab;
-    [Tooltip("Başlangıçta oluşturulacak Uber nesnesi sayısı.")]
+    [Tooltip("Havuzdaki toplam Uber sayısı. Bu sistem 3 için tasarlanmıştır.")]
     public int poolSize = 3;
+    [Tooltip("Uber'lerin oyun başında duracağı park noktaları (Sırayla atanmalı: 1, 2, 3).")]
+    public List<Transform> parkingSpots;
+    [Tooltip("Sıradaki Uber'in gelip bekleyeceği nokta.")]
+    public Transform waitingPoint;
+
+    [Header("Gameplay")]
+    [Tooltip("Bu sayıya ulaşıldığında oyun biter.")]
+    public int maxUberCount = 10;
+    public int UberCount { get; private set; } = 0;
 
     [Header("Animation Settings")]
-    [SerializeField] private float targetZOffset = 20f;
+    [SerializeField] private float targetZOffset = 10f;
     [SerializeField] private float animationDuration = 2.5f;
-    [SerializeField] private Ease animationEase = Ease.InQuad;
 
     private Queue<MetroWagon> wagonQueue = new Queue<MetroWagon>();
-    private List<GameObject> uberPool = new List<GameObject>();
-    private bool isProcessingQueue = false;
+    private LinkedList<GameObject> uberPool = new LinkedList<GameObject>();
+    private bool isSequenceRunning = false;
 
-    public static event Action<bool> OnUberStateChanged;
+    public static event Action<int> OnUberCountChanged;
+    public static event Action OnGameOver;
 
     void Awake()
     {
@@ -37,19 +46,31 @@ public class UberManager : MonoBehaviour
 
     void Start()
     {
-        // Uber nesne havuzunu oluştur
-        if (uberPrefab == null)
+        if (uberPrefab == null || waitingPoint == null || parkingSpots.Count < poolSize)
         {
-            Debug.LogError("Uber Prefab is not assigned in UberManager!");
+            Debug.LogError("UberManager is not configured correctly! Assign Uber Prefab, Waiting Point, and all Parking Spots.");
+            this.enabled = false;
             return;
         }
 
+        // Uber havuzunu oluştur ve park noktalarına yerleştir.
         for (int i = 0; i < poolSize; i++)
         {
-            GameObject uber = Instantiate(uberPrefab, Vector3.zero, Quaternion.identity, this.transform);
-            uber.SetActive(false);
-            uberPool.Add(uber);
+            GameObject uber = Instantiate(uberPrefab, parkingSpots[i].position, parkingSpots[i].rotation, this.transform);
+            uberPool.AddLast(uber);
         }
+
+        // Başlangıç durumu: 1. ve 2. aktif, 3. pasif.
+        var first = uberPool.First;
+        var second = first.Next;
+        var third = second.Next;
+        
+        first.Value.SetActive(true);
+        second.Value.SetActive(true);
+        third.Value.SetActive(false);
+
+        // İlk Uber'i bekleme noktasına taşı.
+        first.Value.transform.DOMove(waitingPoint.position, 1.5f).SetEase(Ease.OutQuad);
     }
 
     public void ProcessFinishedWagon(MetroWagon wagon)
@@ -59,29 +80,24 @@ public class UberManager : MonoBehaviour
         Debug.Log($"<color=magenta>UBER:</color> Wagon '{wagon.name}' requested an Uber and is now in queue.");
         wagonQueue.Enqueue(wagon);
 
-        if (!isProcessingQueue)
+        if (!isSequenceRunning)
         {
-            StartCoroutine(ProcessUberQueue());
+            StartCoroutine(ProcessUberSequence());
         }
     }
 
-    private IEnumerator ProcessUberQueue()
+    private IEnumerator ProcessUberSequence()
     {
-        isProcessingQueue = true;
-        OnUberStateChanged?.Invoke(true);
+        isSequenceRunning = true;
 
         while (wagonQueue.Count > 0)
         {
-            GameObject availableUber = GetAvailableUberFromPool();
-            if (availableUber == null)
-            {
-                Debug.LogWarning("No Uber available in the pool. Waiting...");
-                yield return new WaitForSeconds(1f); // Havuzda yer açılmasını bekle
-                continue; // Döngünün başına dön ve tekrar kontrol et
-            }
-
             MetroWagon wagonToCollect = wagonQueue.Dequeue();
             if (wagonToCollect == null) continue;
+
+            // Pool'dan Uber'leri al
+            GameObject uber1_mission = uberPool.First.Value;
+            GameObject uber2_waiting = uberPool.First.Next.Value;
 
             // Adım 1: Trenin kendini ayarlaması için vagonun kaldırıldığını bildir.
             if (WagonManager.Instance != null)
@@ -90,41 +106,45 @@ public class UberManager : MonoBehaviour
                 WagonManager.Instance.TriggerWagonRemovalEvent(wagonToCollect, wagonToCollect.transform);
             }
 
-            // Adım 2: Vagonu anında deaktif et, Uber nesnesini onun yerine koy.
+            // Adım 2: Vagonu deaktif et, Uber'i onun yerine koy.
             Vector3 startPos = wagonToCollect.transform.position;
-            Quaternion startRot = wagonToCollect.transform.rotation;
             wagonToCollect.gameObject.SetActive(false);
+            uber1_mission.transform.position = startPos;
 
-            availableUber.transform.SetPositionAndRotation(startPos, startRot);
-            availableUber.SetActive(true);
+            // Adım 3: Senkronize animasyonları başlat.
+            Sequence sequence = DOTween.Sequence();
+            Vector3 targetPos1 = new Vector3(startPos.x, startPos.y, startPos.z + targetZOffset);
 
-            // Adım 3: Uber nesnesini anime et ve bitmesini bekle.
-            bool animationComplete = false;
-            Vector3 targetPosition = new Vector3(startPos.x, startPos.y, startPos.z + targetZOffset);
-            
-            availableUber.transform.DOMove(targetPosition, animationDuration)
-                .SetEase(animationEase)
-                .OnComplete(() => {
-                    availableUber.SetActive(false); // Uber'i havuza geri gönder
-                    animationComplete = true;
-                });
+            sequence.Append(uber1_mission.transform.DOMove(targetPos1, animationDuration).SetEase(Ease.InQuad));
+            sequence.Join(uber2_waiting.transform.DOMove(waitingPoint.position, animationDuration).SetEase(Ease.InOutSine));
 
-            yield return new WaitUntil(() => animationComplete);
-        }
+            // Animasyonun bitmesini bekle
+            yield return sequence.WaitForCompletion();
 
-        isProcessingQueue = false;
-        OnUberStateChanged?.Invoke(false);
-    }
+            // Adım 4: Sırayı güncelle ve durumu ayarla
+            uber1_mission.SetActive(false); // Görevdeki Uber'i pasif yap
+            uberPool.RemoveFirst(); // Görevdekini sıranın başından kaldır
+            uberPool.AddLast(uber1_mission); // Sıranın en sonuna ekle
 
-    private GameObject GetAvailableUberFromPool()
-    {
-        foreach (var uber in uberPool)
-        {
-            if (!uber.activeInHierarchy)
+            // Yeni 3. sıradaki (az önce sona eklenen) Uber'in pozisyonunu park noktasına ayarla
+            uber1_mission.transform.position = parkingSpots[2].position;
+
+            // Yeni 2. sıradaki Uber'i aktif et
+            uberPool.First.Next.Value.SetActive(true);
+
+            // Gameplay sayacını artır ve kontrol et
+            UberCount++;
+            OnUberCountChanged?.Invoke(UberCount);
+            Debug.Log($"<color=magenta>UBER:</color> Mission complete. Total count: {UberCount}");
+
+            if (UberCount >= maxUberCount)
             {
-                return uber;
+                OnGameOver?.Invoke();
+                Debug.LogError("GAME OVER: Max Uber count reached!");
+                // Burada oyun bitirme mantığı eklenebilir.
             }
         }
-        return null; // Hepsi meşgul
+
+        isSequenceRunning = false;
     }
 }

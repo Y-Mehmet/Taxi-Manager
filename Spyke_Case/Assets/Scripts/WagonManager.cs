@@ -110,4 +110,23 @@ public class WagonManager : MonoBehaviour
     {
         return new List<MetroWagon>(allWagons);
     }
+
+    /// <summary>
+    /// Bir vagonu aktif vagonlar listesinden kaldırır. UberManager tarafından kullanılır.
+    /// </summary>
+    public void DeregisterWagon(MetroWagon wagon)
+    {
+        if (wagon != null)
+        {
+            allWagons.Remove(wagon);
+        }
+    }
+
+    /// <summary>
+    /// OnWagonRemoved olayını dışarıdan tetiklemek için kullanılır. UberManager tarafından kullanılır.
+    /// </summary>
+    public void TriggerWagonRemovalEvent(MetroWagon wagon, Transform transform)
+    {
+        OnWagonRemoved?.Invoke(wagon, transform);
+    }
 }

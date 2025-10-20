@@ -7,12 +7,10 @@ using DG.Tweening;
 public class PassengerGroup : MonoBehaviour
 {
     public static event System.Action OnGroupClicked;
-    // Grup boyutu azaldığında tetiklenen event
     public event System.Action<int> OnGroupSizeDecreased;
-    // Slot event'i (kalan slot sayısı değiştiğinde tetiklenir)
     public event System.Action<int> OnAvailableSlotsChanged;
     [Header("Slot Event/Capacity")]
-    public int maxGroupSize = 4; // Başlangıç kapasitesi (dilerseniz inspector'dan ayarlayın)
+    public int maxGroupSize = 4; 
     private int _groupSize = 4;
     private int _lastAvailableSlots = -1;
     public int GroupSize
@@ -24,12 +22,10 @@ public class PassengerGroup : MonoBehaviour
             int oldGroupSize = _groupSize;
             _groupSize = value;
             int newSlots = AvailableSlots;
-            // Sadece slot sayısı azaldıysa, grup aktif ve hareket etmiyorsa event tetikle
             if (newSlots < oldSlots && gameObject.activeInHierarchy && !isMoving)
             {
                 OnAvailableSlotsChanged?.Invoke(newSlots);
             }
-            // Grup boyutu azaldıysa event tetikle
             if (_groupSize < oldGroupSize)
             {
                 OnGroupSizeDecreased?.Invoke(_groupSize);
@@ -42,7 +38,7 @@ public class PassengerGroup : MonoBehaviour
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
      float moveSpeed = 7f; 
     public Transform modelTransform;
-    public Vector2Int gridPos; // Şu anki grid pozisyonu
+    public Vector2Int gridPos; 
     public PassengerGrid grid;
     [Header("Initialization")]
     [Tooltip("If true, this object will be placed at `gridPos` on Start(). Leave false for manual placement.")]
@@ -50,7 +46,6 @@ public class PassengerGroup : MonoBehaviour
     [Header("Yön Göstergesi")]
     public Transform directionIndicator;
 
-    // --- Convoy / train follow support ---
     [Header("Convoy (train) settings")]
     public PassengerGroup followTarget = null;
     [Tooltip("Number of steps of delay behind the leader (1 = directly into leader's previous cell)")]
@@ -69,16 +64,21 @@ public class PassengerGroup : MonoBehaviour
     private Queue<int> checkpointQueue = new Queue<int>();
     private bool processingCheckpointQueue = false;
     private bool isMoving = false;
-    // Aktif hareket tween referansı (varsa) - hız değişikliklerini anında uygulamak için kullanılır
     private Tween activeMovementTween = null;
     private float activeTweenBaseSpeed = 1f;
     private enum MovementType { None, Path, Move, Jump }
     private MovementType activeMovementType = MovementType.None;
-    private Vector3[] activeMovementPathPoints = null; // for Path
-    private Vector3 activeMovementTarget = Vector3.zero; // for Move/Jump
+    private Vector3[] activeMovementPathPoints = null; 
+    private Vector3 activeMovementTarget = Vector3.zero; 
+
+    // Oyun bittiğinde tıklamaları devre dışı bırakmak için statik bayrak
+    private static bool isInputDisabled = false;
 
     void Update()
     {
+        // Oyun bittiyse veya input devre dışıysa, tıklamaları işleme
+        if (isInputDisabled) return;
+
         if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
            Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
@@ -87,7 +87,6 @@ public class PassengerGroup : MonoBehaviour
             {
                 if (hit.transform == this.transform)
                 {
-                    // Kullanıcının bir yolcu grubuna tıklaması: global event tetikle (MetroManager dinleyecek)
                     OnGroupClicked?.Invoke();
                     TryMoveForwardWithLog();
                 }
@@ -102,7 +101,6 @@ public class PassengerGroup : MonoBehaviour
             {
                 if (hit.transform == this.transform)
                 {
-                    // Editor/mouse tıklaması
                     OnGroupClicked?.Invoke();
                     TryMoveForwardWithLog();
                 }
@@ -162,7 +160,6 @@ public class PassengerGroup : MonoBehaviour
         {
             var (stopWorldPos, stopIndex) = reservation.Value;
 
-            // Find global highest Y among walkable cells
             int maxY = int.MinValue;
             List<Vector2Int> candidates = new List<Vector2Int>();
             for (int y = 0; y < grid.gridData.height; y++)
@@ -186,7 +183,6 @@ public class PassengerGroup : MonoBehaviour
                 }
             }
 
-            // From the pathfindingStartPoint, pick the nearest candidate by path length, using only Walkable cells
             List<Vector2Int> bestPath = null;
             Vector2Int bestTarget = new Vector2Int(-1, -1);
             int bestLen = int.MaxValue;
@@ -203,16 +199,14 @@ public class PassengerGroup : MonoBehaviour
 
             if (bestPath != null)
             {
-                // fullPath is straightVec + bestPath
                 List<Vector2Int> fullPath = new List<Vector2Int>(straightVec);
                 fullPath.AddRange(bestPath);
-                int ascendIndex = fullPath.Count - 1; // index where highest walkable is reached
+                int ascendIndex = fullPath.Count - 1; 
                 Debug.LogWarning($"[PathPlan] Chosen highest-Y target: {bestTarget}. Path length {fullPath.Count}.");
                 StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos, ascendIndex));
                 return;
             }
 
-            // fallback behavior: use nearest path
             var fallbackPath = grid.FindNearestStopPath(pathfindingStartPoint);
             if (fallbackPath != null)
             {
@@ -240,9 +234,7 @@ public class PassengerGroup : MonoBehaviour
 
     void Start()
     {
-        // Debug amaçlı: slot değişimini logla
         OnAvailableSlotsChanged += (slots) => Debug.Log($"[PassengerGroup] {name} kalan slot: {slots}");
-        // İlk değer için tetikle
         _lastAvailableSlots = AvailableSlots;
         OnAvailableSlotsChanged?.Invoke(_lastAvailableSlots);
 
@@ -274,11 +266,27 @@ public class PassengerGroup : MonoBehaviour
         }
 
         if (!allGroups.Contains(this)) allGroups.Add(this);
+
+        // Oyun sonu olayını dinle
+        UberManager.OnGameOver += DisableAllInput;
     }
 
     void OnDestroy()
     {
         if (allGroups.Contains(this)) allGroups.Remove(this);
+
+        // Olay aboneliğini kaldır
+        if (UberManager.Instance != null) // UberManager yok edilmiş olabilir
+        {
+            UberManager.OnGameOver -= DisableAllInput;
+        }
+    }
+
+    // Tüm yolcu grupları için input'u devre dışı bırakan statik metot
+    private static void DisableAllInput()
+    {
+        Debug.LogWarning("GAME OVER: All passenger input has been disabled.");
+        isInputDisabled = true;
     }
 
     void OnDisable()
@@ -488,7 +496,6 @@ public class PassengerGroup : MonoBehaviour
                 var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear)
                     .SetEase(Ease.Linear);
 
-                // Aktif hareket tween kaydı — hız değişikliklerini uygulamak için
                 activeMovementTween = pathTween;
                 activeTweenBaseSpeed = moveSpeed;
                 activeMovementType = MovementType.Path;
@@ -656,7 +663,6 @@ public class PassengerGroup : MonoBehaviour
         sequence.Join(transformToRotate.DORotateQuaternion(targetRotation, rotationDuration).SetEase(Ease.OutQuad));
         sequence.Join(transform.DOMove(target, moveDuration).SetEase(Ease.InOutSine));
 
-    // Kayıt: hareket tween'i üzerinde hız değişikliği uygulanabilir
     activeMovementTween = sequence;
     activeTweenBaseSpeed = moveSpeed;
     activeMovementType = MovementType.Move;
@@ -666,17 +672,14 @@ public class PassengerGroup : MonoBehaviour
         yield return sequence.WaitForCompletion();
     }
 
-    // Runtime'da moveSpeed'i değiştirir ve varsa aktif tween'in timeScale'ini günceller
     public void SetMoveSpeed(float newSpeed)
     {
         if (newSpeed <= 0f) return;
         float old = moveSpeed;
         moveSpeed = newSpeed;
 
-        // Eğer aktif bir tween varsa, yeniden oluşturmayı deneyelim (daha doğru sonuç verir)
         if (activeMovementTween != null && activeMovementTween.IsActive() && activeMovementTween.active)
         {
-            // Kaydedilen hareket tipine göre kalan mesafeyi hesapla ve yeni tween başlat
             try
             {
                 activeMovementTween.Kill();
@@ -692,7 +695,7 @@ public class PassengerGroup : MonoBehaviour
                     float newDur = remaining / moveSpeed;
                     Sequence seq = DOTween.Sequence();
                     Transform transformToRotate = modelTransform != null ? modelTransform : transform;
-                    Quaternion rot = transformToRotate.rotation; // keep current rotation target handled elsewhere
+                    Quaternion rot = transformToRotate.rotation; 
                     seq.Join(transform.DOMove(activeMovementTarget, newDur).SetEase(Ease.InOutSine));
                     activeMovementTween = seq;
                     activeTweenBaseSpeed = moveSpeed;
@@ -707,7 +710,6 @@ public class PassengerGroup : MonoBehaviour
             }
             else if (activeMovementType == MovementType.Path && activeMovementPathPoints != null && activeMovementPathPoints.Length > 0)
             {
-                // Find nearest point index on path and compute remaining segment
                 Vector3 currPos = transform.position;
                 int startIdx = 0;
                 float bestDist = float.MaxValue;
@@ -739,7 +741,6 @@ public class PassengerGroup : MonoBehaviour
             }
             else if (activeMovementType == MovementType.Jump)
             {
-                // Jump tween: kısa animasyon, yeniden başlatmak karmaşık olabilir. Yeni tween başlatmayı deneyelim basitçe
                 Vector3 currPos = transform.position;
                 float remaining = Vector3.Distance(currPos, activeMovementTarget);
                 if (remaining > 0.001f)

@@ -10,7 +10,7 @@ public class CoinDisplayUI : MonoBehaviour
         if (ResourceManager.Instance != null)
         {
             // Subscribe to the event that fires when coins change
-            ResourceManager.Instance.OnCoinsChanged += UpdateCoinText;
+            ResourceManager.OnCoinsChanged += UpdateCoinText;
             // Set the initial value
             UpdateCoinText(ResourceManager.Instance.CurrentCoins);
         }
@@ -20,7 +20,7 @@ public class CoinDisplayUI : MonoBehaviour
     {
         if (ResourceManager.Instance != null)
         {
-            ResourceManager.Instance.OnCoinsChanged -= UpdateCoinText;
+            ResourceManager.OnCoinsChanged -= UpdateCoinText;
         }
     }
 

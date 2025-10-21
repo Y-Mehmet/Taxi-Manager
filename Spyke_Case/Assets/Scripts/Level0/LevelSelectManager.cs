@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class LevelSelectManager : MonoBehaviour
 {
@@ -54,6 +55,27 @@ public class LevelSelectManager : MonoBehaviour
                 levelItemGO = Instantiate(darkLevelPrefab, WhelePanel);
 
             generatedLevelItems.Add(levelItemGO);
+              TMP_Text levelText = levelItemGO.GetComponentInChildren<TMP_Text>();
+
+            // 2. Eğer TextMeshPro bileşeni bulunduysa işlemleri yap.
+            if (levelText != null)
+            {
+                // 3. Bu level, "unlocked" prefabı mı diye kontrol et.
+                // Bu koşul, hangi prefab'ın "unlocked" olduğunu belirleyen koşul ile aynı.
+                if (i == currentLevel + 9 && i < totalLevels)
+                {
+                    // Evet, bu en sondaki özel level. Metnini "Unlocked" yap.
+                    levelText.text = "Unlocked";
+                }
+                else
+                {
+                    // Hayır, bu normal bir level. Metnini (index + 1) olarak ayarla.
+                    levelText.text = (i + 1).ToString();
+                }
+            }else
+            {
+                Debug.LogWarning("Level item prefab does not have a TextMeshProUGUI component in its children.");
+            }
 
             Text levelNumberText = levelItemGO.GetComponentInChildren<Text>();
             if (levelNumberText != null)

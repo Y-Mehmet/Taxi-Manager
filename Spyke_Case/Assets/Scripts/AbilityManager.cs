@@ -9,6 +9,7 @@ public class AbilityManager : MonoBehaviour
     public event Action<AbilityType, int> OnAbilityCountChanged;
 
     private Dictionary<AbilityType, int> abilityInventory = new Dictionary<AbilityType, int>();
+    public GameObject stopParent;
 
     private void Awake()
     {
@@ -83,7 +84,7 @@ public class AbilityManager : MonoBehaviour
 
     private void ExecuteAddNewStop()
     {
-        GameObject stopParent = GameObject.Find("StopParent");
+        
         if (stopParent == null)
         {
             Debug.LogError("'StopParent' GameObject not found in the scene!");

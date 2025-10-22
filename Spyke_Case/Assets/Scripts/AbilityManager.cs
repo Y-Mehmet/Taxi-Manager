@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Linq;
 
+
 public class AbilityManager : MonoBehaviour
 {
     public static AbilityManager Instance { get; private set; }
@@ -50,27 +51,21 @@ public class AbilityManager : MonoBehaviour
         if (data == null) return;
 
         abilityInventory.Clear();
-        foreach (var abilityName in data.abilityInventory)
-        {
-            if (Enum.TryParse<AbilityType>(abilityName, out var abilityType))
-            {
-                AddAbility(abilityType, 1); // Use AddAbility to also trigger events
-            }
-        }
+        // Use AddAbility to ensure OnAbilityCountChanged event is triggered for UI updates
+        if (data.abilityUniversalPathfindingCount > 0) AddAbility(AbilityType.UniversalPathfinding, data.abilityUniversalPathfindingCount);
+        if (data.abilityRemoveWagonsCount > 0) AddAbility(AbilityType.RemoveWagons, data.abilityRemoveWagonsCount);
+        if (data.abilityAddNewStopCount > 0) AddAbility(AbilityType.AddNewStop, data.abilityAddNewStopCount);
+        if (data.abilityShuffleWagonColorsCount > 0) AddAbility(AbilityType.ShuffleWagonColors, data.abilityShuffleWagonColorsCount);
     }
 
     public void SaveData(SaveGameData data)
     {
         if (data == null) return;
 
-        data.abilityInventory.Clear();
-        foreach (var pair in abilityInventory)
-        {
-            for (int i = 0; i < pair.Value; i++)
-            {
-                data.abilityInventory.Add(pair.Key.ToString());
-            }
-        }
+        data.abilityUniversalPathfindingCount = GetAbilityCount(AbilityType.UniversalPathfinding);
+        data.abilityRemoveWagonsCount = GetAbilityCount(AbilityType.RemoveWagons);
+        data.abilityAddNewStopCount = GetAbilityCount(AbilityType.AddNewStop);
+        data.abilityShuffleWagonColorsCount = GetAbilityCount(AbilityType.ShuffleWagonColors);
     }
 
     public bool BuyAbility(AbilityType type, int cost)
@@ -161,7 +156,7 @@ public class AbilityManager : MonoBehaviour
 
     private void OnPassengerSelectedForUniversalPathfinding(PassengerGroup selectedPassenger)
     {
-        Debug.Log($"[AbilityManager] Passenger '{selectedPassenger.name}' selected for Universal Pathfinding.");
+        Debug.Log($"Passenger '{selectedPassenger.name}' selected for Universal Pathfinding.");
         CancelAbilityMode();
         ConsumeAbility(AbilityType.UniversalPathfinding);
         selectedPassenger.TryUniversalMove();

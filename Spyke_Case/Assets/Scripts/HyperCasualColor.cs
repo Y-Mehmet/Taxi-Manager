@@ -53,10 +53,6 @@ public static class HyperCasualColorUtil
         return closestColor;
     }
 
-    public static HyperCasualColor ToHyperCasualColor(this SerializableColor serializableColor)
-    {
-        return serializableColor.ToUnityColor().ToHyperCasualColor();
-    }
 
     private static float ColorDistance(Color c1, Color c2)
     {

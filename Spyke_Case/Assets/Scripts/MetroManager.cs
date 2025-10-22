@@ -69,15 +69,7 @@ public class MetroManager : MonoBehaviour
         if (data == null) return;
 
         currentLevelIndex = data.levelIndex;
-        // TODO: Level loading logic based on index
-
-        if (data.wagonColors != null && data.wagonColors.Count == masterWagonList.Count)
-        {
-            for (int i = 0; i < masterWagonList.Count; i++)
-            {
-                masterWagonList[i].SetColor(data.wagonColors[i].ToHyperCasualColor());
-            }
-        }
+        // Wagon color loading is removed as requested.
     }
 
     public void SaveData(SaveGameData data)
@@ -85,15 +77,7 @@ public class MetroManager : MonoBehaviour
         if (data == null) return;
 
         data.levelIndex = this.currentLevelIndex;
-        data.wagonColors.Clear();
-        foreach (var wagon in masterWagonList)
-        {
-            if (wagon != null)
-            {
-                // Convert HyperCasualColor to Color, then to SerializableColor
-                data.wagonColors.Add(new SerializableColor(wagon.wagonColor.ToColor()));
-            }
-        }
+        // Wagon color saving is removed as requested.
     }
 
     public static void StopMovement()

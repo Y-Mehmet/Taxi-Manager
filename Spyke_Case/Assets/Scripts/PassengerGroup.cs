@@ -93,7 +93,15 @@ public class PassengerGroup : MonoBehaviour
 
         if (AbilityManager.Instance != null && AbilityManager.Instance.IsAbilityModeActive)
         {
-            Debug.Log($"[PassengerGroup] Tap on {name} ignored, ability mode is active.");
+            // The tap will be handled by the AbilityManager's subscriber. Do nothing here.
+            Debug.Log($"[PassengerGroup] Tap on {name} is being handled by an active ability.");
+            return;
+        }
+
+        // If the passenger is already at a stop, do not allow it to move again.
+        if (StopManager.Instance != null && StopManager.Instance.GetOccupiedStops().ContainsValue(this))
+        {
+            Debug.Log($"[PassengerGroup] Tap on {name} ignored because it is already at a stop.");
             return;
         }
 

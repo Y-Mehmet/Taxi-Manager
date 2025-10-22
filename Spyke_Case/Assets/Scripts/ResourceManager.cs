@@ -28,10 +28,41 @@ public class ResourceManager : MonoBehaviour
 
     void Start()
     {
-        // Test için başlangıç değeri, daha sonra save/load sistemine bağlanabilir.
-        CurrentCoins = 500;
-        // UI'ın başlangıç değerini alması için olayı tetikle
+        // Veri yöneticisine bağlan
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.OnDataLoaded += LoadData;
+            // Başlangıçta mevcut veriyi de yükle
+            LoadData(GameDataManager.Instance.GetSaveData());
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Olay aboneliğini kaldır
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.OnDataLoaded -= LoadData;
+        }
+    }
+
+    /// <summary>
+    /// Kayıtlı veriden coin miktarını yükler.
+    /// </summary>
+    private void LoadData(SaveGameData data)
+    {
+        if (data == null) return;
+        CurrentCoins = data.coinCount;
         OnCoinsChanged?.Invoke(CurrentCoins);
+    }
+
+    /// <summary>
+    /// Mevcut coin miktarını kaydetmek için veri nesnesini günceller.
+    /// </summary>
+    public void SaveData(SaveGameData data)
+    {
+        if (data == null) return;
+        data.coinCount = CurrentCoins;
     }
 
     /// <summary>

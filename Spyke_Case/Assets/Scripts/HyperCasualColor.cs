@@ -35,4 +35,34 @@ public static class HyperCasualColorUtil
             default: return Color.gray;
         }
     }
+
+    public static HyperCasualColor ToHyperCasualColor(this Color unityColor)
+    {
+        HyperCasualColor closestColor = HyperCasualColor.White;
+        float minDistance = float.MaxValue;
+
+        foreach (HyperCasualColor enumColor in System.Enum.GetValues(typeof(HyperCasualColor)))
+        {
+            float dist = ColorDistance(enumColor.ToColor(), unityColor);
+            if (dist < minDistance)
+            {
+                minDistance = dist;
+                closestColor = enumColor;
+            }
+        }
+        return closestColor;
+    }
+
+    public static HyperCasualColor ToHyperCasualColor(this SerializableColor serializableColor)
+    {
+        return serializableColor.ToUnityColor().ToHyperCasualColor();
+    }
+
+    private static float ColorDistance(Color c1, Color c2)
+    {
+        float r = c1.r - c2.r;
+        float g = c1.g - c2.g;
+        float b = c1.b - c2.b;
+        return r * r + g * g + b * b;
+    }
 }

@@ -28,6 +28,51 @@ public class AbilityManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.OnDataLoaded += LoadData;
+            LoadData(GameDataManager.Instance.GetSaveData());
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.OnDataLoaded -= LoadData;
+        }
+    }
+
+    public void LoadData(SaveGameData data)
+    {
+        if (data == null) return;
+
+        abilityInventory.Clear();
+        foreach (var abilityName in data.abilityInventory)
+        {
+            if (Enum.TryParse<AbilityType>(abilityName, out var abilityType))
+            {
+                AddAbility(abilityType, 1); // Use AddAbility to also trigger events
+            }
+        }
+    }
+
+    public void SaveData(SaveGameData data)
+    {
+        if (data == null) return;
+
+        data.abilityInventory.Clear();
+        foreach (var pair in abilityInventory)
+        {
+            for (int i = 0; i < pair.Value; i++)
+            {
+                data.abilityInventory.Add(pair.Key.ToString());
+            }
+        }
+    }
+
     public bool BuyAbility(AbilityType type, int cost)
     {
         if (ResourceManager.Instance.SpendCoins(cost))

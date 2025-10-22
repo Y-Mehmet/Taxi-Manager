@@ -21,6 +21,8 @@ public class MetroManager : MonoBehaviour
     [Header("Bağlantılar")]
     public PassengerGrid passengerGrid; // Yolcu grid'i referansı
 
+    private int currentLevelIndex = 0;
+
     // Vagonların oyun başındaki orijinal sırasını tutan, değişmez ana liste.
     private readonly List<MetroWagon> masterWagonList = new List<MetroWagon>();
     // Sadece aktif olan vagonları tutan ve güncellenen liste.
@@ -55,6 +57,43 @@ public class MetroManager : MonoBehaviour
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
         }
          PassengerGroup.OnGroupClicked -= HandleFirstGroupClicked;
+
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.OnDataLoaded -= LoadData;
+        }
+    }
+
+    public void LoadData(SaveGameData data)
+    {
+        if (data == null) return;
+
+        currentLevelIndex = data.levelIndex;
+        // TODO: Level loading logic based on index
+
+        if (data.wagonColors != null && data.wagonColors.Count == masterWagonList.Count)
+        {
+            for (int i = 0; i < masterWagonList.Count; i++)
+            {
+                masterWagonList[i].SetColor(data.wagonColors[i].ToHyperCasualColor());
+            }
+        }
+    }
+
+    public void SaveData(SaveGameData data)
+    {
+        if (data == null) return;
+
+        data.levelIndex = this.currentLevelIndex;
+        data.wagonColors.Clear();
+        foreach (var wagon in masterWagonList)
+        {
+            if (wagon != null)
+            {
+                // Convert HyperCasualColor to Color, then to SerializableColor
+                data.wagonColors.Add(new SerializableColor(wagon.wagonColor.ToColor()));
+            }
+        }
     }
 
     public static void StopMovement()
@@ -137,6 +176,12 @@ public class MetroManager : MonoBehaviour
             WagonManager.Instance.RegisterWagon(wagon);
             masterWagonList.Add(wagon);
             activeWagons.Add(wagon);
+        }
+
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.OnDataLoaded += LoadData;
+            LoadData(GameDataManager.Instance.GetSaveData());
         }
 
         ApplyInitialWagonSpeedMultiplier();

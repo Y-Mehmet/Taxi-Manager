@@ -105,6 +105,16 @@ public class MetroWagon : MonoBehaviour
         currentCheckpointIndex = Mathf.Clamp(newIndex, 0, path.checkpoints.Count);
     }
 
+    public void SetColor(HyperCasualColor newColor)
+    {
+        wagonColor = newColor;
+        var renderer = GetComponentInChildren<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = newColor.ToColor();
+        }
+    }
+
     void MoveTowards(Vector3 target)
     {
         // Pozisyonu hedefe doğru sabit hızla ilerlet

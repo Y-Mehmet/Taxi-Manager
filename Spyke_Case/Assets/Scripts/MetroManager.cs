@@ -389,4 +389,62 @@ public class MetroManager : MonoBehaviour
     {
         return isAdjusting;
     }
+
+    public void ShuffleWagonColors()
+    {
+        // To prevent multiple shuffles at once
+        if (isAdjusting) 
+        {
+            Debug.LogWarning("[MetroManager] Cannot shuffle colors while another adjustment is in progress.");
+            return;
+        }
+        
+        StartCoroutine(ShuffleWagonColorsCoroutine());
+    }
+
+    private System.Collections.IEnumerator ShuffleWagonColorsCoroutine()
+    {
+        isAdjusting = true;
+        OnTrainAdjustmentStateChanged?.Invoke(true);
+
+        // Use the master list to ensure we are working with the definitive set of wagons, in order.
+        List<MetroWagon> wagonsToShuffle = masterWagonList.Where(w => w != null && w.gameObject.activeInHierarchy).ToList();
+
+        if (wagonsToShuffle.Count < 2) 
+        {
+            Debug.LogWarning("[MetroManager] Not enough active wagons to shuffle.");
+            isAdjusting = false;
+            OnTrainAdjustmentStateChanged?.Invoke(false);
+            yield break;
+        }
+
+        // Store original colors from the active, ordered wagons
+        List<HyperCasualColor> originalColors = wagonsToShuffle.Select(w => w.wagonColor).ToList();
+
+        // (Visual) Set all to grey
+        foreach (var wagon in wagonsToShuffle)
+        {
+            wagon.SetColor(HyperCasualColor.Grey);
+        }
+
+        // Wait for a moment so the player sees the grey train
+        yield return new WaitForSeconds(0.75f);
+
+        // Get the new shuffled color list using the logic from Task 1
+        List<HyperCasualColor> newColors = WagonManager.ShuffleColorGroups(originalColors);
+
+        // Apply new colors sequentially for a nice visual effect
+        for (int i = 0; i < wagonsToShuffle.Count; i++)
+        {
+            if (i < newColors.Count) // Safety check
+            {
+                wagonsToShuffle[i].SetColor(newColors[i]);
+                yield return new WaitForSeconds(0.05f); 
+            }
+        }
+
+        isAdjusting = false;
+        OnTrainAdjustmentStateChanged?.Invoke(false);
+        Debug.Log("[MetroManager] Wagon colors have been shuffled.");
+    }
 }

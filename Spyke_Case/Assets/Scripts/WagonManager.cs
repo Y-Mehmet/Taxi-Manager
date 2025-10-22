@@ -129,4 +129,45 @@ public class WagonManager : MonoBehaviour
     {
         OnWagonRemoved?.Invoke(wagon, transform);
     }
+
+    /// <summary>
+    /// Verilen bir renk listesini, bitişik aynı renkleri bir arada tutarak gruplar halinde karıştırır.
+    /// Örnek: [R, R, B, Y, Y] -> Gruplar: ([R,R], [B], [Y,Y]) -> Karışmış Gruplar: ([Y,Y], [R,R], [B]) -> Sonuç: [Y, Y, R, R, B]
+    /// </summary>
+    /// <param name="originalColors">Karıştırılacak orijinal renk listesi.</param>
+    /// <returns>Gruplar halinde karıştırılmış yeni renk listesi.</returns>
+    public static List<HyperCasualColor> ShuffleColorGroups(List<HyperCasualColor> originalColors)
+    {
+        if (originalColors == null || originalColors.Count == 0)
+        {
+            return new List<HyperCasualColor>();
+        }
+
+        // 1. Renkleri gruplara ayır
+        List<List<HyperCasualColor>> colorGroups = new List<List<HyperCasualColor>>();
+        if (originalColors.Count > 0)
+        {
+            colorGroups.Add(new List<HyperCasualColor> { originalColors[0] });
+            for (int i = 1; i < originalColors.Count; i++)
+            {
+                if (originalColors[i] == originalColors[i - 1])
+                {
+                    colorGroups.Last().Add(originalColors[i]);
+                }
+                else
+                {
+                    colorGroups.Add(new List<HyperCasualColor> { originalColors[i] });
+                }
+            }
+        }
+
+        // 2. Grupları karıştır
+        // System.Linq ve System.Guid kullanarak basit bir karıştırma
+        var shuffledGroups = colorGroups.OrderBy(x => Guid.NewGuid()).ToList();
+
+        // 3. Karıştırılmış grupları tek bir listeye düzleştir
+        List<HyperCasualColor> finalColors = shuffledGroups.SelectMany(group => group).ToList();
+
+        return finalColors;
+    }
 }

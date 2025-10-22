@@ -87,7 +87,7 @@ public class AbilityManager : MonoBehaviour
                 ExecuteAddNewStop();
                 break;
             case AbilityType.ShuffleWagonColors:
-                // To be implemented
+                MetroManager.Instance.ShuffleWagonColors();
                 break;
         }
     }

@@ -11,7 +11,8 @@ public enum HyperCasualColor
     Pink,
     Cyan,
     Lime,
-    White
+    White,
+    Grey
 }
 
 public static class HyperCasualColorUtil
@@ -30,6 +31,7 @@ public static class HyperCasualColorUtil
             case HyperCasualColor.Cyan: return new Color(0.2f, 1f, 1f);
             case HyperCasualColor.Lime: return new Color(0.7f, 1f, 0.2f);
             case HyperCasualColor.White: return Color.white;
+            case HyperCasualColor.Grey: return Color.grey;
             default: return Color.gray;
         }
     }

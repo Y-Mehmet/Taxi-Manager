@@ -170,70 +170,67 @@ public class PassengerGroup : MonoBehaviour
     private void AttemptPathfinding(Vector2Int pathfindingStartPoint, List<Vector2Int> initialPathSegment)
     {
         var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
-        if (reservation != null)
+        if (reservation == null)
         {
-            var (stopWorldPos, stopIndex) = reservation.Value;
+            Debug.LogWarning($"[PathPlan] Could not reserve a stop for {name}. Pathfinding aborted.");
+            StartCoroutine(BounceVisual());
+            return;
+        }
 
-            int maxY = int.MinValue;
-            List<Vector2Int> candidates = new List<Vector2Int>();
-            for (int y = 0; y < grid.gridData.height; y++)
-            {
-                for (int x = 0; x < grid.gridData.width; x++)
-                {
-                    var c = grid.GetCell(x, y);
-                    if (c != null && c.cellType == GridCellType.Walkable)
-                    {
-                        if (y > maxY) { maxY = y; candidates.Clear(); candidates.Add(new Vector2Int(x, y)); }
-                        else if (y == maxY) { candidates.Add(new Vector2Int(x, y)); }
-                    }
-                }
-            }
+        var (stopWorldPos, stopIndex) = reservation.Value;
 
-            List<Vector2Int> bestPath = null;
-            Vector2Int bestTarget = new Vector2Int(-1, -1);
-            int bestLen = int.MaxValue;
-            foreach (var cand in candidates)
-            {
-                var p = grid.FindPathToTarget(pathfindingStartPoint, cand, this, new List<GridCellType> { GridCellType.Walkable });
-                if (p != null && p.Count > 0 && p.Count < bestLen) { bestLen = p.Count; bestPath = p; bestTarget = cand; }
-            }
+        List<Vector2Int> path = FindPathToHighestWalkableCell(pathfindingStartPoint);
 
-            if (bestPath != null)
-            {
-                List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
-                fullPath.AddRange(bestPath);
-                int ascendIndex = fullPath.Count - 1;
-                Debug.LogWarning($"[PathPlan] Chosen highest-Y target: {bestTarget}. Path length {fullPath.Count}.");
-                StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos, ascendIndex));
-                return;
-            }
+        if (path == null)
+        {
+            Debug.LogWarning($"[PathPlan] No path to highest cell found. Trying fallback to nearest stop from {pathfindingStartPoint}.");
+            path = grid.FindNearestStopPath(pathfindingStartPoint);
+        }
 
-            var fallbackPath = grid.FindNearestStopPath(pathfindingStartPoint);
-            if (fallbackPath != null)
-            {
-                List<Vector2Int> full = new List<Vector2Int>(initialPathSegment);
-                full.AddRange(fallbackPath);
-                Debug.LogWarning($"[PathPlan] planned path (no ascend candidate) from {pathfindingStartPoint}: " + string.Join(" -> ", full.ConvertAll(p => p.ToString()).ToArray()));
-                StartCoroutine(ExecuteContinuousPath(full, stopIndex, stopWorldPos));
-                return;
-            }
+        if (path != null)
+        {
+            List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
+            fullPath.AddRange(path);
+            Debug.LogWarning($"[PathPlan] Path found for {name}. Length: {fullPath.Count}. Starting movement.");
+            StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos));
         }
         else
         {
-            var fallbackPath = grid.FindNearestStopPath(pathfindingStartPoint);
-            if (fallbackPath != null)
+            Debug.LogError($"[PathPlan] FAILED. No path found for {name} from {pathfindingStartPoint} to any destination.");
+            StopManager.Instance.CancelReservation(stopIndex, this);
+            StartCoroutine(BounceVisual());
+        }
+    }
+
+    private List<Vector2Int> FindPathToHighestWalkableCell(Vector2Int from)
+    {
+        int maxY = int.MinValue;
+        List<Vector2Int> candidates = new List<Vector2Int>();
+        for (int y = 0; y < grid.gridData.height; y++)
+        {
+            for (int x = 0; x < grid.gridData.width; x++)
             {
-                List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
-                fullPath.AddRange(fallbackPath);
-                Debug.LogWarning($"[PathPlan] planned path (no reservation) from {pathfindingStartPoint}: " + string.Join(" -> ", fullPath.ConvertAll(p => p.ToString()).ToArray()));
-                StartCoroutine(ExecuteContinuousPath(fullPath, -1, Vector3.zero));
-            }
-            else
-            {
-                Debug.LogWarning($"[PathPlan] No path found for {name} from {pathfindingStartPoint}.");
-                StartCoroutine(BounceVisual());
+                var c = grid.GetCell(x, y);
+                if (c != null && c.cellType == GridCellType.Walkable)
+                {
+                    if (y > maxY) { maxY = y; candidates.Clear(); candidates.Add(new Vector2Int(x, y)); }
+                    else if (y == maxY) { candidates.Add(new Vector2Int(x, y)); }
+                }
             }
         }
+
+        List<Vector2Int> bestPath = null;
+        int bestLen = int.MaxValue;
+        foreach (var cand in candidates)
+        {
+            var p = grid.FindPathToTarget(from, cand, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop, GridCellType.WaitingArea });
+            if (p != null && p.Count > 0 && p.Count < bestLen)
+            {
+                bestLen = p.Count;
+                bestPath = p;
+            }
+        }
+        return bestPath;
     }
 
     void Start()

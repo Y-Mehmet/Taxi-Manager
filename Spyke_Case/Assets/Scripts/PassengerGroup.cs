@@ -71,42 +71,38 @@ public class PassengerGroup : MonoBehaviour
     private Vector3[] activeMovementPathPoints = null; 
     private Vector3 activeMovementTarget = Vector3.zero; 
 
-    // Oyun bittiğinde tıklamaları devre dışı bırakmak için statik bayrak
-    private static bool isInputDisabled = false;
+    private void OnEnable()
+    {
+        InputManager.OnPassengerGroupTapped += HandleTap;
+    }
+
+    private void OnDisable()
+    {
+        InputManager.OnPassengerGroupTapped -= HandleTap;
+
+        if (grid != null)
+        {
+            grid.UnregisterOccupant(gridPos, this);
+        }
+    }
+
+    private void HandleTap(PassengerGroup tappedGroup)
+    {
+        if (tappedGroup != this) return;
+
+        if (AbilityManager.Instance != null && AbilityManager.Instance.IsAbilityModeActive)
+        {
+            Debug.Log($"[PassengerGroup] Tap on {name} ignored, ability mode is active.");
+            return;
+        }
+
+        Debug.Log($"[PassengerGroup] Tap detected on {name} via event, initiating normal move.");
+        OnGroupClicked?.Invoke();
+        TryMoveForwardWithLog();
+    }
 
     void Update()
     {
-        // Oyun bittiyse veya input devre dışıysa, tıklamaları işleme
-        if (isInputDisabled) return;
-
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-           Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                if (hit.transform == this.transform)
-                {
-                    OnGroupClicked?.Invoke();
-                    TryMoveForwardWithLog();
-                }
-            }
-        }
-#if UNITY_EDITOR
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                if (hit.transform == this.transform)
-                {
-                    OnGroupClicked?.Invoke();
-                    TryMoveForwardWithLog();
-                }
-            }
-        }
-#endif
         UpdateFollowQueue();
         UpdateCheckpointQueue();
     }
@@ -142,19 +138,37 @@ public class PassengerGroup : MonoBehaviour
         while (grid.GetCell(tempCursor.x, tempCursor.y) != null)
         {
             var currentCell = grid.GetCell(tempCursor.x, tempCursor.y);
-            if (currentCell.cellType == GridCellType.Blocked || currentCell.cellType == GridCellType.Empty)
-            {
-                break;
-            }
+            if (currentCell.cellType == GridCellType.Blocked || currentCell.cellType == GridCellType.Empty) break;
             straightVec.Add(tempCursor);
-            if (currentCell.cellType == GridCellType.Walkable || currentCell.cellType == GridCellType.Stop)
-            {
-                pathfindingStartPoint = tempCursor;
-                break;
-            }
+            if (currentCell.cellType == GridCellType.Walkable || currentCell.cellType == GridCellType.Stop) { pathfindingStartPoint = tempCursor; break; }
             tempCursor += moveDirection;
         }
 
+        AttemptPathfinding(pathfindingStartPoint, straightVec);
+    }
+
+    public void TryUniversalMove()
+    {
+        if (isMoving)
+        {
+            Debug.LogWarning($"[UniversalMove] Yolcu '{name}' zaten hareket halinde olduğu için yeni hareket başlatılamadı.");
+            return;
+        }
+
+        if (StopManager.Instance == null || !StopManager.Instance.HasAvailableStops())
+        {
+            Debug.LogWarning($"[UniversalMove] Tüm duraklar dolu veya rezerve edilmiş. '{name}' için hareket başlatılamadı.");
+            return;
+        }
+
+        Vector2Int pathfindingStartPoint = gridPos;
+        Debug.LogWarning($"[UniversalMove] Passenger '{name}' at {gridPos} starting a 4-way search.");
+
+        AttemptPathfinding(pathfindingStartPoint, new List<Vector2Int>());
+    }
+
+    private void AttemptPathfinding(Vector2Int pathfindingStartPoint, List<Vector2Int> initialPathSegment)
+    {
         var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
         if (reservation != null)
         {
@@ -169,16 +183,8 @@ public class PassengerGroup : MonoBehaviour
                     var c = grid.GetCell(x, y);
                     if (c != null && c.cellType == GridCellType.Walkable)
                     {
-                        if (y > maxY)
-                        {
-                            maxY = y;
-                            candidates.Clear();
-                            candidates.Add(new Vector2Int(x, y));
-                        }
-                        else if (y == maxY)
-                        {
-                            candidates.Add(new Vector2Int(x, y));
-                        }
+                        if (y > maxY) { maxY = y; candidates.Clear(); candidates.Add(new Vector2Int(x, y)); }
+                        else if (y == maxY) { candidates.Add(new Vector2Int(x, y)); }
                     }
                 }
             }
@@ -189,19 +195,14 @@ public class PassengerGroup : MonoBehaviour
             foreach (var cand in candidates)
             {
                 var p = grid.FindPathToTarget(pathfindingStartPoint, cand, this, new List<GridCellType> { GridCellType.Walkable });
-                if (p != null && p.Count > 0 && p.Count < bestLen)
-                {
-                    bestLen = p.Count;
-                    bestPath = p;
-                    bestTarget = cand;
-                }
+                if (p != null && p.Count > 0 && p.Count < bestLen) { bestLen = p.Count; bestPath = p; bestTarget = cand; }
             }
 
             if (bestPath != null)
             {
-                List<Vector2Int> fullPath = new List<Vector2Int>(straightVec);
+                List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
                 fullPath.AddRange(bestPath);
-                int ascendIndex = fullPath.Count - 1; 
+                int ascendIndex = fullPath.Count - 1;
                 Debug.LogWarning($"[PathPlan] Chosen highest-Y target: {bestTarget}. Path length {fullPath.Count}.");
                 StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos, ascendIndex));
                 return;
@@ -210,10 +211,9 @@ public class PassengerGroup : MonoBehaviour
             var fallbackPath = grid.FindNearestStopPath(pathfindingStartPoint);
             if (fallbackPath != null)
             {
-                List<Vector2Int> full = new List<Vector2Int>(straightVec);
+                List<Vector2Int> full = new List<Vector2Int>(initialPathSegment);
                 full.AddRange(fallbackPath);
-                var fallbackStr = string.Join(" -> ", full.ConvertAll(p => p.ToString()).ToArray());
-                Debug.LogWarning($"[PathPlan] planned path (no ascend candidate) from {pathfindingStartPoint}: {fallbackStr}");
+                Debug.LogWarning($"[PathPlan] planned path (no ascend candidate) from {pathfindingStartPoint}: " + string.Join(" -> ", full.ConvertAll(p => p.ToString()).ToArray()));
                 StartCoroutine(ExecuteContinuousPath(full, stopIndex, stopWorldPos));
                 return;
             }
@@ -223,11 +223,15 @@ public class PassengerGroup : MonoBehaviour
             var fallbackPath = grid.FindNearestStopPath(pathfindingStartPoint);
             if (fallbackPath != null)
             {
-                List<Vector2Int> fullPath = new List<Vector2Int>(straightVec);
+                List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
                 fullPath.AddRange(fallbackPath);
-                var fallbackStr = string.Join(" -> ", fullPath.ConvertAll(p => p.ToString()).ToArray());
-                Debug.LogWarning($"[PathPlan] planned path (no reservation) from {pathfindingStartPoint}: {fallbackStr}");
+                Debug.LogWarning($"[PathPlan] planned path (no reservation) from {pathfindingStartPoint}: " + string.Join(" -> ", fullPath.ConvertAll(p => p.ToString()).ToArray()));
                 StartCoroutine(ExecuteContinuousPath(fullPath, -1, Vector3.zero));
+            }
+            else
+            {
+                Debug.LogWarning($"[PathPlan] No path found for {name} from {pathfindingStartPoint}.");
+                StartCoroutine(BounceVisual());
             }
         }
     }
@@ -266,51 +270,21 @@ public class PassengerGroup : MonoBehaviour
         }
 
         if (!allGroups.Contains(this)) allGroups.Add(this);
-
-        // Oyun sonu olayını dinle
-        UberManager.OnGameOver += DisableAllInput;
     }
 
     void OnDestroy()
     {
         if (allGroups.Contains(this)) allGroups.Remove(this);
-
-        // Olay aboneliğini kaldır
-        if (UberManager.Instance != null) // UberManager yok edilmiş olabilir
-        {
-            UberManager.OnGameOver -= DisableAllInput;
-        }
-    }
-
-    // Tüm yolcu grupları için input'u devre dışı bırakan statik metot
-    private static void DisableAllInput()
-    {
-        Debug.LogWarning("GAME OVER: All passenger input has been disabled.");
-        isInputDisabled = true;
-    }
-
-    void OnDisable()
-    {
-        if (grid != null)
-        {
-            grid.UnregisterOccupant(gridPos, this);
-        }
     }
 
     public void SetGroupColor(HyperCasualColor color)
     {
         foreach (Transform child in transform)
         {
-            if (directionIndicator != null && child == directionIndicator)
-            {
-                continue;
-            }
+            if (directionIndicator != null && child == directionIndicator) continue;
 
             var renderer = child.GetComponentInChildren<Renderer>();
-            if (renderer != null)
-            {
-                renderer.material.color = color.ToColor();
-            }
+            if (renderer != null) renderer.material.color = color.ToColor();
         }
     }
 
@@ -324,11 +298,7 @@ public class PassengerGroup : MonoBehaviour
             if (targetIdx > lastRailIndex && targetIdx >= 0)
             {
                 Vector2Int targetPos = route[targetIdx];
-                if (!isMoving)
-                {
-                    StartCoroutine(MoveToCoroutine(targetPos));
-                    lastRailIndex = targetIdx;
-                }
+                if (!isMoving) { StartCoroutine(MoveToCoroutine(targetPos)); lastRailIndex = targetIdx; }
             }
             return;
         }
@@ -348,18 +318,11 @@ public class PassengerGroup : MonoBehaviour
     System.Collections.IEnumerator ProcessFollowQueue()
     {
         processingFollowQueue = true;
-        while (followQueue.Count < Mathf.Max(1, followStepDelay))
-        {
-            yield return null;
-        }
+        while (followQueue.Count < Mathf.Max(1, followStepDelay)) yield return null;
 
         while (followQueue.Count > 0)
         {
-            if (isMoving)
-            {
-                yield return null;
-                continue;
-            }
+            if (isMoving) { yield return null; continue; }
             Vector2Int target = followQueue.Dequeue();
             var cell = grid.GetCell(target.x, target.y);
             if (cell == null) { continue; }
@@ -416,10 +379,7 @@ public class PassengerGroup : MonoBehaviour
     {
         foreach (var g in allGroups)
         {
-            if (g != null && g.followTarget == this)
-            {
-                g.checkpointQueue.Enqueue(stopIndex);
-            }
+            if (g != null && g.followTarget == this) g.checkpointQueue.Enqueue(stopIndex);
         }
     }
 
@@ -454,10 +414,7 @@ public class PassengerGroup : MonoBehaviour
                     {
                         var c = cell;
                         bool isJumpable = (c.cellType == GridCellType.Stop || c.cellType == GridCellType.Walkable);
-                        if (isJumpable && !occupant.isMoving)
-                        {
-                            continue;
-                        }
+                        if (isJumpable && !occupant.isMoving) continue;
                     }
 
                     segmentEndIdx = i;
@@ -467,14 +424,8 @@ public class PassengerGroup : MonoBehaviour
             }
 
             List<Vector2Int> gridSegment;
-            if (segmentEndIdx != -1)
-            {
-                gridSegment = fullPath.GetRange(pathIdx, segmentEndIdx - pathIdx);
-            }
-            else
-            {
-                gridSegment = fullPath.GetRange(pathIdx, fullPath.Count - pathIdx);
-            }
+            if (segmentEndIdx != -1) gridSegment = fullPath.GetRange(pathIdx, segmentEndIdx - pathIdx);
+            else gridSegment = fullPath.GetRange(pathIdx, fullPath.Count - pathIdx);
 
             if (gridSegment.Count > 0)
             {
@@ -493,8 +444,7 @@ public class PassengerGroup : MonoBehaviour
                 Debug.Log($"[ContinuousPath] Moving along segment of {gridSegment.Count} cells.");
                 
                 Transform transformToRotate = modelTransform != null ? modelTransform : transform;
-                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear)
-                    .SetEase(Ease.Linear);
+                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear).SetEase(Ease.Linear);
 
                 activeMovementTween = pathTween;
                 activeTweenBaseSpeed = moveSpeed;
@@ -505,10 +455,7 @@ public class PassengerGroup : MonoBehaviour
                 pathTween.OnUpdate(() =>
                 {
                     float lookAheadPercentage = pathTween.ElapsedPercentage() + 0.05f; 
-                    if (lookAheadPercentage > 1f)
-                    {
-                        lookAheadPercentage = 1f;
-                    }
+                    if (lookAheadPercentage > 1f) lookAheadPercentage = 1f;
                     
                     Vector3 lookAtPos = pathTween.PathGetPoint(lookAheadPercentage);
 
@@ -624,19 +571,9 @@ public class PassengerGroup : MonoBehaviour
         Vector3 original = transform.position;
         Vector3 back = original - new Vector3(moveDirection.x * 0.2f, 0, moveDirection.y * 0.2f);
         float t = 0f;
-        while (t < 0.1f)
-        {
-            transform.position = Vector3.Lerp(original, back, t / 0.1f);
-            t += Time.deltaTime;
-            yield return null;
-        }
+        while (t < 0.1f) { transform.position = Vector3.Lerp(original, back, t / 0.1f); t += Time.deltaTime; yield return null; }
         t = 0f;
-        while (t < 0.1f)
-        {
-            transform.position = Vector3.Lerp(back, original, t / 0.1f);
-            t += Time.deltaTime;
-            yield return null;
-        }
+        while (t < 0.1f) { transform.position = Vector3.Lerp(back, original, t / 0.1f); t += Time.deltaTime; yield return null; }
         transform.position = original;
     }
 
@@ -680,11 +617,7 @@ public class PassengerGroup : MonoBehaviour
 
         if (activeMovementTween != null && activeMovementTween.IsActive() && activeMovementTween.active)
         {
-            try
-            {
-                activeMovementTween.Kill();
-            }
-            catch { }
+            try { activeMovementTween.Kill(); } catch { }
 
             if (activeMovementType == MovementType.Move)
             {
@@ -702,11 +635,7 @@ public class PassengerGroup : MonoBehaviour
                     activeMovementType = MovementType.Move;
                     seq.OnComplete(() => { if (activeMovementTween == seq) { activeMovementTween = null; activeMovementType = MovementType.None; } });
                 }
-                else
-                {
-                    activeMovementTween = null;
-                    activeMovementType = MovementType.None;
-                }
+                else { activeMovementTween = null; activeMovementType = MovementType.None; }
             }
             else if (activeMovementType == MovementType.Path && activeMovementPathPoints != null && activeMovementPathPoints.Length > 0)
             {
@@ -733,11 +662,7 @@ public class PassengerGroup : MonoBehaviour
                     activeMovementType = MovementType.Path;
                     pathTween.OnComplete(() => { if (activeMovementTween == pathTween) { activeMovementTween = null; activeMovementType = MovementType.None; activeMovementPathPoints = null; } });
                 }
-                else
-                {
-                    activeMovementTween = null;
-                    activeMovementType = MovementType.None;
-                }
+                else { activeMovementTween = null; activeMovementType = MovementType.None; }
             }
             else if (activeMovementType == MovementType.Jump)
             {
@@ -752,17 +677,9 @@ public class PassengerGroup : MonoBehaviour
                     activeMovementType = MovementType.Move;
                     t.OnComplete(() => { if (activeMovementTween == t) { activeMovementTween = null; activeMovementType = MovementType.None; } });
                 }
-                else
-                {
-                    activeMovementTween = null;
-                    activeMovementType = MovementType.None;
-                }
+                else { activeMovementTween = null; activeMovementType = MovementType.None; }
             }
-            else
-            {
-                activeMovementTween = null;
-                activeMovementType = MovementType.None;
-            }
+            else { activeMovementTween = null; activeMovementType = MovementType.None; }
         }
     }
 

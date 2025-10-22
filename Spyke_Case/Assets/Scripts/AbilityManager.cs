@@ -10,6 +10,8 @@ public class AbilityManager : MonoBehaviour
 
     private Dictionary<AbilityType, int> abilityInventory = new Dictionary<AbilityType, int>();
 
+    public bool IsAbilityModeActive { get; private set; } = false;
+
     private void Awake()
     {
         if (Instance == null)
@@ -53,31 +55,82 @@ public class AbilityManager : MonoBehaviour
 
     public void UseAbility(AbilityType type)
     {
+        Debug.LogWarning($"<color=magenta>ability is active:</color>  [AbilityManager] UI button clicked for ability: {type}");
+
+        if (!abilityInventory.ContainsKey(type) || abilityInventory[type] <= 0)
+        {
+            Debug.LogWarning($"You don't have the {type} ability.");
+            return;
+        }
+
+        if (type == AbilityType.UniversalPathfinding)
+        {
+            if (IsAbilityModeActive)
+            {
+                CancelAbilityMode();
+            }
+            else
+            {
+                EnterUniversalPathfindingMode();
+            }
+            return;
+        }
+
+        ConsumeAbility(type);
+
+        switch (type)
+        {
+            case AbilityType.AddNewStop:
+                ExecuteAddNewStop();
+                break;
+            case AbilityType.RemoveWagons:
+                // To be implemented
+                break;
+            case AbilityType.ShuffleWagonColors:
+                // To be implemented
+                break;
+        }
+    }
+
+    private void ConsumeAbility(AbilityType type)
+    {
         if (abilityInventory.ContainsKey(type) && abilityInventory[type] > 0)
         {
             abilityInventory[type]--;
             OnAbilityCountChanged?.Invoke(type, abilityInventory[type]);
-            Debug.Log($"Used {type}. You have {abilityInventory[type]} left.");
-
-            switch (type)
-            {
-                case AbilityType.AddNewStop:
-                    ExecuteAddNewStop();
-                    break;
-                case AbilityType.UniversalPathfinding:
-                    // To be implemented
-                    break;
-                case AbilityType.RemoveWagons:
-                    // To be implemented
-                    break;
-                case AbilityType.ShuffleWagonColors:
-                    // To be implemented
-                    break;
-            }
+            Debug.Log($"[AbilityManager] ABILITY CONSUMED: {type}. Remaining: {abilityInventory[type]}.");
         }
         else
         {
-            Debug.LogWarning($"You don't have the {type} ability.");
+            Debug.LogWarning($"[AbilityManager] Tried to consume {type}, but none are in inventory.");
+        }
+    }
+
+    private void EnterUniversalPathfindingMode()
+    {
+        IsAbilityModeActive = true;
+        InputManager.OnPassengerGroupTapped += OnPassengerSelectedForAbility;
+        Debug.Log("[AbilityManager] Universal Pathfinding mode ACTIVE. Select a passenger.");
+    }
+
+    private void OnPassengerSelectedForAbility(PassengerGroup selectedPassenger)
+    {
+        Debug.Log($"[AbilityManager] Passenger '{selectedPassenger.name}' selected for Universal Pathfinding.");
+
+        CancelAbilityMode();
+
+        ConsumeAbility(AbilityType.UniversalPathfinding);
+
+        selectedPassenger.TryUniversalMove();
+    }
+
+    public void CancelAbilityMode()
+    {
+        if (IsAbilityModeActive)
+        {
+            IsAbilityModeActive = false;
+            InputManager.OnPassengerGroupTapped -= OnPassengerSelectedForAbility;
+            Debug.Log("[AbilityManager] Ability selection mode CANCELED.");
         }
     }
 
@@ -90,7 +143,6 @@ public class AbilityManager : MonoBehaviour
         else
         {
             Debug.LogError("StopManager instance not found! Cannot execute AddNewStop ability.");
-            // Refund the ability if the manager doesn't exist
             AddAbility(AbilityType.AddNewStop, 1);
         }
     }

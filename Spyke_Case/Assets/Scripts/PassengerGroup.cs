@@ -729,20 +729,46 @@ public class PassengerGroup : MonoBehaviour
         if (path != null && path.Count > 0)
         {
             // Use the existing path execution logic, but tell it we are not ending at a stop.
-            // The -1 for stopIndex prevents it from trying to occupy a stop on arrival.
             yield return StartCoroutine(ExecuteContinuousPath(path, -1, Vector3.zero));
 
-            // Log completion as requested
-            Debug.Log($"[PassengerGroup] {name} has successfully returned to its origin point.");
+            // Add the final rotation animation from the GoHome coroutine
+            Vector3 finalDirVector = new Vector3(moveDirection.x, 0, moveDirection.y);
+            Quaternion finalRotation = transform.rotation;
+            if (finalDirVector != Vector3.zero)
+            {
+                var rot = Quaternion.LookRotation(finalDirVector);
+                finalRotation = Quaternion.Euler(0f, rot.eulerAngles.y, 0f);
+            }
+
+            float spinDuration = 0.5f;
+            Transform transformToRotate = modelTransform != null ? modelTransform : transform;
+            
+            yield return transformToRotate.DORotate(finalRotation.eulerAngles + new Vector3(0, 360, 0), spinDuration, RotateMode.FastBeyond360)
+                .SetEase(Ease.OutSine)
+                .WaitForCompletion();
+
+            transformToRotate.rotation = finalRotation;
+
+            Debug.Log($"[PassengerGroup] {name} has successfully returned to its origin point and reoriented.");
         }
         else
         {
-            // If no path, just log it. Maybe teleport in the future.
+            // If no path, teleport and also apply the final rotation.
             Debug.LogWarning($"[ReturnToOrigin] No path found for {name} to return home from {gridPos} to {originGridPos}. Teleporting as fallback.");
             transform.position = originalPosition;
             grid.UnregisterOccupant(gridPos, this);
             gridPos = originGridPos;
             grid.RegisterOccupant(gridPos, this);
+
+            Vector3 finalDirVector = new Vector3(moveDirection.x, 0, moveDirection.y);
+            Quaternion finalRotation = transform.rotation;
+            if (finalDirVector != Vector3.zero)
+            {
+                var rot = Quaternion.LookRotation(finalDirVector);
+                finalRotation = Quaternion.Euler(0f, rot.eulerAngles.y, 0f);
+            }
+            Transform transformToRotate = modelTransform != null ? modelTransform : transform;
+            transformToRotate.rotation = finalRotation;
         }
     }
 }

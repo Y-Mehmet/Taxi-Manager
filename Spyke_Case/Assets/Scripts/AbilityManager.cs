@@ -9,7 +9,6 @@ public class AbilityManager : MonoBehaviour
     public event Action<AbilityType, int> OnAbilityCountChanged;
 
     private Dictionary<AbilityType, int> abilityInventory = new Dictionary<AbilityType, int>();
-    public GameObject stopParent;
 
     private void Awake()
     {
@@ -84,41 +83,14 @@ public class AbilityManager : MonoBehaviour
 
     private void ExecuteAddNewStop()
     {
-        
-        if (stopParent == null)
+        if (StopManager.Instance != null)
         {
-            Debug.LogError("'StopParent' GameObject not found in the scene!");
-            // If we failed, refund the ability use
-            AddAbility(AbilityType.AddNewStop, 1);
-            return;
-        }
-
-        Transform parentTransform = stopParent.transform;
-        if (parentTransform.childCount > 0)
-        {
-            Transform lastChild = parentTransform.GetChild(parentTransform.childCount - 1);
-            if (!lastChild.gameObject.activeSelf)
-            {
-                lastChild.gameObject.SetActive(true);
-
-                SpriteRenderer sr = lastChild.GetComponent<SpriteRenderer>();
-                if (sr != null)
-                {
-                    sr.color = Color.white;
-                }
-                Debug.Log("Successfully activated a new stop!");
-            }
-            else
-            {
-                Debug.LogWarning("The last stop is already active. No new stop to activate.");
-                // Optional: refund if no action was taken
-                AddAbility(AbilityType.AddNewStop, 1);
-            }
+            StopManager.Instance.ActivateNextStop();
         }
         else
         {
-            Debug.LogWarning("'StopParent' has no children to activate.");
-            // Optional: refund if no action was taken
+            Debug.LogError("StopManager instance not found! Cannot execute AddNewStop ability.");
+            // Refund the ability if the manager doesn't exist
             AddAbility(AbilityType.AddNewStop, 1);
         }
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 public class AbilityManager : MonoBehaviour
 {
@@ -10,7 +11,9 @@ public class AbilityManager : MonoBehaviour
 
     private Dictionary<AbilityType, int> abilityInventory = new Dictionary<AbilityType, int>();
 
-    public bool IsAbilityModeActive { get; private set; } = false;
+    private bool IsUniversalPathfindingModeActive = false;
+    private bool IsCraneModeActive = false;
+    public bool IsAbilityModeActive => IsUniversalPathfindingModeActive || IsCraneModeActive;
 
     private void Awake()
     {
@@ -63,28 +66,25 @@ public class AbilityManager : MonoBehaviour
             return;
         }
 
-        if (type == AbilityType.UniversalPathfinding)
+        // Abilities that enter a mode and wait for input
+        switch (type)
         {
-            if (IsAbilityModeActive)
-            {
-                CancelAbilityMode();
-            }
-            else
-            {
-                EnterUniversalPathfindingMode();
-            }
-            return;
+            case AbilityType.UniversalPathfinding:
+                if (IsUniversalPathfindingModeActive) CancelAbilityMode();
+                else EnterUniversalPathfindingMode();
+                return;
+            case AbilityType.RemoveWagons:
+                if (IsCraneModeActive) CancelAbilityMode();
+                else EnterCraneMode();
+                return;
         }
 
+        // Abilities that execute immediately
         ConsumeAbility(type);
-
         switch (type)
         {
             case AbilityType.AddNewStop:
                 ExecuteAddNewStop();
-                break;
-            case AbilityType.RemoveWagons:
-                // To be implemented
                 break;
             case AbilityType.ShuffleWagonColors:
                 // To be implemented
@@ -108,29 +108,72 @@ public class AbilityManager : MonoBehaviour
 
     private void EnterUniversalPathfindingMode()
     {
-        IsAbilityModeActive = true;
-        InputManager.OnPassengerGroupTapped += OnPassengerSelectedForAbility;
+        CancelAbilityMode(); // Cancel any other active modes first
+        IsUniversalPathfindingModeActive = true;
+        InputManager.OnPassengerGroupTapped += OnPassengerSelectedForUniversalPathfinding;
         Debug.Log("[AbilityManager] Universal Pathfinding mode ACTIVE. Select a passenger.");
     }
 
-    private void OnPassengerSelectedForAbility(PassengerGroup selectedPassenger)
+    private void OnPassengerSelectedForUniversalPathfinding(PassengerGroup selectedPassenger)
     {
         Debug.Log($"[AbilityManager] Passenger '{selectedPassenger.name}' selected for Universal Pathfinding.");
-
         CancelAbilityMode();
-
         ConsumeAbility(AbilityType.UniversalPathfinding);
-
         selectedPassenger.TryUniversalMove();
+    }
+
+    private void EnterCraneMode()
+    {
+        CancelAbilityMode(); // Cancel any other active modes first
+        IsCraneModeActive = true;
+        InputManager.OnPassengerGroupTapped += OnPassengerSelectedForCrane;
+        Debug.Log("[AbilityManager] Crane mode ACTIVE. Select a passenger group at a stop.");
+    }
+
+    private void OnPassengerSelectedForCrane(PassengerGroup selectedPassenger)
+    {
+        if (StopManager.Instance == null)
+        {
+            Debug.LogError("[AbilityManager] StopManager not found. Cannot perform crane ability.");
+            CancelAbilityMode();
+            return;
+        }
+
+        bool isAtStop = StopManager.Instance.GetOccupiedStops().ContainsValue(selectedPassenger);
+
+        if (isAtStop)
+        {
+            Debug.Log($"[AbilityManager] Recalling passenger group '{selectedPassenger.name}' to its origin.");
+            
+            // Call the new method on the passenger group
+            selectedPassenger.ReturnToOrigin();
+
+            Debug.Log($"[AbilityManager] Passenger '{selectedPassenger.name}' at a stop selected for Recall ability. SUCCESS.");
+
+            // Consume the ability and exit the mode
+            CancelAbilityMode();
+            ConsumeAbility(AbilityType.RemoveWagons);
+        }
+        else
+        {
+            Debug.LogWarning($"[AbilityManager] Invalid target for Crane. '{selectedPassenger.name}' is not at a stop. Please select another.");
+            // Do not cancel mode, allow user to select another passenger.
+        }
     }
 
     public void CancelAbilityMode()
     {
-        if (IsAbilityModeActive)
+        if (IsUniversalPathfindingModeActive)
         {
-            IsAbilityModeActive = false;
-            InputManager.OnPassengerGroupTapped -= OnPassengerSelectedForAbility;
-            Debug.Log("[AbilityManager] Ability selection mode CANCELED.");
+            IsUniversalPathfindingModeActive = false;
+            InputManager.OnPassengerGroupTapped -= OnPassengerSelectedForUniversalPathfinding;
+            Debug.Log("[AbilityManager] Universal Pathfinding mode CANCELED.");
+        }
+        if (IsCraneModeActive)
+        {
+            IsCraneModeActive = false;
+            InputManager.OnPassengerGroupTapped -= OnPassengerSelectedForCrane;
+            Debug.Log("[AbilityManager] Crane mode CANCELED.");
         }
     }
 

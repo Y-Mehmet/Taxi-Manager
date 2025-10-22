@@ -36,6 +36,7 @@ public class PassengerGroup : MonoBehaviour
     public int AvailableSlots => Mathf.Max(0, maxGroupSize - GroupSize);
     public Vector2Int moveDirection = Vector2Int.up;
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
+    public Vector3 originalPosition;
      float moveSpeed = 7f; 
     public Transform modelTransform;
     public Vector2Int gridPos; 
@@ -235,6 +236,7 @@ public class PassengerGroup : MonoBehaviour
 
     void Start()
     {
+        originalPosition = transform.position;
         OnAvailableSlotsChanged += (slots) => Debug.Log($"[PassengerGroup] {name} kalan slot: {slots}");
         _lastAvailableSlots = AvailableSlots;
         OnAvailableSlotsChanged?.Invoke(_lastAvailableSlots);
@@ -683,5 +685,64 @@ public class PassengerGroup : MonoBehaviour
     public void DoubleMoveSpeed()
     {
         SetMoveSpeed(moveSpeed * 2f);
+    }
+
+    public void ReturnToOrigin()
+    {
+        Debug.Log($"[PassengerGroup] {name} is being recalled to origin.");
+
+        // Stop any current movement to avoid conflicts
+        if (isMoving && activeMovementTween != null && activeMovementTween.IsActive())
+        {
+            activeMovementTween.Kill();
+        }
+        StopAllCoroutines(); // Resets all movement logic
+        isMoving = false;
+
+        // Free up the stop this passenger might be on
+        if (StopManager.Instance != null)
+        {
+            StopManager.Instance.EvictPassenger(this);
+        }
+
+        // Pathfind back to the start
+        StartCoroutine(ReturnToOriginCoroutine());
+    }
+
+    private System.Collections.IEnumerator ReturnToOriginCoroutine()
+    {
+        // Convert originalPosition (Vector3) to originalGridPos (Vector2Int)
+        if (grid == null || grid.gridData == null)
+        {
+            Debug.LogError($"[ReturnToOrigin] Grid or GridData is null for {name}. Cannot pathfind.");
+            yield break;
+        }
+        var gd = grid.gridData;
+        Vector3 relative = originalPosition - grid.transform.position - gd.worldOffset;
+        int gx = Mathf.RoundToInt(relative.x / gd.cellSize);
+        int gy = Mathf.RoundToInt(relative.z / gd.cellSize);
+        Vector2Int originGridPos = new Vector2Int(gx, gy);
+
+        // Find a path from the current grid position to the origin
+        List<Vector2Int> path = grid.FindPathToTarget(gridPos, originGridPos, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.WaitingArea, GridCellType.Stop });
+
+        if (path != null && path.Count > 0)
+        {
+            // Use the existing path execution logic, but tell it we are not ending at a stop.
+            // The -1 for stopIndex prevents it from trying to occupy a stop on arrival.
+            yield return StartCoroutine(ExecuteContinuousPath(path, -1, Vector3.zero));
+
+            // Log completion as requested
+            Debug.Log($"[PassengerGroup] {name} has successfully returned to its origin point.");
+        }
+        else
+        {
+            // If no path, just log it. Maybe teleport in the future.
+            Debug.LogWarning($"[ReturnToOrigin] No path found for {name} to return home from {gridPos} to {originGridPos}. Teleporting as fallback.");
+            transform.position = originalPosition;
+            grid.UnregisterOccupant(gridPos, this);
+            gridPos = originGridPos;
+            grid.RegisterOccupant(gridPos, this);
+        }
     }
 }

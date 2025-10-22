@@ -205,4 +205,44 @@ public class StopManager : MonoBehaviour
 
         OnPassengerArrivedAtStop?.Invoke(passengerGroup, stopIndex);
     }
+
+    public void EvictPassenger(PassengerGroup passengerToEvict)
+    {
+        if (passengerToEvict == null) return;
+
+        int stopToFree = -1;
+
+        // Check occupied stops
+        foreach (var pair in occupiedStops)
+        {
+            if (pair.Value == passengerToEvict)
+            {
+                stopToFree = pair.Key;
+                break;
+            }
+        }
+
+        if (stopToFree != -1)
+        {
+            occupiedStops.Remove(stopToFree);
+            Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name} EVICTED from occupied stop {stopToFree}. Stop is now free.</color>");
+            return; // Found and handled
+        }
+
+        // Check reserved stops
+        foreach (var pair in reservedStops)
+        {
+            if (pair.Value == passengerToEvict)
+            {
+                stopToFree = pair.Key;
+                break;
+            }
+        }
+
+        if (stopToFree != -1)
+        {
+            reservedStops.Remove(stopToFree);
+            Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name}'s reservation for stop {stopToFree} CANCELLED due to eviction.</color>");
+        }
+    }
 }

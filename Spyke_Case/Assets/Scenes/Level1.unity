@@ -8673,67 +8673,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 6673668337161401655, guid: afda3bd7782563f48ba766e17535e672, type: 3}
---- !u!1001 &1411980921
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8683285325409533131, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9093307563612996019, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_Name
-      value: GridVisualyzer (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 9093307563612996019, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: ff3f1e33165ee94419e1b7ee933b08f9, type: 3}
 --- !u!1001 &1420307434
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9458,9 +9397,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1652835129}
   - component: {fileID: 1652835128}
-  - component: {fileID: 1652835127}
   - component: {fileID: 1652835130}
-  - component: {fileID: 1652835131}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -9468,18 +9405,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1652835127
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1652835126}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a3b1c637360d884aa719f1e2b7cf995, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1652835128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9517,18 +9442,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 510b223cf1edce144ad228ea4b4c1cf8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1652835131
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1652835126}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fdfa7ba78c697d44db48c41e9d0853da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1655425253
@@ -14580,7 +14493,6 @@ SceneRoots:
   - {fileID: 1811531049762020917}
   - {fileID: 6780754525199853457}
   - {fileID: 2453779579483812044}
-  - {fileID: 1411980921}
   - {fileID: 8355271754960100504}
   - {fileID: 1303972900770075112}
   - {fileID: 5813648318797919263}

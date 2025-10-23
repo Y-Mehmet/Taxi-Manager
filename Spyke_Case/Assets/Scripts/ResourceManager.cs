@@ -2,23 +2,25 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Oyuncunun coin gibi kaynaklarını yöneten merkezi sistem.
+/// Oyuncunun kaynaklarını ve temel ilerlemesini yöneten merkezi sistem.
 /// </summary>
 public class ResourceManager : MonoBehaviour
 {
     public static ResourceManager Instance { get; private set; }
 
-    // Coin miktarı değiştiğinde tetiklenir. UI güncellemek için kullanılır.
+    // Olaylar
     public static event Action<int> OnCoinsChanged;
 
+    // Genel Özellikler
     public int CurrentCoins { get; private set; }
+    public int CurrentLevel { get; private set; }
 
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Sahneler arası geçişte korunması için
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -47,28 +49,31 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Kayıtlı veriden coin miktarını yükler.
+    /// Kayıtlı veriden kaynakları ve ilerlemeyi yükler.
     /// </summary>
     private void LoadData(SaveGameData data)
     {
         if (data == null) return;
+        
         CurrentCoins = data.coinCount;
+        CurrentLevel = data.levelIndex; // Hata düzeltildi: levelIndex kullanılıyor
+        
         OnCoinsChanged?.Invoke(CurrentCoins);
     }
 
     /// <summary>
-    /// Mevcut coin miktarını kaydetmek için veri nesnesini günceller.
+    /// Mevcut durumu kaydetmek için veri nesnesini günceller.
     /// </summary>
     public void SaveData(SaveGameData data)
     {
         if (data == null) return;
+        
         data.coinCount = CurrentCoins;
+        data.levelIndex = CurrentLevel; // Hata düzeltildi: levelIndex kullanılıyor
     }
 
-    /// <summary>
-    /// Oyuncuya belirtilen miktarda coin ekler.
-    /// </summary>
-    /// <param name="amount">Eklenecek coin miktarı.</param>
+    // --- Coin Metodları --- //
+
     public void AddCoins(int amount)
     {
         if (amount <= 0) return;
@@ -78,11 +83,6 @@ public class ResourceManager : MonoBehaviour
         Debug.Log($"{amount} coins added. Total coins: {CurrentCoins}");
     }
 
-    /// <summary>
-    /// Oyuncudan belirtilen miktarda coin harcamayı dener.
-    /// </summary>
-    /// <param name="amount">Harcanacak coin miktarı.</param>
-    /// <returns>Harcama başarılıysa true, yeterli coin yoksa false döner.</returns>
     public bool SpendCoins(int amount)
     {
         if (amount <= 0) return false;

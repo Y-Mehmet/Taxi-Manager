@@ -26,6 +26,12 @@ public class LevelSelectManager : MonoBehaviour
 
     void Start()
     {
+        // Kayıtlı seviyeyi ResourceManager'dan al
+        if (ResourceManager.Instance != null)
+        {
+            currentLevel = ResourceManager.Instance.CurrentLevel;
+        }
+
         GenerateLevelItems();
         FocusOnCurrentLevel();
     }
@@ -85,21 +91,8 @@ public class LevelSelectManager : MonoBehaviour
             if (levelButton != null)
             {
                 int levelIndex = i;
-                levelButton.onClick.AddListener(() => OnLevelSelected(levelIndex));
+                
                 levelButton.interactable = (i <= currentLevel || i == currentLevel + 9);
-            }
-        }
-    }
-
-    void OnLevelSelected(int levelIndex)
-    {
-        if (levelIndex <= currentLevel || levelIndex == currentLevel + 9)
-        {
-            if (levelIndex != currentLevel)
-            {
-                currentLevel = levelIndex;
-                GenerateLevelItems();
-                FocusOnCurrentLevel();
             }
         }
     }

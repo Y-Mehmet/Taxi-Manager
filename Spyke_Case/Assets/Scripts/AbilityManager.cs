@@ -51,6 +51,7 @@ public class AbilityManager : MonoBehaviour
         if (data == null) return;
 
         abilityInventory.Clear();
+
         // Use AddAbility to ensure OnAbilityCountChanged event is triggered for UI updates
         if (data.abilityUniversalPathfindingCount > 0) AddAbility(AbilityType.UniversalPathfinding, data.abilityUniversalPathfindingCount);
         if (data.abilityRemoveWagonsCount > 0) AddAbility(AbilityType.RemoveWagons, data.abilityRemoveWagonsCount);

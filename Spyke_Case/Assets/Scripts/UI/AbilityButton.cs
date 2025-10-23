@@ -18,6 +18,7 @@ public class AbilityButton : MonoBehaviour
     [SerializeField] private TextMeshProUGUI abilityNameText;  // Yeteneğin adını gösteren text
 
     private Button button;
+    private bool wasUsedThisLevel = false; // Flag for level-specific, single-use abilities
 
     private void Awake()
     {
@@ -27,7 +28,6 @@ public class AbilityButton : MonoBehaviour
 
     private void Start()
     {
-        // Subscribe to events in Start() to ensure Singletons are ready.
         if (AbilityManager.Instance != null)
         {
             AbilityManager.Instance.OnAbilityCountChanged += OnAbilityCountChanged;
@@ -42,13 +42,11 @@ public class AbilityButton : MonoBehaviour
             ResourceManager.OnCoinsChanged += OnCoinsChanged;
         }
 
-        // Set the initial state of the button.
         InitializeButtonState();
     }
 
     private void OnDisable()
     {
-        // It's safe to remove listeners even if they weren't added.
         if (AbilityManager.Instance != null)
         {
             AbilityManager.Instance.OnAbilityCountChanged -= OnAbilityCountChanged;
@@ -65,8 +63,14 @@ public class AbilityButton : MonoBehaviour
     }
 
     /// <summary>
-    /// Butonun başlangıç durumunu mevcut envanter ve coin durumuna göre ayarlar.
+    /// Resets the button's state, e.g., when a new level starts.
     /// </summary>
+    public void ResetState()
+    {
+        wasUsedThisLevel = false;
+        InitializeButtonState();
+    }
+
     private void InitializeButtonState()
     {
         if (AbilityManager.Instance == null || ResourceManager.Instance == null) 
@@ -81,9 +85,6 @@ public class AbilityButton : MonoBehaviour
         UpdateButtonUI(currentAbilityCount, currentCoins);
     }
 
-    /// <summary>
-    /// Butona tıklandığında mevcut duruma göre Satın Al veya Kullan işlevini çağırır.
-    /// </summary>
     private void HandleButtonClick()
     {
         if (AbilityManager.Instance == null) return;
@@ -92,40 +93,39 @@ public class AbilityButton : MonoBehaviour
 
         if (currentCount > 0)
         {
-            // Envanterde varsa KULLAN
             AbilityManager.Instance.UseAbility(abilityType);
+
+            // If this is a single-use-per-level ability, set the flag and update UI
+            if (abilityType == AbilityType.AddNewStop)
+            {
+                wasUsedThisLevel = true;
+                UpdateButtonUI(0, ResourceManager.Instance.CurrentCoins); // Re-evaluate UI immediately
+            }
         }
         else
         {
-            // Envanterde yoksa SATIN AL
             AbilityManager.Instance.BuyAbility(abilityType, cost);
         }
     }
 
-    // AbilityManager'dan gelen event'i dinler
     private void OnAbilityCountChanged(AbilityType type, int newCount)
     {
-        if (type != this.abilityType) return; // Sadece ilgili yetenek için güncelle
+        if (type != this.abilityType) return;
         if (ResourceManager.Instance == null) return;
 
         UpdateButtonUI(newCount, ResourceManager.Instance.CurrentCoins);
     }
 
-    // ResourceManager'dan gelen event'i dinler
     private void OnCoinsChanged(int newCoins)
     {
         if (AbilityManager.Instance == null) return;
 
-        // Sadece "Satın Al" modundaysak (yani yetenek sayımız 0 ise) butonun durumunu güncelle
         if (AbilityManager.Instance.GetAbilityCount(abilityType) == 0)
         {
             UpdateButtonUI(0, newCoins);
         }
     }
 
-    /// <summary>
-    /// Gelen verilere göre butonun tüm görsel durumunu günceller.
-    /// </summary>
     private void UpdateButtonUI(int abilityCount, int coinCount)
     {
         if (countText == null)
@@ -134,17 +134,26 @@ public class AbilityButton : MonoBehaviour
             return;
         }
 
+        // Special case for AddNewStop after it has been used this level
+        if (abilityType == AbilityType.AddNewStop && wasUsedThisLevel)
+        {
+            countText.text = "+";
+            countText.gameObject.SetActive(true);
+            button.interactable = false;
+            return;
+        }
+
         if (abilityCount > 0)
         {
-            // --- KULLAN MODU ---
+            // --- USE MODE ---
             countText.text = abilityCount.ToString();
             countText.gameObject.SetActive(true);
             button.interactable = true;
         }
         else
         { 
-            // --- SATIN AL MODU ---
-            countText.text = "+"; // Show '+' when count is 0
+            // --- BUY MODE ---
+            countText.text = "+";
             countText.gameObject.SetActive(true);
             button.interactable = coinCount >= cost;
         }

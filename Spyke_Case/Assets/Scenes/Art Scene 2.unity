@@ -238,7 +238,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 138887976459230912, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_Name
-      value: AbilityBtn (3)
+      value: Shuffle
       objectReference: {fileID: 0}
     - target: {fileID: 2405772287560432116, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_Pivot.x
@@ -319,6 +319,10 @@ PrefabInstance:
     - target: {fileID: 2405772287560432116, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4071200128751382899, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
+      propertyPath: m_text
+      value: Shuffle
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8225,7 +8229,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 138887976459230912, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_Name
-      value: AbilityBtn (2)
+      value: Tow
       objectReference: {fileID: 0}
     - target: {fileID: 1702245147557080518, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: abilityType
@@ -8310,6 +8314,10 @@ PrefabInstance:
     - target: {fileID: 2405772287560432116, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4071200128751382899, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
+      propertyPath: m_text
+      value: Tow
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8930,7 +8938,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 138887976459230912, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_Name
-      value: AbilityBtn (1)
+      value: Flasher
       objectReference: {fileID: 0}
     - target: {fileID: 1702245147557080518, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: abilityType
@@ -9015,6 +9023,10 @@ PrefabInstance:
     - target: {fileID: 2405772287560432116, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4071200128751382899, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
+      propertyPath: m_text
+      value: Flasher
       objectReference: {fileID: 0}
     - target: {fileID: 6108129729289543368, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_Sprite
@@ -9432,6 +9444,7 @@ GameObject:
   - component: {fileID: 1652835128}
   - component: {fileID: 1652835127}
   - component: {fileID: 1652835130}
+  - component: {fileID: 1652835131}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -9488,6 +9501,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 510b223cf1edce144ad228ea4b4c1cf8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1652835131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1652835126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdfa7ba78c697d44db48c41e9d0853da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1655425253
@@ -14306,7 +14331,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 138887976459230912, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_Name
-      value: AbilityBtn
+      value: AddPark
       objectReference: {fileID: 0}
     - target: {fileID: 1702245147557080518, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: actionType
@@ -14391,6 +14416,10 @@ PrefabInstance:
     - target: {fileID: 2405772287560432116, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4071200128751382899, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
+      propertyPath: m_text
+      value: Add Park
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

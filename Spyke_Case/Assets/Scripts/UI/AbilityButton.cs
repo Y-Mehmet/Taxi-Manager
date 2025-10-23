@@ -15,37 +15,40 @@ public class AbilityButton : MonoBehaviour
 
     [Header("UI Referansları")]
     [SerializeField] private TextMeshProUGUI countText; // Sahip olunan yetenek sayısını gösteren text
-    [SerializeField] private TextMeshProUGUI costText;  // Yeteneğin maliyetini gösteren text
-    // Not: Butonun ana metnini (örn: "Use", "Buy") değiştirmek için buraya bir referans daha eklenebilir.
+    [SerializeField] private TextMeshProUGUI abilityNameText;  // Yeteneğin adını gösteren text
 
     private Button button;
 
     private void Awake()
     {
         button = GetComponent<Button>();
+        button.onClick.AddListener(HandleButtonClick);
     }
 
-    private void OnEnable()
+    private void Start()
     {
-        button.onClick.AddListener(HandleButtonClick);
-
-        // İlgili event'lere abone ol
+        // Subscribe to events in Start() to ensure Singletons are ready.
         if (AbilityManager.Instance != null)
         {
             AbilityManager.Instance.OnAbilityCountChanged += OnAbilityCountChanged;
         }
+        else
+        {
+            Debug.LogError($"[AbilityButton:{abilityType}] AbilityManager.Instance is null. Cannot subscribe to events.");
+        }
+
         if (ResourceManager.Instance != null)
         {
             ResourceManager.OnCoinsChanged += OnCoinsChanged;
         }
 
+        // Set the initial state of the button.
         InitializeButtonState();
     }
 
     private void OnDisable()
     {
-        button.onClick.RemoveListener(HandleButtonClick);
-
+        // It's safe to remove listeners even if they weren't added.
         if (AbilityManager.Instance != null)
         {
             AbilityManager.Instance.OnAbilityCountChanged -= OnAbilityCountChanged;
@@ -56,12 +59,21 @@ public class AbilityButton : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        button.onClick.RemoveListener(HandleButtonClick);
+    }
+
     /// <summary>
     /// Butonun başlangıç durumunu mevcut envanter ve coin durumuna göre ayarlar.
     /// </summary>
     private void InitializeButtonState()
     {
-        if (AbilityManager.Instance == null || ResourceManager.Instance == null) return;
+        if (AbilityManager.Instance == null || ResourceManager.Instance == null) 
+        {
+            Debug.LogError($"[AbilityButton:{abilityType}] Cannot initialize, a manager is missing.");
+            return;
+        }
 
         int currentAbilityCount = AbilityManager.Instance.GetAbilityCount(abilityType);
         int currentCoins = ResourceManager.Instance.CurrentCoins;
@@ -116,35 +128,24 @@ public class AbilityButton : MonoBehaviour
     /// </summary>
     private void UpdateButtonUI(int abilityCount, int coinCount)
     {
+        if (countText == null)
+        {
+            Debug.LogError($"[AbilityButton:{abilityType}] CountText reference is not set in the inspector!");
+            return;
+        }
+
         if (abilityCount > 0)
         {
             // --- KULLAN MODU ---
-            if (countText != null) 
-            {
-                countText.text = abilityCount.ToString();
-                countText.gameObject.SetActive(true);
-            }
-            if (costText != null) 
-            {
-                costText.gameObject.SetActive(false);
-            }
-
+            countText.text = abilityCount.ToString();
+            countText.gameObject.SetActive(true);
             button.interactable = true;
         }
         else
         { 
             // --- SATIN AL MODU ---
-            if (countText != null) 
-            {
-                countText.gameObject.SetActive(false);
-            }
-            if (costText != null) 
-            {
-                costText.text = cost.ToString();
-                costText.gameObject.SetActive(true);
-            }
-
-            // Coin yeterli mi diye kontrol et
+            countText.text = "+"; // Show '+' when count is 0
+            countText.gameObject.SetActive(true);
             button.interactable = coinCount >= cost;
         }
     }

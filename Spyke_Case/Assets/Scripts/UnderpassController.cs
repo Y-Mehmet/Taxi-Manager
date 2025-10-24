@@ -41,6 +41,7 @@ public class UnderpassController : MonoBehaviour
             Vector3 spawnPos = transform.position; // Bu obje zaten EndCell'e spawn edilecek
             PassengerGroup newGroup = Instantiate(passengerPrefab, spawnPos, Quaternion.identity, transform);
             newGroup.SetGroupColor(color);
+            newGroup.moveDirection = this.startCellOffset;
             newGroup.GetComponent<Collider>().enabled = false;
             passengerQueue.Enqueue(newGroup);
         }

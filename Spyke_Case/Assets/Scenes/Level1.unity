@@ -12664,6 +12664,10 @@ PrefabInstance:
       value: GridManager
       objectReference: {fileID: 0}
     - target: {fileID: 6411284126908476119, guid: 4854b21b4be884f4c93ef096cc41fa03, type: 3}
+      propertyPath: gridData
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6411284126908476119, guid: 4854b21b4be884f4c93ef096cc41fa03, type: 3}
       propertyPath: gridVisualizer
       value: 
       objectReference: {fileID: 1226361141}

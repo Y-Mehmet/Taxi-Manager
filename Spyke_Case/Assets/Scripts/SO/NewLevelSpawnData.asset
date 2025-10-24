@@ -23,119 +23,25 @@ MonoBehaviour:
   - position: {x: 4, y: 2}
     direction: {x: 0, y: 1}
     color: 0
-  - position: {x: 2, y: 1}
+  - position: {x: 2, y: 3}
     direction: {x: 0, y: 1}
     color: 0
   underpasses:
-  - position: {x: 3, y: 3}
+  - position: {x: 3, y: 5}
     direction: {x: 1, y: 0}
     passengerSequence: {fileID: 11400000, guid: 56c91e59457380743b0752c98be79e33, type: 2}
   wagons:
-  - color: 0
-    capacity: 3
   - color: 1
-    capacity: 5
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
   - color: 3
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
-  - color: 8
-    capacity: 5
+    capacity: 1
+  - color: 0
+    capacity: 1

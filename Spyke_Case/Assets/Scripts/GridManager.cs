@@ -88,6 +88,11 @@ public class GridManager : MonoBehaviour
         needsRebuild = false;
     }
 
+    public Vector3 GetWorldPosition(Vector2Int gridPosition)
+    {
+        return new Vector3(gridPosition.x * gridData.cellSize, 0, gridPosition.y * gridData.cellSize) + gridData.gridWorldOffset;
+    }
+
     [ContextMenu("Yolcu Gruplarını Otomatik Spawn Et")]
     public void AutoSpawnPassengerGroups()
     {
@@ -103,7 +108,7 @@ public class GridManager : MonoBehaviour
             {
                 // Eğer o konumda zaten manuel bir PassengerGroup varsa spawn etme
                 bool occupied = false;
-                var existing = FindObjectsOfType<PassengerGroup>();
+                var existing = FindObjectsByType<PassengerGroup>(FindObjectsSortMode.None);
                 foreach (var g in existing)
                 {
                     if (g != null && g.gridPos == pos)
@@ -114,7 +119,7 @@ public class GridManager : MonoBehaviour
                 }
                 if (occupied) continue;
 
-                Vector3 worldPos = cell.cellTransform != null ? cell.cellTransform.position : new Vector3(pos.x * gridData.cellSize, 0, pos.y * gridData.cellSize) + gridData.gridWorldOffset;
+                Vector3 worldPos = cell.cellTransform != null ? cell.cellTransform.position : GetWorldPosition(pos);
                 GameObject group = Instantiate(gridData.passengerGroupPrefab, worldPos, Quaternion.identity, this.transform);
                 var groupScript = group.GetComponent<PassengerGroup>();
                 if (groupScript != null)

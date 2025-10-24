@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using GridSystem;
 using GridSystem.Data;
@@ -6,6 +7,7 @@ using DG.Tweening;
 
 public class PassengerGroup : MonoBehaviour
 {
+    public static event System.Action<PassengerGroup> OnGroupDeparted;
     public static event System.Action OnGroupClicked;
     public event System.Action<int> OnGroupSizeDecreased;
     public event System.Action<int> OnAvailableSlotsChanged;
@@ -201,6 +203,7 @@ public class PassengerGroup : MonoBehaviour
             List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
             fullPath.AddRange(path);
             Debug.LogWarning($"[PathPlan] Path found for {name}. Length: {fullPath.Count}. Starting movement.");
+            OnGroupDeparted?.Invoke(this);
             StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos));
         }
         else

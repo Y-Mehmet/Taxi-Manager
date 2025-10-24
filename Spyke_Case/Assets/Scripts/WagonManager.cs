@@ -13,6 +13,10 @@ public class WagonManager : MonoBehaviour
     // Bir vagon kaldırıldığında tetiklenir. MetroManager bunu dinler.
     public event System.Action<MetroWagon, Transform> OnWagonRemoved;
 
+    [Header("Spawn Ayarları")]
+    public Vector3 startSpawnPoint = new Vector3(-3f, 0, 11f);
+    public float distanceBetweenWagons = 1f;
+
     private void Awake()
     {
         if (Instance == null)
@@ -40,13 +44,11 @@ public class WagonManager : MonoBehaviour
         }
         runtimeWagons.Clear();
 
-        // Geçici Yerleştirme: Vagonları Z ekseninde sırala.
-        float distanceBetweenWagons = 15f; 
-
+        // Vagonları başlangıç noktasına göre Z ekseninde sırala.
         for (int i = 0; i < spawnData.Count; i++)
         {
             var data = spawnData[i];
-            Vector3 spawnPos = new Vector3(0, 0, i * distanceBetweenWagons);
+            Vector3 spawnPos = startSpawnPoint + new Vector3(0, 0, i * distanceBetweenWagons);
             Quaternion spawnRot = Quaternion.identity;
             
             MetroWagon newWagon = Instantiate(wagonPrefab, spawnPos, spawnRot, transform);

@@ -35,7 +35,7 @@ public class GridManager : MonoBehaviour
         {
             RebuildGrid();
         }
-        else if (Application.isPlaying)
+        else if (Application.isPlaying && gridVisualizer != null)
         {
             gridVisualizer.UpdateGridVisuals();
         }

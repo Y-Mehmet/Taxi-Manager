@@ -31,7 +31,16 @@ public class MetroWagon : MonoBehaviour
         // Her vagon doğrudan checkpoint'ler boyunca ilerler
         if (path != null && path.checkpoints.Count > 0 && currentCheckpointIndex < path.checkpoints.Count)
         {
-            Vector3 target = path.checkpoints[currentCheckpointIndex].position;
+            var checkpoint = path.checkpoints[currentCheckpointIndex];
+            if (!checkpoint)
+            {
+                Debug.LogError($"HATA: '{path.name}' adlı yoldaki {currentCheckpointIndex}. checkpoint objesi null veya yok edilmiş. Lütfen MetroCheckpointPath objesini kontrol et.", this.gameObject);
+                MetroManager.StopMovement(); // Hatalı yolda hareketi durdur.
+                this.enabled = false; // Bu vagonun Update döngüsünü kapat.
+                return;
+            }
+
+            Vector3 target = checkpoint.position;
             MoveTowards(target);
 
             // Hedefe yeterince yaklaştıysak bir sonraki checkpoint'e geç

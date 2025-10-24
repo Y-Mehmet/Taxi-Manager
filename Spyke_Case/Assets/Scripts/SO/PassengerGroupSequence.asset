@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba09c0992b0a60f49885707207407ed2, type: 3}
   m_Name: PassengerGroupSequence
   m_EditorClassIdentifier: 
-  PassengerColors: []
+  PassengerColors: 0100000000000000000000000100000000000000

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using System.Linq;
 using GridSystem; // PassengerGrid için eklendi
@@ -101,11 +102,6 @@ public class MetroManager : MonoBehaviour
             Debug.LogError("Checkpoint path atanmadı veya boş!");
             return;
         }
-        if (headPrefab == null || midPrefab == null || endPrefab == null)
-        {
-            Debug.LogError("Prefab referansları atanmadı!");
-            return;
-        }
         if (passengerGrid == null)
         {
             Debug.LogError("PassengerGrid referansı MetroManager'a atanmadı!");
@@ -114,52 +110,40 @@ public class MetroManager : MonoBehaviour
 
         IsMovementStopped = false;
 
-        List<GameObject> wagonObjects = new List<GameObject>();
-        Vector3 basePos = checkpointPath.checkpoints[0].position;
-        Vector3 forward = (checkpointPath.checkpoints.Count > 1) ?
-            (checkpointPath.checkpoints[1].position - checkpointPath.checkpoints[0].position).normalized : Vector3.forward;
+        // YENİ YAPI: Vagonları WagonManager'dan al, burada oluşturma.
+        masterWagonList.Clear();
+        activeWagons.Clear();
 
-        wagonObjects.Add(Instantiate(headPrefab, basePos, Quaternion.LookRotation(forward)));
+        // LevelSpawner'ın vagonları oluşturması için bir frame bekle
+        StartCoroutine(InitializeWagonsAfterDelay());
+    }
 
-        for (int i = 0; i < midCount; i++)
+    private IEnumerator InitializeWagonsAfterDelay()
+    {
+        // LevelSpawner'ın Awake/Start döngüsünün tamamlanması için bir frame bekle
+        yield return null;
+
+        var wagonsFromManager = WagonManager.Instance.GetActiveWagons();
+        masterWagonList.AddRange(wagonsFromManager);
+        activeWagons.AddRange(wagonsFromManager);
+
+        if (activeWagons.Count == 0)
         {
-            Vector3 spawnPos = basePos - forward * wagonSpacing * (i + 1);
-            wagonObjects.Add(Instantiate(midPrefab, spawnPos, Quaternion.LookRotation(forward)));
+            Debug.LogWarning("MetroManager, WagonManager'dan hiç vagon alamadı. LevelSpawner'ın çalıştığından emin olun.");
+            yield break;
         }
 
-        Vector3 tailPos = basePos - forward * wagonSpacing * (midCount + 1);
-        wagonObjects.Add(Instantiate(endPrefab, tailPos, Quaternion.LookRotation(forward)));
+        Debug.Log($"MetroManager, {activeWagons.Count} adet vagonu WagonManager'dan aldı.");
 
-        for (int i = 0; i < wagonObjects.Count; i++)
+        // Vagonlara başlangıç ayarlarını yap (path, checkpoint vb.)
+        for (int i = 0; i < activeWagons.Count; i++)
         {
-            GameObject wagonObj = wagonObjects[i];
-            MetroWagon wagon = wagonObj.GetComponent<MetroWagon>();
+            MetroWagon wagon = activeWagons[i];
+            if (wagon == null) continue;
 
-            if (wagon == null)
-            {
-                Debug.LogError($"Prefab for wagon at index {i} is missing MetroWagon script!");
-                continue;
-            }
+            if (i == 0) wagon.isHead = true; // Listenin ilk vagonunu Head yap
 
-            if (i == 0) wagon.isHead = true;
-            
-            wagonObj.name = $"Wagon_{i}";
-
-            HyperCasualColor colorToAssign = HyperCasualColor.White;
-            if (midWagonColors != null && midWagonColors.Count > 0)
-            {
-                int colorIndex = i % midWagonColors.Count;
-                colorToAssign = midWagonColors[colorIndex];
-            }
-
-            wagon.Init(checkpointPath, FindClosestCheckpointIndex(wagonObj.transform.position), colorToAssign);
-
-            var renderer = wagon.GetComponentInChildren<Renderer>();
-            if (renderer != null) renderer.material.color = colorToAssign.ToColor();
-            
-            WagonManager.Instance.RegisterWagon(wagon);
-            masterWagonList.Add(wagon);
-            activeWagons.Add(wagon);
+            wagon.Init(checkpointPath, FindClosestCheckpointIndex(wagon.transform.position), wagon.wagonColor);
         }
 
         if (GameDataManager.Instance != null)

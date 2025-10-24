@@ -1,27 +1,19 @@
 using UnityEngine;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>
-/// Vagonların durumunu (dolu/boş, pozisyon vb.) yöneten ve uygun vagonları bulan merkezi sistem.
-/// </summary>
+// LevelSpawner'dan aldığı veriyle vagonları oluşturur ve yönetir.
 public class WagonManager : MonoBehaviour
 {
     public static WagonManager Instance { get; private set; }
 
-    // Event: Bir vagon dolduğunda tetiklenir.
-    public event Action<MetroWagon> OnWagonFilled;
+    // Vagonların oyun içindeki güncel listesi.
+    private List<MetroWagon> runtimeWagons = new List<MetroWagon>();
 
-    // YENİ EVENT: Bir vagon sistemden kaldırıldığında (deaktif edildiğinde) tetiklenir.
-    public event Action<MetroWagon, Transform> OnWagonRemoved;
+    // Bir vagon kaldırıldığında tetiklenir. MetroManager bunu dinler.
+    public event System.Action<MetroWagon, Transform> OnWagonRemoved;
 
-    // Pending removals to avoid starting multiple coroutines for same wagon
-    private HashSet<MetroWagon> pendingRemovals = new HashSet<MetroWagon>();
-
-    private readonly List<MetroWagon> allWagons = new List<MetroWagon>();
-
-    void Awake()
+    private void Awake()
     {
         if (Instance == null)
         {
@@ -33,141 +25,120 @@ public class WagonManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Sisteme yeni bir vagon kaydeder. MetroManager tarafından çağrılır.
-    /// </summary>
+    public void Initialize(List<WagonSpawnData> spawnData, MetroWagon wagonPrefab)
+    {
+        if (wagonPrefab == null)
+        {
+            Debug.LogError("WagonManager Initialize failed: Prefab not provided!");
+            return;
+        }
+
+        // Önceki level'dan kalan vagonları temizle
+        foreach (var wagon in runtimeWagons)
+        {
+            if (wagon != null) Destroy(wagon.gameObject);
+        }
+        runtimeWagons.Clear();
+
+        // Geçici Yerleştirme: Vagonları Z ekseninde sırala.
+        float distanceBetweenWagons = 15f; 
+
+        for (int i = 0; i < spawnData.Count; i++)
+        {
+            var data = spawnData[i];
+            Vector3 spawnPos = new Vector3(0, 0, i * distanceBetweenWagons);
+            Quaternion spawnRot = Quaternion.identity;
+            
+            MetroWagon newWagon = Instantiate(wagonPrefab, spawnPos, spawnRot, transform);
+            
+            // HATA DÜZELTMESİ: Rengi doğrudan atamak yerine public SetColor metodunu kullan.
+            newWagon.SetColor(data.color);
+            
+            runtimeWagons.Add(newWagon);
+        }
+    }
+
+    // MetroManager tarafından çağrılır.
     public void RegisterWagon(MetroWagon wagon)
     {
-        if (!allWagons.Contains(wagon))
+        if (!runtimeWagons.Contains(wagon))
         {
-            allWagons.Add(wagon);
+            runtimeWagons.Add(wagon);
         }
     }
 
-    /// <summary>
-    /// Bir vagonun dolduğunu bildirir ve ilgili event'i tetikler.
-    /// </summary>
-    public void ReportWagonFilled(MetroWagon wagon)
-    {
-        Debug.LogWarning($"WagonManager: VAGON DOLDU -> Enqueue removal wait for wagon '{wagon?.name ?? "null"}' at pos {wagon?.transform.position}");
-        OnWagonFilled?.Invoke(wagon);
-
-        if (wagon == null) return;
-
-        // If already pending, don't start another waiter
-        if (pendingRemovals.Contains(wagon)) return;
-        pendingRemovals.Add(wagon);
-        // Start coroutine to wait until wagon arrives at a checkpoint then remove it
-        StartCoroutine(WaitAndRemoveWagon(wagon));
-    }
-
-    private System.Collections.IEnumerator WaitAndRemoveWagon(MetroWagon wagon)
-    {
-        float timeout = 5f; // safety timeout
-        float elapsed = 0f;
-        // Wait until wagon is at/near a checkpoint
-        while (wagon != null && !wagon.IsAtCheckpoint() && elapsed < timeout)
-        {
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        if (wagon != null)
-        {
-            Transform removedWagonTransform = wagon.transform;
-            Debug.LogWarning($"WagonManager: Removing wagon '{wagon.name}' at pos {removedWagonTransform.position} after waiting {elapsed:F2}s (timeout {timeout}s)");
-            
-            // Invoke the event BEFORE deactivating/removing, so listeners can inspect the wagon.
-            OnWagonRemoved?.Invoke(wagon, removedWagonTransform);
-
-            wagon.gameObject.SetActive(false);
-            allWagons.Remove(wagon);
-        }
-
-        pendingRemovals.Remove(wagon);
-    }
-
-    /// <summary>
-    /// Belirtilen renkte, kapasitesi dolmamış ve yolcu alma bölgesinde olan ilk uygun vagonu bulur.
-    /// </summary>
-    /// <param name="color">Aranan vagon rengi.</param>
-    /// <param name="boardingZoneStart">Yolcu alma bölgesinin başlangıç checkpoint indeksi.</param>
-    /// <returns>Uygun bir vagon veya null.</returns>
-    public MetroWagon GetAvailableWagon(HyperCasualColor color, int boardingZoneStart)
-    {
-        // LINQ kullanarak hem verimli hem de okunaklı bir arama yapalım.
-        return allWagons.FirstOrDefault(wagon =>
-            !wagon.IsFull &&                  // Kapasitesi dolu olmamalı.
-            wagon.wagonColor == color &&      // Rengi eşleşmeli.
-            wagon.GetCurrentCheckpointIndex() >= boardingZoneStart // Yolcu alma bölgesinde olmalı.
-        );
-    }
-
-    /// <summary>
-    /// Aktif olan tüm vagonların sıralı bir listesini döndürür.
-    /// </summary>
-    public List<MetroWagon> GetActiveWagons()
-    {
-        return new List<MetroWagon>(allWagons);
-    }
-
-    /// <summary>
-    /// Bir vagonu aktif vagonlar listesinden kaldırır. UberManager tarafından kullanılır.
-    /// </summary>
+    // UberManager tarafından çağrılır.
     public void DeregisterWagon(MetroWagon wagon)
     {
-        if (wagon != null)
+        if (runtimeWagons.Contains(wagon))
         {
-            allWagons.Remove(wagon);
+            runtimeWagons.Remove(wagon);
         }
     }
 
-    /// <summary>
-    /// OnWagonRemoved olayını dışarıdan tetiklemek için kullanılır. UberManager tarafından kullanılır.
-    /// </summary>
+    // UberManager tarafından çağrılır.
     public void TriggerWagonRemovalEvent(MetroWagon wagon, Transform transform)
     {
         OnWagonRemoved?.Invoke(wagon, transform);
     }
 
-    /// <summary>
-    /// Verilen bir renk listesini, bitişik aynı renkleri bir arada tutarak gruplar halinde karıştırır.
-    /// Örnek: [R, R, B, Y, Y] -> Gruplar: ([R,R], [B], [Y,Y]) -> Karışmış Gruplar: ([Y,Y], [R,R], [B]) -> Sonuç: [Y, Y, R, R, B]
-    /// </summary>
-    /// <param name="originalColors">Karıştırılacak orijinal renk listesi.</param>
-    /// <returns>Gruplar halinde karıştırılmış yeni renk listesi.</returns>
-    public static List<HyperCasualColor> ShuffleColorGroups(List<HyperCasualColor> originalColors)
+    // MetroWagon tarafından çağrılır.
+    public void ReportWagonFilled(MetroWagon wagon)
     {
-        if (originalColors == null || originalColors.Count == 0)
-        {
-            return new List<HyperCasualColor>();
-        }
+        // TODO: Bir vagon dolduğunda yapılacak oyun mantığını buraya ekle.
+        Debug.Log($"Wagon {wagon.name} is full!", wagon.gameObject);
+    }
 
-        // 1. Renkleri gruplara ayır
-        List<List<HyperCasualColor>> colorGroups = new List<List<HyperCasualColor>>();
-        if (originalColors.Count > 0)
+    // MetroManager tarafından istenir.
+    public List<MetroWagon> GetActiveWagons()
+    {
+        // Null referansları temizleyerek güncel listeyi döndür.
+        runtimeWagons.RemoveAll(item => item == null);
+        return runtimeWagons;
+    }
+
+    public MetroWagon FindWagon(HyperCasualColor color, int requiredCapacity = 1, int minCheckpointIndex = -1)
+    {
+        // Not: Bu metod artık sahnedeki değil, runtime'da oluşturulan vagonları kullanacak.
+        // Initialize metodu doldurulduğunda bu liste de dolu olacak.
+        foreach (var wagon in runtimeWagons)
         {
-            colorGroups.Add(new List<HyperCasualColor> { originalColors[0] });
-            for (int i = 1; i < originalColors.Count; i++)
+            if (wagon == null || wagon.IsFull) continue;
+
+            // Bölge kontrolü (opsiyonel)
+            if (minCheckpointIndex != -1 && wagon.GetCurrentCheckpointIndex() < minCheckpointIndex) continue;
+
+            // Renk ve kapasite kontrolü
+            if (wagon.wagonColor == color && (wagon.maxPassengerCount - wagon.passengerCount) >= requiredCapacity)
             {
-                if (originalColors[i] == originalColors[i - 1])
-                {
-                    colorGroups.Last().Add(originalColors[i]);
-                }
-                else
-                {
-                    colorGroups.Add(new List<HyperCasualColor> { originalColors[i] });
-                }
+                return wagon;
             }
         }
+        return null;
+    }
 
-        // 2. Grupları karıştır
-        // System.Linq ve System.Guid kullanarak basit bir karıştırma
-        var shuffledGroups = colorGroups.OrderBy(x => Guid.NewGuid()).ToList();
+    // MetroManager tarafından renk karıştırma için kullanılır.
+    public static List<HyperCasualColor> ShuffleColorGroups(List<HyperCasualColor> originalColors)
+    {
+        if (originalColors == null || originalColors.Count < 2) return originalColors;
 
-        // 3. Karıştırılmış grupları tek bir listeye düzleştir
-        List<HyperCasualColor> finalColors = shuffledGroups.SelectMany(group => group).ToList();
+        List<HyperCasualColor> newColors = new List<HyperCasualColor>(originalColors);
+        System.Random rng = new System.Random();
 
-        return finalColors;
+        // Fisher-Yates shuffle algoritması
+        int n = newColors.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            HyperCasualColor value = newColors[k];
+            newColors[k] = newColors[n];
+            newColors[n] = value;
+        }
+
+        // İsteğe bağlı: Hiçbir rengin kendi orijinal yerinde kalmamasını sağla (derangement)
+        // Basit bir shuffle şimdilik yeterlidir.
+
+        return newColors;
     }
 }

@@ -144,7 +144,7 @@ public class BoardingManager : MonoBehaviour
 
             if (availableWagonColors.Contains(passenger.groupColor))
             {
-                MetroWagon availableWagon = WagonManager.Instance.GetAvailableWagon(passenger.groupColor, boardingZoneStart);
+                MetroWagon availableWagon = WagonManager.Instance.FindWagon(passenger.groupColor, 1, boardingZoneStart);
                 if (availableWagon != null)
                 {
                     int boardCount = Mathf.Min(availableWagon.maxPassengerCount - availableWagon.passengerCount, passenger.GroupSize);

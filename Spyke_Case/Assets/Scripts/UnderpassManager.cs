@@ -1,21 +1,42 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+// LevelSpawner'dan aldığı veriyle Underpass prefab'larını oluşturur ve yönetir.
 public class UnderpassManager : MonoBehaviour
 {
-    [Header("Prefabs")]
-    public UnderpassController underpassPrefab;
-    public PassengerGroup passengerGroupPrefab;
-
-    [Header("Configuration")]
-    public PassengerGroupSequenceSO defaultSequence;
-    public List<Vector2Int> underpassSpawnPoints; // Alt geçitlerin spawn edileceği grid koordinatları
-
     private GridManager gridManager;
     private Dictionary<PassengerGroup, UnderpassController> groupToUnderpassMap = new Dictionary<PassengerGroup, UnderpassController>();
 
-    private void OnEnable()
+    public void Initialize(List<UnderpassSpawnData> spawnData, UnderpassController underpassPrefab, PassengerGroup passengerPrefab, GridManager gridManager)
     {
+        this.gridManager = gridManager;
+
+        if (underpassPrefab == null || passengerPrefab == null)
+        {
+            Debug.LogError("UnderpassManager'a gerekli prefablar atanmamış!");
+            return;
+        }
+
+        foreach (var data in spawnData)
+        {
+            Vector3 spawnPos = this.gridManager.GetWorldPosition(data.position);
+            UnderpassController newUnderpass = Instantiate(underpassPrefab, spawnPos, Quaternion.identity, transform);
+            newUnderpass.name = $"Underpass_{data.position.x}_{data.position.y}";
+            
+            // Her bir alt geçit için SO'dan gelen yön bilgisini ata
+            newUnderpass.startCellOffset = data.direction;
+
+            // Controller'ı başlat, o da kendi yolcularını oluştursun
+            newUnderpass.Initialize(this.gridManager, data.position, passengerPrefab, data.passengerSequence);
+
+            // Oluşturulan yolcuları, hangi alt geçide ait olduklarını bilmek için haritaya ekle
+            foreach (var groupInQueue in newUnderpass.GetQueue())
+            {
+                groupToUnderpassMap[groupInQueue] = newUnderpass;
+            }
+        }
+
+        // Event dinleyicisini başlat
         PassengerGroup.OnGroupDeparted += OnPassengerGroupDeparted;
     }
 
@@ -24,50 +45,12 @@ public class UnderpassManager : MonoBehaviour
         PassengerGroup.OnGroupDeparted -= OnPassengerGroupDeparted;
     }
 
-    private void Start()
-    {
-        gridManager = FindObjectOfType<GridManager>();
-        if (gridManager == null)
-        {
-            Debug.LogError("Sahnede GridManager bulunamadı!");
-            return;
-        }
-
-        if (underpassPrefab == null || passengerGroupPrefab == null || defaultSequence == null)
-        {
-            Debug.LogError("UnderpassManager'da gerekli prefablar veya sequence atanmamış!");
-            return;
-        }
-
-        InitializeUnderpasses();
-    }
-
-    private void InitializeUnderpasses()
-    {
-        foreach (var spawnPoint in underpassSpawnPoints)
-        {
-            Vector3 spawnPos = gridManager.GetWorldPosition(spawnPoint);
-            UnderpassController newUnderpass = Instantiate(underpassPrefab, spawnPos, Quaternion.identity, transform);
-            newUnderpass.name = $"Underpass_{spawnPoint.x}_{spawnPoint.y}";
-
-            // Yeni alt geçidi başlat ve içindeki yolcuları oluştur
-            newUnderpass.Initialize(gridManager, spawnPoint, passengerGroupPrefab, defaultSequence);
-
-            // Oluşturulan yolcuları, hangi alt geçide ait olduklarını bilmek için haritaya ekle
-            foreach (var groupInQueue in newUnderpass.GetQueue())
-            {
-                groupToUnderpassMap[groupInQueue] = newUnderpass;
-            }
-        }
-    }
-
     private void OnPassengerGroupDeparted(PassengerGroup departedGroup)
     {
-        // Ayrılan grubun hangi alt geçide ait olduğunu bul ve o alt geçide haber ver
         if (groupToUnderpassMap.TryGetValue(departedGroup, out UnderpassController controller))
         {
             controller.HandleDeparture();
-            groupToUnderpassMap.Remove(departedGroup); // Haritadan temizle
+            groupToUnderpassMap.Remove(departedGroup);
         }
     }
 }

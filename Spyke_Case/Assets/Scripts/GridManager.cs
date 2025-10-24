@@ -10,14 +10,15 @@ public class GridManager : MonoBehaviour
 
     private bool needsRebuild = false;
 
-    private void Start()
+    public void Initialize(GridData data)
     {
-        if (gridData == null || gridVisualizer == null)
+        if (data == null || gridVisualizer == null)
         {
-            Debug.LogError("GridData veya GridVisualizer atanmamış!");
+            Debug.LogError("Initialize için GridData veya GridVisualizer atanmamış!");
             return;
         }
-        gridVisualizer.Initialize(gridData);
+        this.gridData = data;
+        gridVisualizer.Initialize(this.gridData);
         RebuildGrid();
     }
 

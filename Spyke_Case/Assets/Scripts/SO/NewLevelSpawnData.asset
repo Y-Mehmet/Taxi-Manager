@@ -23,7 +23,7 @@ MonoBehaviour:
   - position: {x: 4, y: 2}
     direction: {x: 0, y: 1}
     color: 0
-  - position: {x: 2, y: 3}
+  - position: {x: 2, y: 1}
     direction: {x: 0, y: 1}
     color: 0
   underpasses:

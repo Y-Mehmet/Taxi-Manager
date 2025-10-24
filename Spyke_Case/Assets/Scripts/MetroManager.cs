@@ -123,6 +123,19 @@ public class MetroManager : MonoBehaviour
         // LevelSpawner'ın Awake/Start döngüsünün tamamlanması için bir frame bekle
         yield return null;
 
+        // --- YENİ KONTROL EKLENDİ ---
+        // Vagonları işlemeden önce yolun geçerli olduğundan emin ol.
+        if (checkpointPath == null)
+        {
+            Debug.LogError("FATAL HATA: MetroManager'daki 'Checkpoint Path' alanı boş (None). Lütfen sahnedeki MetroManager objesine bir yol (MetroCheckpointPath) atayın.");
+            yield break; // Coroutine'i durdur.
+        }
+        if (checkpointPath.checkpoints.Any(c => c == null))
+        {
+            Debug.LogError($"FATAL HATA: MetroManager'a atanan '{checkpointPath.name}' adlı yolun 'Checkpoints' listesinde boş (None) veya yok edilmiş elemanlar var. Lütfen '{checkpointPath.name}' objesini seçip listeyi kontrol edin ve boş elemanları silin veya düzeltin.");
+            yield break; // Coroutine'i durdur.
+        }
+
         var wagonsFromManager = WagonManager.Instance.GetActiveWagons();
         masterWagonList.AddRange(wagonsFromManager);
         activeWagons.AddRange(wagonsFromManager);

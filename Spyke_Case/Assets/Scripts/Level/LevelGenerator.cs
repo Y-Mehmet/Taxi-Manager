@@ -137,7 +137,7 @@ public static class LevelGenerator
         System.Random rng = new System.Random();
         List<HyperCasualColor> colorsInLevel = levelDef.wagons.Select(w => w.color).Distinct().ToList();
 
-        // 1. Calculate the demand for each color
+        // 1. Calculate the total demand for each color in terms of passenger groups
         Dictionary<HyperCasualColor, int> passengerGroupsNeeded = new Dictionary<HyperCasualColor, int>();
         foreach (var color in colorsInLevel)
         {
@@ -146,10 +146,29 @@ public static class LevelGenerator
             passengerGroupsNeeded[color] = groups;
         }
 
-        int totalPassengerGroupsToPlace = passengerGroupsNeeded.Values.Sum();
-        Debug.Log($"Need to place {totalPassengerGroupsToPlace} passenger groups in total.");
+        // 1.2. Reserve passenger groups for underpasses
+        List<HyperCasualColor> colorsForUnderpasses = new List<HyperCasualColor>();
+        if (difficultyParams.NumUnderpasses > 0)
+        {
+            Debug.Log($"Reserving passenger demand for {difficultyParams.NumUnderpasses} underpass(es).");
+            for (int i = 0; i < difficultyParams.NumUnderpasses; i++)
+            {
+                // Find a color that is still in demand
+                var availableColors = passengerGroupsNeeded.Where(kvp => kvp.Value > 0).ToList();
+                if (availableColors.Count > 0)
+                {
+                    // Pick one and reserve it for an underpass
+                    var colorToReserve = availableColors[rng.Next(availableColors.Count)].Key;
+                    colorsForUnderpasses.Add(colorToReserve);
+                    passengerGroupsNeeded[colorToReserve]--; // Decrement the demand for regular passengers
+                }
+            }
+        }
 
-        // 2. Place the passenger groups
+        // 2. Place the remaining initial passenger groups
+        int totalPassengerGroupsToPlace = passengerGroupsNeeded.Values.Sum();
+        Debug.Log($"Need to place {totalPassengerGroupsToPlace} initial passenger groups.");
+
         for (int i = 0; i < totalPassengerGroupsToPlace; i++)
         {
             // Select a color to place
@@ -183,7 +202,64 @@ public static class LevelGenerator
             nextPassenger:;
         }
 
-        // TODO: Implement underpass placement logic using difficultyParams.NumUnderpasses
+        // 3. Place the underpasses
+        Debug.Log($"Placing {colorsForUnderpasses.Count} underpass(es).");
+        foreach (var underpassColor in colorsForUnderpasses)
+        {
+            int maxAttempts = 1000; // Failsafe
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                Vector2Int randomPos = new Vector2Int(rng.Next(1, GridWidth - 1), rng.Next(1, GridHeight - 1));
+                Vector2Int randomDir = GetRandomDirection(rng);
+
+                if (IsValidUnderpassPlacement(randomPos, randomDir, occupiedPositions, levelDef.initialPassengerGroups))
+                {
+                    // Create the underpass definition
+                    var underpass = new UnderpassSpawnData
+                    {
+                        position = randomPos,
+                        direction = randomDir,
+                        // For now, create a simple sequence of 4 passengers of the designated color.
+                        passengerSequence = Enumerable.Repeat(underpassColor, difficultyParams.PassengerCapacity).ToList()
+                    };
+
+                    levelDef.underpasses.Add(underpass);
+
+                    // Mark both the building and spawn point as occupied
+                    occupiedPositions.Add(randomPos);
+                    occupiedPositions.Add(randomPos + randomDir);
+
+                    Debug.Log($"Placed underpass for color {underpassColor} at {randomPos}");
+                    goto nextUnderpass;
+                }
+            }
+            Debug.LogWarning($"Could not find a valid placement for an underpass after {maxAttempts} attempts.");
+            nextUnderpass:;
+        }
+    }
+
+
+    /// <summary>
+    /// Checks if a grid position is valid for an underpass, considering its two-cell structure.
+    /// </summary>
+    private static bool IsValidUnderpassPlacement(Vector2Int position, Vector2Int direction, List<Vector2Int> occupiedPositions, List<PassengerSpawnData> existingPassengers)
+    {
+        Vector2Int passengerSpawnPos = position + direction;
+
+        // 1. Check if the building position is valid.
+        if (!IsValidPlacement(position, occupiedPositions))
+            return false;
+
+        // 2. Check if the passenger spawn position is valid.
+        if (!IsValidPlacement(passengerSpawnPos, occupiedPositions))
+            return false;
+
+        // 3. Check if the passenger spawn position would create a deadlock.
+        // Note: The color doesn't matter for the deadlock check, so we can use any.
+        if (CreatesDeadlock(passengerSpawnPos, direction, existingPassengers))
+            return false;
+
+        return true;
     }
 
     /// <summary>

@@ -20,7 +20,7 @@ public struct UnderpassSpawnData
     [Tooltip("Aktif yolcunun alt geçide göre duracağı yön. Örn: (-1, 0) -> sol tarafı.")]
     public Vector2Int direction;
     [Tooltip("Bu alt geçidin kullanacağı yolcu renk sırası.")]
-    public PassengerGroupSequenceSO passengerSequence;
+    public List<HyperCasualColor> passengerSequence;
 }
 
 [System.Serializable]

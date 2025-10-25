@@ -31,9 +31,9 @@ public class LevelSpawner : MonoBehaviour
         for (int i = 0; i < levelToSpawn.underpasses.Count; i++)
         {
             var underpassData = levelToSpawn.underpasses[i];
-            if (underpassData.passengerSequence != null && underpassData.passengerSequence.PassengerColors != null)
+            if (underpassData.passengerSequence != null)
             {
-                string colors = string.Join(", ", underpassData.passengerSequence.PassengerColors);
+                string colors = string.Join(", ", underpassData.passengerSequence);
                 Debug.LogWarning($"SO Underpass [{i}] at pos {underpassData.position} has sequence: [{colors}]");
             }
             else

@@ -6,6 +6,8 @@ using System.IO;
 public class LevelGeneratorEditor : EditorWindow
 {
     private int levelNumber = 1;
+    private bool overrideNumUnderpasses = false;
+    private int manualNumUnderpasses = 0;
     private string jsonPreview = "";
     private Vector2 scrollPosition;
 
@@ -21,6 +23,12 @@ public class LevelGeneratorEditor : EditorWindow
 
         levelNumber = EditorGUILayout.IntField("Level Number", levelNumber);
 
+        // Manual override for underpasses
+        overrideNumUnderpasses = EditorGUILayout.Toggle("Override Underpasses", overrideNumUnderpasses);
+        GUI.enabled = overrideNumUnderpasses;
+        manualNumUnderpasses = EditorGUILayout.IntField("Number of Underpasses", manualNumUnderpasses);
+        GUI.enabled = true;
+
         if (GUILayout.Button("Generate and Preview JSON"))
         {
             if (levelNumber < 1)
@@ -29,8 +37,11 @@ public class LevelGeneratorEditor : EditorWindow
                 return;
             }
 
+            // Use the override if it's toggled, otherwise pass null.
+            int? underpassOverride = overrideNumUnderpasses ? (int?)manualNumUnderpasses : null;
+
             // Generate the level definition
-            LevelDefinition levelDef = LevelGenerator.GenerateLevel(levelNumber);
+            LevelDefinition levelDef = LevelGenerator.GenerateLevel(levelNumber, underpassOverride);
 
             // Convert to JSON for preview
             jsonPreview = JsonUtility.ToJson(levelDef, true);

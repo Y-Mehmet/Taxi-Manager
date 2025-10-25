@@ -24,7 +24,7 @@ public static class LevelGenerator
     /// <summary>
     /// Generates a complete LevelDefinition for a given level number.
     /// </summary>
-    public static LevelDefinition GenerateLevel(int levelNumber)
+    public static LevelDefinition GenerateLevel(int levelNumber, int? underpassOverride = null)
     {
         Debug.Log($"--- Starting Generation for Level {levelNumber} ---");
 
@@ -32,7 +32,7 @@ public static class LevelGenerator
         LevelDefinition levelDef = new LevelDefinition(levelNumber);
 
         // Phase 2: Calculate difficulty parameters.
-        DifficultyParameters difficultyParams = CalculateDifficultyParameters(levelNumber);
+        DifficultyParameters difficultyParams = CalculateDifficultyParameters(levelNumber, underpassOverride);
 
         // Phase 3.1: Generate the "problem" (wagons).
         GenerateWagons(levelDef, difficultyParams);
@@ -48,7 +48,7 @@ public static class LevelGenerator
     /// <summary>
     /// Calculates the parameters for a level based on the difficulty curve.
     /// </summary>
-    private static DifficultyParameters CalculateDifficultyParameters(int levelNumber)
+    private static DifficultyParameters CalculateDifficultyParameters(int levelNumber, int? underpassOverride = null)
     {
         var parameters = new DifficultyParameters { LevelNumber = levelNumber };
 
@@ -75,6 +75,13 @@ public static class LevelGenerator
             parameters.NumUnderpasses = tier; // No underpasses for levels 1-10, 1 for 11-20, etc.
             parameters.PassengerCapacity = 4;
             parameters.TotalWagons = (parameters.NumInitialPassengers * parameters.PassengerCapacity) + (parameters.NumUnderpasses * 12);
+        }
+
+        // GEMINI-MODIFIED: Apply the manual override if it exists.
+        if (underpassOverride.HasValue)
+        {
+            Debug.Log($"Manual override for underpasses: {underpassOverride.Value}");
+            parameters.NumUnderpasses = underpassOverride.Value;
         }
         
         // Clamp values to be safe and within defined game limits.

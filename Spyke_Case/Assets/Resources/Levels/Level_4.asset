@@ -10,27 +10,57 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cad60a39ba6cd2c4c9a940391bdc6a6c, type: 3}
-  m_Name: Level_1
+  m_Name: Level_4
   m_EditorClassIdentifier: 
   gridData: {fileID: 11400000, guid: 83d622d7c165c5443bc7848147e7cc49, type: 2}
   initialPassengerGroups:
-  - position: {x: 2, y: 2}
-    direction: {x: -1, y: 0}
+  - position: {x: 4, y: 5}
+    direction: {x: 0, y: -1}
     color: 0
-  - position: {x: 3, y: 1}
+  - position: {x: 1, y: 7}
     direction: {x: 0, y: 1}
     color: 0
-  - position: {x: 5, y: 9}
-    direction: {x: 1, y: 0}
+  - position: {x: 2, y: 9}
+    direction: {x: 0, y: 1}
     color: 0
-  - position: {x: 1, y: 6}
+  - position: {x: 3, y: 3}
+    direction: {x: 0, y: 1}
+    color: 0
+  - position: {x: 1, y: 3}
+    direction: {x: -1, y: 0}
+    color: 0
+  - position: {x: 1, y: 2}
     direction: {x: -1, y: 0}
     color: 0
   underpasses:
-  - position: {x: 0, y: 0}
-    direction: {x: 0, y: 0}
-    passengerSequence: 0000000000000000
+  - position: {x: 4, y: 7}
+    direction: {x: 1, y: 0}
+    passengerSequence: 00000000040000000400000000000000
   wagons:
+  - color: 4
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 0
+    capacity: 1
   - color: 0
     capacity: 1
   - color: 0

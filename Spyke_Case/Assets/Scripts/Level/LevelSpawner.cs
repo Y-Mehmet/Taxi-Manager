@@ -26,6 +26,24 @@ public class LevelSpawner : MonoBehaviour
             return;
         }
 
+        // --- GEMINI-DEBUG: Log SO colors ---
+        Debug.LogWarning("--- Logging Underpass Colors from LevelSpawnSO ---");
+        for (int i = 0; i < levelToSpawn.underpasses.Count; i++)
+        {
+            var underpassData = levelToSpawn.underpasses[i];
+            if (underpassData.passengerSequence != null && underpassData.passengerSequence.PassengerColors != null)
+            {
+                string colors = string.Join(", ", underpassData.passengerSequence.PassengerColors);
+                Debug.LogWarning($"SO Underpass [{i}] at pos {underpassData.position} has sequence: [{colors}]");
+            }
+            else
+            {
+                Debug.LogWarning($"SO Underpass [{i}] at pos {underpassData.position} has a NULL sequence or color list.");
+            }
+        }
+        Debug.LogWarning("--- End of LevelSpawnSO Log ---");
+        // --- END GEMINI-DEBUG ---
+
         // İlgili yöneticileri SO'dan gelen veriyle başlat.
         // Her bir yöneticiyi Aşama 3'te güncelledikçe bu satırların yorumunu kaldıracağız.
 

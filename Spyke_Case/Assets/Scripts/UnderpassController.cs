@@ -35,6 +35,31 @@ public class UnderpassController : MonoBehaviour
         this.gridManager = gridManager;
         this.myGridPosition = gridPosition;
 
+        // --- GEMINI-MODIFIED: Set Underpass Color ---
+        if (sequence != null && sequence.PassengerColors != null && sequence.PassengerColors.Count > 0)
+        {
+            // Use the first color of the sequence to define the underpass's own color.
+            HyperCasualColor underpassColor = sequence.PassengerColors[0];
+            Renderer mainRenderer = GetComponent<Renderer>(); // Try to get renderer on the main object first
+            if (mainRenderer == null) mainRenderer = GetComponentInChildren<Renderer>(); // Fallback to children
+
+            if (mainRenderer != null)
+            {
+                Debug.Log($"[UnderpassController] Setting underpass color for {name} to {underpassColor}");
+                // Assuming ToColor() is an extension method available for HyperCasualColor enum
+                mainRenderer.material.color = underpassColor.ToColor();
+            }
+            else
+            {
+                Debug.LogWarning($"[UnderpassController] No Renderer found on {name} or its children to set the color.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[UnderpassController] Passenger sequence for {name} is null or empty. Cannot set underpass color.");
+        }
+        // --- END GEMINI-MODIFIED ---
+
         // Yolcuları oluştur ve kuyruğa ekle
         foreach (var color in sequence.PassengerColors)
         {
@@ -45,6 +70,24 @@ public class UnderpassController : MonoBehaviour
             newGroup.GetComponent<Collider>().enabled = false;
             passengerQueue.Enqueue(newGroup);
         }
+
+        // --- GEMINI-DEBUG: Log spawned passenger colors ---
+        Debug.LogWarning($"--- Logging Spawned Passenger Colors for Underpass {name} ---");
+        int groupIndex = 0;
+        foreach (var group in passengerQueue)
+        {
+            if (group != null)
+            {
+                Debug.LogWarning($"Spawned Passenger [{groupIndex}] has color: {group.groupColor}");
+            }
+            else
+            {
+                Debug.LogWarning($"Spawned Passenger [{groupIndex}] is NULL.");
+            }
+            groupIndex++;
+        }
+        Debug.LogWarning("--- End of Spawned Passenger Log ---");
+        // --- END GEMINI-DEBUG ---
 
         // İlk yolcuyu bekleme noktasına taşı ve aktifleştir
         ActivateFirstPassenger();

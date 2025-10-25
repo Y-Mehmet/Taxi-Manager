@@ -301,12 +301,19 @@ public class PassengerGroup : MonoBehaviour
 
     public void SetGroupColor(HyperCasualColor color)
     {
+        // Update the property so it holds the correct value
+        this.groupColor = color;
+
         foreach (Transform child in transform)
         {
             if (directionIndicator != null && child == directionIndicator) continue;
 
             var renderer = child.GetComponentInChildren<Renderer>();
-            if (renderer != null) renderer.material.color = color.ToColor();
+            if (renderer != null)
+            {
+                // Use the newly set property to change the material color
+                renderer.material.color = this.groupColor.ToColor();
+            }
         }
     }
 

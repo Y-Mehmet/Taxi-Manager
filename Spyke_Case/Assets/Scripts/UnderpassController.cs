@@ -30,16 +30,16 @@ public class UnderpassController : MonoBehaviour
     /// <summary>
     /// UnderpassManager tarafından çağrılarak bu alt geçidi başlatır.
     /// </summary>
-    public void Initialize(GridManager gridManager, Vector2Int gridPosition, PassengerGroup passengerPrefab, PassengerGroupSequenceSO sequence)
+    public void Initialize(GridManager gridManager, Vector2Int gridPosition, PassengerGroup passengerPrefab, List<HyperCasualColor> sequence)
     {
         this.gridManager = gridManager;
         this.myGridPosition = gridPosition;
 
         // --- GEMINI-MODIFIED: Set Underpass Color ---
-        if (sequence != null && sequence.PassengerColors != null && sequence.PassengerColors.Count > 0)
+        if (sequence != null && sequence.Count > 0)
         {
             // Use the first color of the sequence to define the underpass's own color.
-            HyperCasualColor underpassColor = sequence.PassengerColors[0];
+            HyperCasualColor underpassColor = sequence[0];
             Renderer mainRenderer = GetComponent<Renderer>(); // Try to get renderer on the main object first
             if (mainRenderer == null) mainRenderer = GetComponentInChildren<Renderer>(); // Fallback to children
 
@@ -61,7 +61,7 @@ public class UnderpassController : MonoBehaviour
         // --- END GEMINI-MODIFIED ---
 
         // Yolcuları oluştur ve kuyruğa ekle
-        foreach (var color in sequence.PassengerColors)
+        foreach (var color in sequence)
         {
             Vector3 spawnPos = transform.position; // Bu obje zaten EndCell'e spawn edilecek
             PassengerGroup newGroup = Instantiate(passengerPrefab, spawnPos, Quaternion.identity, transform);

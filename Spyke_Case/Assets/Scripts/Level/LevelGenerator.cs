@@ -19,6 +19,7 @@ public static class LevelGenerator
         public int NumColors;
         public int TotalWagons;
         public int PassengerCapacity;
+        public int UnderpassSequenceLength; // GEMINI-MODIFIED: Added for clarity
     }
 
     /// <summary>
@@ -55,26 +56,22 @@ public static class LevelGenerator
         int tier = (levelNumber - 1) / 10; // 0 for levels 1-10, 1 for 11-20, etc.
         parameters.IsBossLevel = (levelNumber > 0 && levelNumber % 10 == 0);
 
+        // GEMINI-MODIFIED: Set sequence length for underpasses
+        parameters.UnderpassSequenceLength = 5; 
+        parameters.PassengerCapacity = 4;
+
         if (parameters.IsBossLevel)
         {
             // --- Boss Level Logic ---
-            parameters.NumColors = Mathf.Min(2 + tier, 3); // Starts with 2 colors at level 10, maxes out at 3.
             parameters.NumInitialPassengers = 3 + tier;
             parameters.NumUnderpasses = 1 + tier;
-            parameters.PassengerCapacity = 4; // Default capacity
-            // Boss levels have a high number of wagons to process.
-            parameters.TotalWagons = (parameters.NumInitialPassengers * parameters.PassengerCapacity) + (parameters.NumUnderpasses * 16); 
         }
         else
         {
             // --- Normal Level Logic ---
             int levelWithinTier = (levelNumber - 1) % 10; // Ramps from 0 to 8 for levels like 1-9, 11-19.
-
-            parameters.NumColors = 1 + tier;
             parameters.NumInitialPassengers = 4 + levelWithinTier; // Slowly increases number of passengers.
             parameters.NumUnderpasses = tier; // No underpasses for levels 1-10, 1 for 11-20, etc.
-            parameters.PassengerCapacity = 4;
-            parameters.TotalWagons = (parameters.NumInitialPassengers * parameters.PassengerCapacity) + (parameters.NumUnderpasses * 12);
         }
 
         // GEMINI-MODIFIED: Apply the manual override if it exists.
@@ -83,11 +80,13 @@ public static class LevelGenerator
             Debug.Log($"Manual override for underpasses: {underpassOverride.Value}");
             parameters.NumUnderpasses = underpassOverride.Value;
         }
-        
-        // Clamp values to be safe and within defined game limits.
-        parameters.NumColors = Mathf.Clamp(parameters.NumColors, 1, 3); // Assuming 3 colors max (e.g., Red, Green, Blue)
-        
-        Debug.Log($"Difficulty for Level {levelNumber}: Tier={tier}, IsBoss={parameters.IsBossLevel}, Passengers={parameters.NumInitialPassengers}, Underpasses={parameters.NumUnderpasses}, Colors={parameters.NumColors}");
+
+        // GEMINI-MODIFIED: Update color and wagon calculation
+        parameters.NumColors = Mathf.Clamp(3 + tier, 3, 11);
+        parameters.TotalWagons = (parameters.NumInitialPassengers * parameters.PassengerCapacity) + 
+                                 (parameters.NumUnderpasses * parameters.UnderpassSequenceLength * parameters.PassengerCapacity);
+
+        Debug.Log($"Difficulty for Level {levelNumber}: Tier={tier}, IsBoss={parameters.IsBossLevel}, Passengers={parameters.NumInitialPassengers}, Underpasses={parameters.NumUnderpasses}, Colors={parameters.NumColors}, TotalWagons={parameters.TotalWagons}");
 
         return parameters;
     }
@@ -97,8 +96,9 @@ public static class LevelGenerator
     /// </summary>
     private static void GenerateWagons(LevelDefinition levelDef, DifficultyParameters difficultyParams)
     {
-        List<HyperCasualColor> availableColors = new List<HyperCasualColor> { HyperCasualColor.Blue, HyperCasualColor.Red, HyperCasualColor.Green };
-        List<HyperCasualColor> colorsInLevel = availableColors.GetRange(0, difficultyParams.NumColors);
+        // GEMINI-MODIFIED: Get all colors from the enum dynamically.
+        List<HyperCasualColor> allColors = System.Enum.GetValues(typeof(HyperCasualColor)).Cast<HyperCasualColor>().ToList();
+        List<HyperCasualColor> colorsInLevel = allColors.GetRange(0, difficultyParams.NumColors);
 
         int wagonsPerColor = difficultyParams.TotalWagons / difficultyParams.NumColors;
 
@@ -167,16 +167,17 @@ public static class LevelGenerator
                     // Pick one and reserve it for an underpass
                     var colorToReserve = availableColors[rng.Next(availableColors.Count)].Key;
                     colorsForUnderpasses.Add(colorToReserve);
-                    passengerGroupsNeeded[colorToReserve]--; // Decrement the demand for regular passengers
+                    // An underpass provides a full sequence of passengers, equivalent to 'UnderpassSequenceLength' groups
+                    passengerGroupsNeeded[colorToReserve] -= difficultyParams.UnderpassSequenceLength;
                 }
             }
         }
 
         // 2. Place the remaining initial passenger groups
-        int totalPassengerGroupsToPlace = passengerGroupsNeeded.Values.Sum();
+        int totalPassengerGroupsToPlace = passengerGroupsNeeded.Values.Where(v => v > 0).Sum();
         Debug.Log($"Need to place {totalPassengerGroupsToPlace} initial passenger groups.");
 
-        for (int i = 0; i < totalPassengerGroupsToPlace; i++)
+        while(passengerGroupsNeeded.Any(kvp => kvp.Value > 0))
         {
             // Select a color to place
             HyperCasualColor currentColor = passengerGroupsNeeded.First(kvp => kvp.Value > 0).Key;
@@ -200,12 +201,13 @@ public static class LevelGenerator
                     occupiedPositions.Add(randomPos);
                     passengerGroupsNeeded[currentColor]--;
 
-                    Debug.Log($"Placed passenger group {i + 1}/{totalPassengerGroupsToPlace} ({currentColor}) at {randomPos} facing {randomDir}");
+                    Debug.Log($"Placed passenger group ({currentColor}) at {randomPos} facing {randomDir}");
                     goto nextPassenger;
                 }
             }
 
             Debug.LogWarning($"Could not find a valid placement for a {currentColor} passenger after {maxAttempts} attempts. The level might be unsolvable or too crowded.");
+            passengerGroupsNeeded[currentColor]--; // Skip this passenger to avoid infinite loop
             nextPassenger:;
         }
 
@@ -226,8 +228,8 @@ public static class LevelGenerator
                     {
                         position = randomPos,
                         direction = randomDir,
-                        // For now, create a simple sequence of 4 passengers of the designated color.
-                        passengerSequence = Enumerable.Repeat(underpassColor, difficultyParams.PassengerCapacity).ToList()
+                        // GEMINI-MODIFIED: Use the new sequence length parameter
+                        passengerSequence = Enumerable.Repeat(underpassColor, difficultyParams.UnderpassSequenceLength).ToList()
                     };
 
                     levelDef.underpasses.Add(underpass);

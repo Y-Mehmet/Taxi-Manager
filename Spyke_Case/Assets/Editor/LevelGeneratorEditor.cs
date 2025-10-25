@@ -57,40 +57,46 @@ public class LevelGeneratorEditor : EditorWindow
 
     private void SaveLevelSpawnSO(LevelDefinition levelDef)
     {
-        // Unfortunately, we can't directly create an instance of a ScriptableObject
-        // of a type we don't have direct access to (LevelSpawnSO).
-        // This method will need to be implemented within your project's scripts
-        // where you have access to the LevelSpawnSO type.
-
-        // The following is placeholder logic.
-        // You would replace this with your actual saving code.
-
         string path = EditorUtility.SaveFilePanelInProject(
-            "Save Level",
-            $"Level{levelDef.levelNumber}.asset",
+            "Save Level Asset",
+            $"Level_{levelDef.levelNumber}.asset",
             "asset",
             "Please enter a file name to save the level to."
         );
 
         if (string.IsNullOrEmpty(path))
+        {
             return;
+        }
 
-        // Example of how you might do it if you had a factory method:
-        // LevelSpawnSO newLevelSO = LevelSpawnSO.CreateInstance();
-        // newLevelSO.ApplyDefinition(levelDef); // A method you would write
-        // AssetDatabase.CreateAsset(newLevelSO, path);
+        // Check if an asset already exists at the path.
+        LevelSpawnSO existingLevelSO = AssetDatabase.LoadAssetAtPath<LevelSpawnSO>(path);
 
-        // For now, we'll just save the JSON to a text file as a placeholder.
-        string jsonPath = Path.ChangeExtension(path, ".json");
-        File.WriteAllText(jsonPath, jsonPreview);
+        if (existingLevelSO != null)
+        {
+            // If it exists, update it.
+            existingLevelSO.initialPassengerGroups = levelDef.initialPassengerGroups;
+            existingLevelSO.underpasses = levelDef.underpasses;
+            existingLevelSO.wagons = levelDef.wagons;
+            EditorUtility.SetDirty(existingLevelSO);
+            Debug.Log($"Updated existing LevelSpawnSO at: {path}", this);
+        }
+        else
+        {
+            // If it doesn't exist, create a new one.
+            LevelSpawnSO newLevelSO = CreateInstance<LevelSpawnSO>();
+            newLevelSO.initialPassengerGroups = levelDef.initialPassengerGroups;
+            newLevelSO.underpasses = levelDef.underpasses;
+            newLevelSO.wagons = levelDef.wagons;
 
+            AssetDatabase.CreateAsset(newLevelSO, path);
+            Debug.Log($"Created new LevelSpawnSO at: {path}", this);
+        }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
         EditorUtility.FocusProjectWindow();
-        // Selection.activeObject = newLevelSO; // This would select the new asset
-
-        Debug.Log($"Level data saved as JSON to: {jsonPath}. You will need to implement the final conversion to LevelSpawnSO.", this);
+        Selection.activeObject = AssetDatabase.LoadAssetAtPath<LevelSpawnSO>(path);
     }
 }

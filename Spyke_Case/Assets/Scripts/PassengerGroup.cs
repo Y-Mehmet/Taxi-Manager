@@ -11,6 +11,7 @@ public class PassengerGroup : MonoBehaviour
     public static event System.Action OnGroupClicked;
     public event System.Action<int> OnGroupSizeDecreased;
     public event System.Action<int> OnAvailableSlotsChanged;
+    public event System.Action<int> OnCapacityChanged;
     [Header("Slot Event/Capacity")]
     public int maxGroupSize = 4; 
     private int _groupSize = 4;
@@ -20,17 +21,28 @@ public class PassengerGroup : MonoBehaviour
         get => _groupSize;
         set
         {
-            int oldSlots = AvailableSlots;
+            if (_groupSize == value) return; // Prevent firing events if the value hasn't changed.
+
             int oldGroupSize = _groupSize;
             _groupSize = value;
-            int newSlots = AvailableSlots;
-            if (newSlots < oldSlots && gameObject.activeInHierarchy && !isMoving)
-            {
-                OnAvailableSlotsChanged?.Invoke(newSlots);
-            }
+
+            // This is the new, clear event for capacity changes.
+            Debug.Log($"[PassengerGroup] {name} GroupSize changed from {oldGroupSize} to {_groupSize}. Invoking OnCapacityChanged.");
+            OnCapacityChanged?.Invoke(_groupSize);
+
+            // --- Keep old events for compatibility with other systems that might be using them ---
+            // This event fires only on decrease.
             if (_groupSize < oldGroupSize)
             {
                 OnGroupSizeDecreased?.Invoke(_groupSize);
+            }
+
+            // This event is for the 'filled slots' logic, which seems to be inverted.
+            int oldSlots = Mathf.Max(0, maxGroupSize - oldGroupSize);
+            int newSlots = AvailableSlots;
+            if (newSlots != oldSlots && gameObject.activeInHierarchy)
+            {
+                OnAvailableSlotsChanged?.Invoke(newSlots);
             }
             _lastAvailableSlots = newSlots;
         }

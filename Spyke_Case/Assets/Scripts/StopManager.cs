@@ -116,6 +116,20 @@ public class StopManager : MonoBehaviour
         if (occupiedStops.ContainsKey(stopIndex) || reservedStops.ContainsKey(stopIndex))
         {
             Debug.Log($"<color=red>[StopManager] Stop {stopIndex} is now FREE.</color>");
+
+            // --- GEMINI-MODIFIED: Clear Stop UI ---
+            Stop stop = AllStops[stopIndex];
+            if (stop != null)
+            {
+                var textUpdater = stop.GetComponentInChildren<StopSlotTextUpdater>();
+                if (textUpdater != null)
+                {
+                    Debug.Log($"[StopManager] Clearing UI for stop {stopIndex}.");
+                    textUpdater.SetPassengerGroup(null);
+                }
+            }
+            // --- END GEMINI-MODIFIED ---
+
             occupiedStops.Remove(stopIndex);
             reservedStops.Remove(stopIndex);
         }
@@ -201,6 +215,23 @@ public class StopManager : MonoBehaviour
         {
             occupiedStops.Add(stopIndex, passengerGroup);
             Debug.Log($"<color=green>[StopManager] Stop {stopIndex} OCCUPIED by {passengerGroup.name}.</color>");
+
+            // --- GEMINI-MODIFIED: Link passenger to Stop UI ---
+            Stop stop = AllStops[stopIndex];
+            if (stop != null)
+            {
+                var textUpdater = stop.GetComponentInChildren<StopSlotTextUpdater>();
+                if (textUpdater != null)
+                {
+                    Debug.Log($"[StopManager] Linking {passengerGroup.name} to UI for stop {stopIndex}.");
+                    textUpdater.SetPassengerGroup(passengerGroup);
+                }
+                else
+                {
+                    Debug.LogWarning($"[StopManager] Stop {stopIndex} has no StopSlotTextUpdater component in its children.");
+                }
+            }
+            // --- END GEMINI-MODIFIED ---
         }
 
         OnPassengerArrivedAtStop?.Invoke(passengerGroup, stopIndex);
@@ -224,6 +255,19 @@ public class StopManager : MonoBehaviour
 
         if (stopToFree != -1)
         {
+            // --- GEMINI-MODIFIED: Clear Stop UI on eviction ---
+            Stop stop = AllStops[stopToFree];
+            if (stop != null)
+            {
+                var textUpdater = stop.GetComponentInChildren<StopSlotTextUpdater>();
+                if (textUpdater != null)
+                {
+                    Debug.Log($"[StopManager] Clearing UI for stop {stopToFree} due to eviction.");
+                    textUpdater.SetPassengerGroup(null);
+                }
+            }
+            // --- END GEMINI-MODIFIED ---
+
             occupiedStops.Remove(stopToFree);
             Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name} EVICTED from occupied stop {stopToFree}. Stop is now free.</color>");
             return; // Found and handled
@@ -241,6 +285,7 @@ public class StopManager : MonoBehaviour
 
         if (stopToFree != -1)
         {
+            // No need to clear UI for a reservation cancellation as it was never occupied.
             reservedStops.Remove(stopToFree);
             Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name}'s reservation for stop {stopToFree} CANCELLED due to eviction.</color>");
         }

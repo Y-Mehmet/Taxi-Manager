@@ -154,6 +154,9 @@ public class BoardingManager : MonoBehaviour
                     availableWagon.gameObject.SetActive(false);
                     Debug.Log($"<color=yellow>YÜK ALINDI:</color> {availableWagon.name} yükü oyundan kaldırıldı.");
 
+                    // Add earnings
+                    GameManager.Instance.AddLevelEarnings(20);
+
                     // İşçinin (PassengerGroup) kalan kapasitesini bir azalt.
                     passenger.GroupSize--;
                     Debug.Log($"<color=lightblue>İŞÇİ GÜNCELLENDİ:</color> {passenger.name} işçisinin kalan kapasitesi: {passenger.GroupSize}");

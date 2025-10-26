@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Oyuncunun kaynaklarını ve temel ilerlemesini yöneten merkezi sistem.
@@ -14,7 +15,7 @@ public class ResourceManager : MonoBehaviour
     // Genel Özellikler
     public int CurrentCoins { get; private set; }
     public int CurrentLevel { get; private set; }
-    public int LevelStarts { get; private set; }
+    public List<int> LevelStars { get; private set; }
 
 
     void Awake()
@@ -59,7 +60,7 @@ public class ResourceManager : MonoBehaviour
         
         CurrentCoins = data.coinCount;
         CurrentLevel = data.levelIndex; // Hata düzeltildi: levelIndex kullanılıyor
-        LevelStarts = data.levelStartsCount;
+        LevelStars = data.levelStarsCount;
         
         OnCoinsChanged?.Invoke(CurrentCoins);
     }
@@ -73,7 +74,7 @@ public class ResourceManager : MonoBehaviour
         
         data.coinCount = CurrentCoins;
         data.levelIndex = CurrentLevel; // Hata düzeltildi: levelIndex kullanılıyor
-        data.levelStartsCount = LevelStarts;
+        data.levelStarsCount = LevelStars;
     }
 
     // --- Coin Metodları --- //
@@ -114,9 +115,19 @@ public class ResourceManager : MonoBehaviour
             GameDataManager.Instance.SaveGame();
         }
     }
-    public void SetLevelStartCount(int count)
+    public void SetLevelStarCount(int levelIndex, int stars)
     {
-        LevelStarts = count;
+        // Ensure the list is large enough
+        while (LevelStars.Count <= levelIndex)
+        {
+            LevelStars.Add(0); // Add levels with 0 stars if they don't exist yet
+        }
+        LevelStars[levelIndex] = stars;
+        Debug.Log($"Level {levelIndex} star count set to {stars}");
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.SaveGame();
+        }
     } 
 
 

@@ -19,7 +19,7 @@ public class SaveGameData
 
     // MetroManager
     public int levelIndex;
-    public int levelStartsCount;
+    public List<int> levelStarsCount;
 
 
     // Diğer potansiyel veriler
@@ -38,6 +38,7 @@ public class SaveGameData
         // Başlangıç değerleri
         coinCount = 100;
         levelIndex = 0;
+        levelStarsCount = new List<int>();
         unlockedWagonCount = 1;
         activeStopCount = 1;
         passengerCapacityLevel = 1;

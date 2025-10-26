@@ -152,7 +152,7 @@ public class PanelManager : Singleton<PanelManager>
     }
 
     // Returns the last panel in the list
-    PanelInstanceModel GetLastPanel()
+    public PanelInstanceModel GetLastPanel()
     {
         if (_listInstance.Count == 0)
         {

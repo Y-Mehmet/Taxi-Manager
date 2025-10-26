@@ -6,6 +6,7 @@ public class GameManager : MonoBehaviour
 
     public enum GameState { Playing, Won, Lost }
     public GameState CurrentState { get; private set; }
+    public int CurrentLevelEarnings { get; private set; }
 
     private void Awake()
     {
@@ -23,6 +24,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         CurrentState = GameState.Playing;
+        ResetLevelEarnings();
         UberManager.OnGameOver += HandleGameOver;
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoved;
         Debug.LogWarning("GameManager started.");
@@ -32,6 +34,17 @@ public class GameManager : MonoBehaviour
     {
         UberManager.OnGameOver -= HandleGameOver;
         WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoved;
+    }
+
+    public void AddLevelEarnings(int amount)
+    {
+        if (CurrentState != GameState.Playing) return;
+        CurrentLevelEarnings += amount;
+    }
+
+    private void ResetLevelEarnings()
+    {
+        CurrentLevelEarnings = 0;
     }
 
     private void HandleWagonRemoved(MetroWagon wagon, Transform transform)
@@ -67,14 +80,25 @@ public class GameManager : MonoBehaviour
 
         Debug.LogWarning($"<color=green>LEVEL WON!</color> You earned {stars} stars.");
 
-        // Increment level
+        // Add earnings to total and increment level
         if (ResourceManager.Instance != null)
         {
-            ResourceManager.Instance.SetLevelStartCount(stars);
+            ResourceManager.Instance.AddCoins(CurrentLevelEarnings);
+            ResourceManager.Instance.SetLevelStarCount(ResourceManager.Instance.CurrentLevel, stars);
             ResourceManager.Instance.IncrementLevel();
         }
 
         // TODO: Load next level or show win screen
+        PanelManager.Instance.ShowPanel(PanelID.LevelUpPanel);
+        var panelInstanceModel = PanelManager.Instance.GetLastPanel();
+        if (panelInstanceModel != null)
+        {
+            LevelUpPanel levelUpPanel = panelInstanceModel.PanelInstance.GetComponent<LevelUpPanel>();
+            if (levelUpPanel != null)
+            {
+                levelUpPanel.Show(stars, CurrentLevelEarnings);
+            }
+        }
         Debug.Log("Loading next level...");
     }
 
@@ -83,8 +107,10 @@ public class GameManager : MonoBehaviour
         if (CurrentState != GameState.Playing) return;
 
         CurrentState = GameState.Lost;
+        ResetLevelEarnings();
         Debug.LogError("GAME OVER! You ran out of ubers.");
 
         // TODO: Show game over screen
+        PanelManager.Instance.ShowPanel(PanelID.TryAgainPanel);
     }
 }

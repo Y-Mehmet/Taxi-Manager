@@ -19,6 +19,7 @@ public class SaveGameData
 
     // MetroManager
     public int levelIndex;
+    public int levelStartsCount;
 
 
     // Diğer potansiyel veriler

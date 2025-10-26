@@ -14,6 +14,8 @@ public class ResourceManager : MonoBehaviour
     // Genel Özellikler
     public int CurrentCoins { get; private set; }
     public int CurrentLevel { get; private set; }
+    public int LevelStarts { get; private set; }
+
 
     void Awake()
     {
@@ -57,6 +59,7 @@ public class ResourceManager : MonoBehaviour
         
         CurrentCoins = data.coinCount;
         CurrentLevel = data.levelIndex; // Hata düzeltildi: levelIndex kullanılıyor
+        LevelStarts = data.levelStartsCount;
         
         OnCoinsChanged?.Invoke(CurrentCoins);
     }
@@ -70,6 +73,7 @@ public class ResourceManager : MonoBehaviour
         
         data.coinCount = CurrentCoins;
         data.levelIndex = CurrentLevel; // Hata düzeltildi: levelIndex kullanılıyor
+        data.levelStartsCount = LevelStarts;
     }
 
     // --- Coin Metodları --- //
@@ -100,4 +104,20 @@ public class ResourceManager : MonoBehaviour
             return false;
         }
     }
+
+    public void IncrementLevel()
+    {
+        CurrentLevel++;
+        Debug.Log($"Level incremented to {CurrentLevel}");
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.SaveGame();
+        }
+    }
+    public void SetLevelStartCount(int count)
+    {
+        LevelStarts = count;
+    } 
+
+
 }

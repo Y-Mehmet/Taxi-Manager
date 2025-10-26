@@ -9313,6 +9313,7 @@ GameObject:
   - component: {fileID: 1652835130}
   - component: {fileID: 1652835132}
   - component: {fileID: 1652835131}
+  - component: {fileID: 1652835133}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -9391,6 +9392,18 @@ MonoBehaviour:
   passengerGroupPrefab: {fileID: 2701096461364054199, guid: 58d6114f145731d44b365df002866048, type: 3}
   underpassControllerPrefab: {fileID: 7733453281252187573, guid: e3475a8eac463ef4dacefa854d6a8c0d, type: 3}
   metroWagonPrefab: {fileID: 6025645409083528512, guid: 58ca7f8d9ad142e4390fb9d0bcfaddf6, type: 3}
+--- !u!114 &1652835133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1652835126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d662f49962defe04d84711aa3aaa9a2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1655425253
 GameObject:
   m_ObjectHideFlags: 0

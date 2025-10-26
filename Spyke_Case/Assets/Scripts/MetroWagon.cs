@@ -12,16 +12,20 @@ public class MetroWagon : MonoBehaviour
 
     private int currentCheckpointIndex = 0;
     private MetroCheckpointPath path;
+    private bool isInitialized = false;
 
     public void Init(MetroCheckpointPath path, int startCheckpointIndex, HyperCasualColor color = HyperCasualColor.White)
     {
         this.path = path;
         this.wagonColor = color;
         currentCheckpointIndex = startCheckpointIndex;
+        isInitialized = true;
     }
 
     void Update()
     {
+        if (!isInitialized) return;
+
         // Eğer genel hareket durdurulduysa, hiçbir şey yapma.
         if (MetroManager.IsMovementStopped || MetroManager.Instance.IsAdjusting())
         {

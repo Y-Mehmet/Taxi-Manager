@@ -45,13 +45,9 @@ public class LevelUpPanel : MonoBehaviour
 
     private void OnContinueButtonClicked()
     {
-        // ResourceManager already incremented the level in GameManager.WinLevel
-        // So we just load the current level index.
-        // Note: This assumes scene names are "Level1", "Level2", etc.
-        // and build settings are aligned.
-        int levelToLoad = ResourceManager.Instance.CurrentLevel;
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Level" + levelToLoad);
-        Debug.Log($"Loading next level: {levelToLoad}");
+        // As requested, reload the current scene. A manager script should handle loading the correct level data upon scene start.
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+        Debug.Log("Continue button clicked. Reloading scene to start next level.");
     }
 
     private void OnRetryButtonClicked()

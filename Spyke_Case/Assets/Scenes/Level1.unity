@@ -9371,8 +9371,6 @@ GameObject:
   - component: {fileID: 1652835129}
   - component: {fileID: 1652835128}
   - component: {fileID: 1652835130}
-  - component: {fileID: 1652835132}
-  - component: {fileID: 1652835131}
   - component: {fileID: 1652835133}
   m_Layer: 0
   m_Name: Manager
@@ -9420,38 +9418,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 510b223cf1edce144ad228ea4b4c1cf8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1652835131
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1652835126}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: efee6afe098b7e44faa40d78a145b542, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1652835132
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1652835126}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b427053944fdeb43b1e041a8622cce7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  levelToSpawn: {fileID: 11400000, guid: d45c277c45276a04f87af01158777d72, type: 2}
-  gridManager: {fileID: 739118674}
-  passengerSpawnManager: {fileID: 1652835131}
-  underpassManager: {fileID: 890318751}
-  wagonManager: {fileID: 2099863952}
-  passengerGroupPrefab: {fileID: 2701096461364054199, guid: 58d6114f145731d44b365df002866048, type: 3}
-  underpassControllerPrefab: {fileID: 7733453281252187573, guid: e3475a8eac463ef4dacefa854d6a8c0d, type: 3}
-  metroWagonPrefab: {fileID: 6025645409083528512, guid: 58ca7f8d9ad142e4390fb9d0bcfaddf6, type: 3}
 --- !u!114 &1652835133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12581,6 +12547,71 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2140285629}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2142496917
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2142496919}
+  - component: {fileID: 2142496918}
+  - component: {fileID: 2142496920}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2142496918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142496917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b427053944fdeb43b1e041a8622cce7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levelToSpawn: {fileID: 11400000, guid: d45c277c45276a04f87af01158777d72, type: 2}
+  gridManager: {fileID: 739118674}
+  passengerSpawnManager: {fileID: 2142496920}
+  underpassManager: {fileID: 890318751}
+  wagonManager: {fileID: 2099863952}
+  passengerGroupPrefab: {fileID: 2701096461364054199, guid: 58d6114f145731d44b365df002866048, type: 3}
+  underpassControllerPrefab: {fileID: 7733453281252187573, guid: e3475a8eac463ef4dacefa854d6a8c0d, type: 3}
+  metroWagonPrefab: {fileID: 6025645409083528512, guid: 58ca7f8d9ad142e4390fb9d0bcfaddf6, type: 3}
+--- !u!4 &2142496919
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142496917}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2142496920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142496917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efee6afe098b7e44faa40d78a145b542, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &425493857668500691
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14405,3 +14436,4 @@ SceneRoots:
   - {fileID: 425493857668500691}
   - {fileID: 1652835129}
   - {fileID: 8503649420519852096}
+  - {fileID: 2142496919}

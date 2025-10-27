@@ -17,19 +17,12 @@ public class SceneManager : Singleton<SceneManager>
     /// <summary>
     /// ResourceManager'dan alınan mevcut seviyeyi yükler.
     /// </summary>
-    public void LoadCurrentLevel()
+    public void LoadLevelSceene()
     {
-        if (ResourceManager.Instance == null)
-        {
-            Debug.LogError("ResourceManager not found! Cannot determine current level.");
-            return;
-        }
-
-        int currentLevelIndex = ResourceManager.Instance.CurrentLevel;
-        int sceneToLoadIndex = levelSceneBuildIndexOffset + currentLevelIndex;
+      
         
-        Debug.Log($"Loading current level. Build Index: {sceneToLoadIndex}");
-        LoadSceneByIndex(sceneToLoadIndex);
+      
+        LoadSceneByIndex(1);
     }
 
     /// <summary>

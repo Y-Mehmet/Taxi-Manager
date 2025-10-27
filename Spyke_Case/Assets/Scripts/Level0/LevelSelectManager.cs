@@ -112,7 +112,7 @@ public class LevelSelectManager : MonoBehaviour
 
         // İsteğiniz üzerine, 'panel' objesinin Y pozisyonunu doğrudan 3400 yapıyoruz.
         // 'WhelePanel'e dokunulmuyor.
-        float finalY = 3900f;
+        float finalY = 4075f;
         panel.anchoredPosition = new Vector2(panel.anchoredPosition.x, finalY);
         
         Debug.Log("AYARLAMA TAMAMLANDI - 'panel' objesinin Y pozisyonu doğrudan " + finalY + " olarak ayarlandı.");

@@ -21,7 +21,7 @@ public class PlayButton : MonoBehaviour
     {
         if (SceneManager.Instance != null)
         {
-            SceneManager.Instance.LoadCurrentLevel();
+            SceneManager.Instance.LoadLevelSceene();
         }
         else
         {

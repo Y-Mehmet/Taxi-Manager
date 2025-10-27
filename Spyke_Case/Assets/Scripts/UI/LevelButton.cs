@@ -30,7 +30,7 @@ public class LevelButton : MonoBehaviour
         // SceneManager üzerinden ilgili seviyeyi yükle
         if (SceneManager.Instance != null)
         {
-            SceneManager.Instance.LoadSpecificLevel(levelIndex);
+            SceneManager.Instance.LoadSpecificLevel(0);
         }
         else
         {

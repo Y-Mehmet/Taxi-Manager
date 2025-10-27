@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using System.Linq;
-using GridSystem; // PassengerGrid için eklendi
-using DG.Tweening; // DOTween için eklendi
+using GridSystem;
+using DG.Tweening;
 
 public class MetroManager : MonoBehaviour
 {
@@ -20,22 +20,19 @@ public class MetroManager : MonoBehaviour
     public float wagonSpacing = 1.5f;
     public MetroCheckpointPath checkpointPath;
     [Header("Bağlantılar")]
-    public PassengerGrid passengerGrid; // Yolcu grid'i referansı
+    public PassengerGrid passengerGrid;
 
     private int currentLevelIndex = 0;
-
-    // Vagonların oyun başındaki orijinal sırasını tutan, değişmez ana liste.
     private readonly List<MetroWagon> masterWagonList = new List<MetroWagon>();
-    // Sadece aktif olan vagonları tutan ve güncellenen liste.
     private List<MetroWagon> activeWagons = new List<MetroWagon>();
     
     private Dictionary<MetroWagon, float> originalWagonSpeeds = new Dictionary<MetroWagon, float>();
-    private bool speedsBoosted = false;
-    private float initialSpeedMultiplier = 4f;
+    private float currentSpeedMultiplier = 4.0f;
 
     public static MetroManager Instance { get; private set; }
 
     public static event System.Action<bool> OnTrainAdjustmentStateChanged;
+    public static event System.Action<string> OnSpeedMultiplierChanged;
 
     public static bool IsMovementStopped { get; private set; }
     private bool isAdjusting = false; 
@@ -48,7 +45,6 @@ public class MetroManager : MonoBehaviour
         else Destroy(gameObject);
 
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoval;
-        PassengerGroup.OnGroupClicked += HandleFirstGroupClicked;
     }
 
     void OnDestroy()
@@ -57,7 +53,6 @@ public class MetroManager : MonoBehaviour
         {
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
         }
-         PassengerGroup.OnGroupClicked -= HandleFirstGroupClicked;
 
         if (GameDataManager.Instance != null)
         {
@@ -68,17 +63,13 @@ public class MetroManager : MonoBehaviour
     public void LoadData(SaveGameData data)
     {
         if (data == null) return;
-
         currentLevelIndex = data.levelIndex;
-        // Wagon color loading is removed as requested.
     }
 
     public void SaveData(SaveGameData data)
     {
         if (data == null) return;
-
         data.levelIndex = this.currentLevelIndex;
-        // Wagon color saving is removed as requested.
     }
 
     public static void StopMovement()
@@ -95,6 +86,37 @@ public class MetroManager : MonoBehaviour
         Debug.Log("<color=green>TRAIN MOVEMENT RESTARTED.</color>");
     }
 
+    public void ToggleSpeed()
+    {
+        if (currentSpeedMultiplier == 4.0f)
+        {
+            currentSpeedMultiplier = 1.0f;
+        }
+        else if (currentSpeedMultiplier == 1.0f)
+        {
+            currentSpeedMultiplier = 2.0f;
+        }
+        else // currentSpeedMultiplier == 2.0f
+        {
+            currentSpeedMultiplier = 1.0f;
+        }
+
+        ApplySpeedMultiplier();
+        OnSpeedMultiplierChanged?.Invoke($"{currentSpeedMultiplier}x");
+    }
+
+    private void ApplySpeedMultiplier()
+    {
+        foreach (var wagon in masterWagonList)
+        {
+            if (wagon != null && originalWagonSpeeds.ContainsKey(wagon))
+            {
+                wagon.speed = originalWagonSpeeds[wagon] * currentSpeedMultiplier;
+            }
+        }
+        Debug.Log($"MetroManager: Wagon speeds set to {currentSpeedMultiplier}x.");
+    }
+
     void Start()
     {
         if (checkpointPath == null || checkpointPath.checkpoints == null || checkpointPath.checkpoints.Count == 0)
@@ -109,31 +131,24 @@ public class MetroManager : MonoBehaviour
         }
 
         IsMovementStopped = false;
-
-        // YENİ YAPI: Vagonları WagonManager'dan al, burada oluşturma.
         masterWagonList.Clear();
         activeWagons.Clear();
-
-        // LevelSpawner'ın vagonları oluşturması için bir frame bekle
         StartCoroutine(InitializeWagonsAfterDelay());
     }
 
     private IEnumerator InitializeWagonsAfterDelay()
     {
-        // LevelSpawner'ın Awake/Start döngüsünün tamamlanması için bir frame bekle
         yield return null;
 
-        // --- YENİ KONTROL EKLENDİ ---
-        // Vagonları işlemeden önce yolun geçerli olduğundan emin ol.
         if (checkpointPath == null)
         {
             Debug.LogError("FATAL HATA: MetroManager'daki 'Checkpoint Path' alanı boş (None). Lütfen sahnedeki MetroManager objesine bir yol (MetroCheckpointPath) atayın.");
-            yield break; // Coroutine'i durdur.
+            yield break;
         }
         if (checkpointPath.checkpoints.Any(c => c == null))
         {
             Debug.LogError($"FATAL HATA: MetroManager'a atanan '{checkpointPath.name}' adlı yolun 'Checkpoints' listesinde boş (None) veya yok edilmiş elemanlar var. Lütfen '{checkpointPath.name}' objesini seçip listeyi kontrol edin ve boş elemanları silin veya düzeltin.");
-            yield break; // Coroutine'i durdur.
+            yield break;
         }
 
         var wagonsFromManager = WagonManager.Instance.GetActiveWagons();
@@ -147,16 +162,17 @@ public class MetroManager : MonoBehaviour
         }
 
         Debug.Log($"MetroManager, {activeWagons.Count} adet vagonu WagonManager'dan aldı.");
+        originalWagonSpeeds.Clear();
 
-        // Vagonlara başlangıç ayarlarını yap (path, checkpoint vb.)
         for (int i = 0; i < activeWagons.Count; i++)
         {
             MetroWagon wagon = activeWagons[i];
             if (wagon == null) continue;
 
-            if (i == 0) wagon.isHead = true; // Listenin ilk vagonunu Head yap
+            if (i == 0) wagon.isHead = true;
 
             wagon.Init(checkpointPath, FindClosestCheckpointIndex(wagon.transform.position), wagon.wagonColor);
+            originalWagonSpeeds[wagon] = wagon.speed;
         }
 
         if (GameDataManager.Instance != null)
@@ -165,44 +181,12 @@ public class MetroManager : MonoBehaviour
             LoadData(GameDataManager.Instance.GetSaveData());
         }
 
-        ApplyInitialWagonSpeedMultiplier();
-    }
-
-    private void ApplyInitialWagonSpeedMultiplier()
-    {
-        if (speedsBoosted) return;
-        foreach (var w in masterWagonList) // Ana liste üzerinden git
-        {
-            if (w == null) continue;
-            originalWagonSpeeds[w] = w.speed;
-            w.speed *= initialSpeedMultiplier;
-        }
-        speedsBoosted = true;
-        Debug.Log($"MetroManager: Applied initial wagon speed multiplier x{initialSpeedMultiplier} to {masterWagonList.Count} wagons.");
-    }
-
-    private void HandleFirstGroupClicked()
-    {
-        if (!speedsBoosted) return;
-        RestoreOriginalWagonSpeeds();
-        PassengerGroup.OnGroupClicked -= HandleFirstGroupClicked;
-    }
-
-    private void RestoreOriginalWagonSpeeds()
-    {
-        foreach (var kv in originalWagonSpeeds)
-        {
-            var w = kv.Key;
-            if (w != null) w.speed = kv.Value;
-        }
-        originalWagonSpeeds.Clear();
-        speedsBoosted = false;
-        Debug.Log("MetroManager: Restored original wagon speeds after first passenger group click.");
+        ApplySpeedMultiplier();
+        OnSpeedMultiplierChanged?.Invoke($"{currentSpeedMultiplier}x");
     }
 
     private void HandleWagonRemoval(MetroWagon removedWagon, Transform removedWagonTransform)
     {
-        // --- Head Promotion & Restart Logic ---
         if (removedWagon != null && removedWagon.isHead)
         {
             MetroWagon newHead = masterWagonList.FirstOrDefault(w => w != null && w.gameObject.activeInHierarchy && w != removedWagon);
@@ -210,19 +194,18 @@ public class MetroManager : MonoBehaviour
             {
                 newHead.isHead = true;
                 Debug.LogWarning($"HEAD DEĞİŞTİ! Yeni head vagon: {newHead.name}");
-                StartMovement(); // Hareketi yeniden başlat
+                StartMovement();
             }
             else
             {
                 Debug.LogError("Last wagon removed! Train cannot move.");
-                StopMovement(); // Terfi edecek vagon kalmadı, hareketi kalıcı olarak durdur.
+                StopMovement();
             }
         }
 
         if (removedWagonTransform == null) return;
 
         Debug.LogWarning($"MetroManager: OnWagonRemoved enqueued for transform '{removedWagonTransform.name}' at pos {removedWagonTransform.position}");
-
         pendingRemovedTransforms.Add(removedWagonTransform);
 
         if (pendingRemovalCoroutine == null)
@@ -418,7 +401,6 @@ public class MetroManager : MonoBehaviour
 
     public void ShuffleWagonColors()
     {
-        // To prevent multiple shuffles at once
         if (isAdjusting) 
         {
             Debug.LogWarning("[MetroManager] Cannot shuffle colors while another adjustment is in progress.");
@@ -433,7 +415,6 @@ public class MetroManager : MonoBehaviour
         isAdjusting = true;
         OnTrainAdjustmentStateChanged?.Invoke(true);
 
-        // Use the master list to ensure we are working with the definitive set of wagons, in order.
         List<MetroWagon> wagonsToShuffle = masterWagonList.Where(w => w != null && w.gameObject.activeInHierarchy).ToList();
 
         if (wagonsToShuffle.Count < 2) 
@@ -444,25 +425,20 @@ public class MetroManager : MonoBehaviour
             yield break;
         }
 
-        // Store original colors from the active, ordered wagons
         List<HyperCasualColor> originalColors = wagonsToShuffle.Select(w => w.wagonColor).ToList();
 
-        // (Visual) Set all to grey
         foreach (var wagon in wagonsToShuffle)
         {
             wagon.SetColor(HyperCasualColor.Grey);
         }
 
-        // Wait for a moment so the player sees the grey train
         yield return new WaitForSeconds(0.75f);
 
-        // Get the new shuffled color list using the logic from Task 1
         List<HyperCasualColor> newColors = WagonManager.ShuffleColorGroups(originalColors);
 
-        // Apply new colors sequentially for a nice visual effect
         for (int i = 0; i < wagonsToShuffle.Count; i++)
         {
-            if (i < newColors.Count) // Safety check
+            if (i < newColors.Count)
             {
                 wagonsToShuffle[i].SetColor(newColors[i]);
                 yield return new WaitForSeconds(0.05f); 

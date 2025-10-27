@@ -34,6 +34,7 @@ public class InputManager : MonoBehaviour
     {
         // Subscribe to the game over event to disable input
         UberManager.OnGameOver += DisableInput;
+        UIManager.OnSpeedToggleClicked += ToggleSpeed;
     }
 
     private void OnDisable()
@@ -43,6 +44,7 @@ public class InputManager : MonoBehaviour
         {
              UberManager.OnGameOver -= DisableInput;
         }
+        UIManager.OnSpeedToggleClicked -= ToggleSpeed;
     }
 
     void Update()
@@ -104,5 +106,13 @@ public class InputManager : MonoBehaviour
     {
         Debug.Log("[InputManager] Input has been disabled.");
         isInputDisabled = true;
+    }
+
+    private void ToggleSpeed()
+    {
+        if (MetroManager.Instance != null)
+        {
+            MetroManager.Instance.ToggleSpeed();
+        }
     }
 }

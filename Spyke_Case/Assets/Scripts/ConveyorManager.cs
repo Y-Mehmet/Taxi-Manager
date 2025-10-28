@@ -1,15 +1,10 @@
-
 using System.Collections.Generic;
-using GridSystem;
 using UnityEngine;
 
 public class ConveyorManager : MonoBehaviour
 {
     public static ConveyorManager Instance { get; private set; }
 
-    [SerializeField] private ConveyorBelt conveyorBeltPrefab;
-
-    private List<ConveyorBelt> activeConveyors = new List<ConveyorBelt>();
     private PassengerGroup passengerGroupPrefab;
 
     private void Awake()
@@ -24,49 +19,52 @@ public class ConveyorManager : MonoBehaviour
         }
     }
 
-    public void Initialize(List<ConveyorSpawnData> conveyorSpawns, PassengerGroup passengerGroupPrefab)
+    public void Initialize(List<HyperCasualColor> passengerColors, PassengerGroup passengerGroupPrefab)
     {
-        if (conveyorSpawns == null || conveyorSpawns.Count == 0)
+        if (passengerColors == null || passengerColors.Count == 0)
         {
+            Debug.Log("[ConveyorManager] No conveyor passengers specified in LevelSpawnSO.");
+            return;
+        }
+
+        if (ConveyorBelt.Instance == null)
+        {
+            Debug.LogError("[ConveyorManager] ConveyorBelt.Instance is not found in the scene! Cannot spawn passengers.");
             return;
         }
 
         this.passengerGroupPrefab = passengerGroupPrefab;
 
-        foreach (var spawnData in conveyorSpawns)
+        for (int i = 0; i < passengerColors.Count; i++)
         {
-            Transform startPoint = new GameObject("ConveyorStartPoint").transform;
-            startPoint.position = spawnData.startPoint;
-            startPoint.parent = transform;
-
-            Transform endPoint = new GameObject("ConveyorEndPoint").transform;
-            endPoint.position = spawnData.endPoint;
-            endPoint.parent = transform;
-
-            ConveyorBelt newBelt = Instantiate(conveyorBeltPrefab, transform);
+            HyperCasualColor color = passengerColors[i];
             
-            List<PassengerGroup> initialGroups = new List<PassengerGroup>();
-            foreach(var passengerData in spawnData.initialPassengerGroups)
-            {
-                PassengerGroup newPassengerGroup = Instantiate(passengerGroupPrefab);
-                newPassengerGroup.useGridPosition = false;
-                newPassengerGroup.onConveyorBelt = true;
-               
-                newPassengerGroup.SetGroupColor(passengerData.color);
-                newPassengerGroup.transform.position = startPoint.position;
-                initialGroups.Add(newPassengerGroup);
-            }
+            // Instantiate the passenger
+            PassengerGroup newPassengerGroup = Instantiate(passengerGroupPrefab);
+            
+            // Set parent to the ConveyorBelt
+            newPassengerGroup.transform.SetParent(ConveyorBelt.Instance.transform);
 
-            newBelt.Initialize(spawnData.speed, startPoint, endPoint, initialGroups);
-            activeConveyors.Add(newBelt);
+            // Set properties as per the new requirements
+            newPassengerGroup.useGridPosition = false; // It's not on the main grid
+            newPassengerGroup.onConveyorBelt = true;
+            newPassengerGroup.moveDirection = Vector2Int.up; // Default direction
+            newPassengerGroup.SetGroupColor(color);
+
+            // Calculate position with 1-unit X offset
+            Vector3 spawnPosition = ConveyorBelt.Instance.startPoint.position + new Vector3(i * 1.0f, 0, 0);
+            newPassengerGroup.transform.position = spawnPosition;
+
+            // Add the passenger to the belt's management list
+            ConveyorBelt.Instance.AddPassenger(newPassengerGroup);
         }
     }
 
     public void RemovePassenger(PassengerGroup passenger)
     {
-        foreach(var belt in activeConveyors)
+        if (ConveyorBelt.Instance != null)
         {
-            belt.RemovePassenger(passenger);
+            ConveyorBelt.Instance.RemovePassenger(passenger);
         }
     }
 }

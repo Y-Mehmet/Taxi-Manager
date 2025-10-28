@@ -36,11 +36,3 @@ public struct WagonSpawnData
     }
 }
 
-[System.Serializable]
-public struct ConveyorSpawnData
-{
-    public Vector3 startPoint;
-    public Vector3 endPoint;
-    public List<PassengerSpawnData> initialPassengerGroups;
-    public float speed;
-}

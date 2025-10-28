@@ -3,22 +3,24 @@ using UnityEngine;
 
 public class ConveyorBelt : MonoBehaviour
 {
+    public static ConveyorBelt Instance { get; private set; }
+
     [SerializeField] private List<PassengerGroup> passengerGroupsOnBelt = new List<PassengerGroup>();
     [SerializeField] private float speed = 2f;
-    [SerializeField] private Transform startPoint;
-    [SerializeField] private Transform endPoint;
+    
+    [Header("Belt Configuration")]
+    public Transform startPoint;
+    public Transform endPoint;
 
-    public void Initialize(float beltSpeed, Transform beltStartPoint, Transform beltEndPoint, List<PassengerGroup> initialPassengerGroups)
+    private void Awake()
     {
-        speed = beltSpeed;
-        startPoint = beltStartPoint;
-        endPoint = beltEndPoint;
-        passengerGroupsOnBelt = initialPassengerGroups;
-
-        foreach (var group in passengerGroupsOnBelt)
+        if (Instance == null)
         {
-            group.transform.position = startPoint.position;
-            group.gameObject.SetActive(true);
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
         }
     }
 
@@ -70,7 +72,7 @@ public class ConveyorBelt : MonoBehaviour
         }
     }
 
-    public void AddPassengerGroup(PassengerGroup group)
+    public void AddPassenger(PassengerGroup group)
     {
         passengerGroupsOnBelt.Add(group);
         group.transform.position = startPoint.position;

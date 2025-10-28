@@ -13,4 +13,5 @@ public class LevelSpawnSO : ScriptableObject
     public List<PassengerSpawnData> initialPassengerGroups;
     public List<UnderpassSpawnData> underpasses;
     public List<WagonSpawnData> wagons;
+    public List<ConveyorSpawnData> conveyors;
 }

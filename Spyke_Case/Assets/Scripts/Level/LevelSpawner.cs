@@ -11,6 +11,7 @@ public class LevelSpawner : MonoBehaviour
     public PassengerSpawnManager passengerSpawnManager;
     public UnderpassManager underpassManager;
     public WagonManager wagonManager;
+    public ConveyorManager conveyorManager;
 
     [Header("Prefabs")]
     public PassengerGroup passengerGroupPrefab;
@@ -75,6 +76,7 @@ public class LevelSpawner : MonoBehaviour
         passengerSpawnManager.Initialize(levelToSpawn.initialPassengerGroups, passengerGroupPrefab, gridManager);
         underpassManager.Initialize(levelToSpawn.underpasses, underpassControllerPrefab, passengerGroupPrefab, gridManager);
         wagonManager.Initialize(levelToSpawn.wagons, metroWagonPrefab);
+        conveyorManager.Initialize(levelToSpawn.conveyors, passengerGroupPrefab);
 
         Debug.Log($"'{levelToSpawn.name}' için spawn süreci başladı.");
     }

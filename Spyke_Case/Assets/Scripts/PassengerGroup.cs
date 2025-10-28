@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using GridSystem;
 using GridSystem.Data;
 using DG.Tweening;
-
 public class PassengerGroup : MonoBehaviour
 {
     public static event System.Action<PassengerGroup> OnGroupDeparted;
@@ -51,10 +50,11 @@ public class PassengerGroup : MonoBehaviour
     public Vector2Int moveDirection = Vector2Int.up;
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
     public Vector3 originalPosition;
+    [SerializeField]
      float moveSpeed = 7f; 
     public Transform modelTransform;
     public Vector2Int gridPos; 
-    public PassengerGrid grid;
+
     [Header("Initialization")]
     [Tooltip("If true, this object will be placed at `gridPos` on Start(). Leave false for manual placement.")]
     public bool useGridPosition = false;
@@ -77,15 +77,16 @@ public class PassengerGroup : MonoBehaviour
     private Queue<Vector2Int> followQueue = new Queue<Vector2Int>();
     private bool processingFollowQueue = false;
     private Queue<int> checkpointQueue = new Queue<int>();
-    private bool processingCheckpointQueue = false;
+    private bool processingCheckpointQueue = false; // Renamed to avoid conflict
     private bool isMoving = false;
     private Tween activeMovementTween = null;
     private float activeTweenBaseSpeed = 1f;
     private enum MovementType { None, Path, Move, Jump }
     private MovementType activeMovementType = MovementType.None;
-    private Vector3[] activeMovementPathPoints = null; 
+    private Vector3[] activeMovementPathPoints = null;
     private Vector3 activeMovementTarget = Vector3.zero; 
 
+    
     private void OnEnable()
     {
         InputManager.OnPassengerGroupTapped += HandleTap;
@@ -93,16 +94,51 @@ public class PassengerGroup : MonoBehaviour
 
     private void OnDisable()
     {
-        InputManager.OnPassengerGroupTapped -= HandleTap;
+        InputManager.OnPassengerGroupTapped -= HandleTap; // Renamed to avoid conflict
 
-        if (grid != null)
+        if (PassengerGrid.Instance != null)
         {
-            grid.UnregisterOccupant(gridPos, this);
+            PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
         }
     }
 
     public bool onConveyorBelt = false;
+    void Start()
+    {
+        originalPosition = transform.position;
+        OnAvailableSlotsChanged += (slots) => Debug.Log($"[PassengerGroup] {name} kalan slot: {slots}");
+        _lastAvailableSlots = AvailableSlots;
+        OnAvailableSlotsChanged?.Invoke(_lastAvailableSlots);
 
+        SetGroupColor(groupColor);
+
+        if (useGridPosition && PassengerGrid.Instance != null)
+        {
+            transform.position = PassengerGrid.Instance.GetWorldPosition(gridPos);
+            PassengerGrid.Instance.RegisterOccupant(gridPos, this);
+        }
+        else if (!useGridPosition && PassengerGrid.Instance != null)
+        {
+            var gd = PassengerGrid.Instance.gridData;
+            if (gd != null)
+            {
+                Vector3 relative = transform.position - PassengerGrid.Instance.transform.position - gd.worldOffset;
+                int gx = Mathf.RoundToInt(relative.x / gd.cellSize);
+                int gy = Mathf.RoundToInt(relative.z / gd.cellSize);
+                gx = Mathf.Clamp(gx, 0, gd.width - 1);
+                gy = Mathf.Clamp(gy, 0, gd.height - 1);
+                Vector2Int inferred = new Vector2Int(gx, gy);
+                gridPos = inferred;
+                if (PassengerGrid.Instance.IsOccupied(gridPos))
+                {
+                    Debug.LogWarning($"Passenger '{name}' manual placement at {gridPos} conflicts with existing occupant.");
+                }
+                PassengerGrid.Instance.RegisterOccupant(gridPos, this);
+            }
+        }
+
+        if (!allGroups.Contains(this)) allGroups.Add(this); // Renamed to avoid conflict
+    }
     private void HandleTap(PassengerGroup tappedGroup)
     {
         if (tappedGroup != this) return;
@@ -153,7 +189,7 @@ public class PassengerGroup : MonoBehaviour
         }
 
         Vector2Int nextPos = gridPos + moveDirection;
-        var cell = grid.GetCell(nextPos.x, nextPos.y);
+        var cell = PassengerGrid.Instance.GetCell(nextPos.x, nextPos.y);
         if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
         {
             Debug.Log($"PassengerGroup hareket edemedi. Engel veya grid dışı: {nextPos}");
@@ -166,9 +202,9 @@ public class PassengerGroup : MonoBehaviour
         List<Vector2Int> straightVec = new List<Vector2Int>();
         Vector2Int pathfindingStartPoint = gridPos;
         Vector2Int tempCursor = gridPos + moveDirection;
-        while (grid.GetCell(tempCursor.x, tempCursor.y) != null)
+        while (PassengerGrid.Instance.GetCell(tempCursor.x, tempCursor.y) != null)
         {
-            var currentCell = grid.GetCell(tempCursor.x, tempCursor.y);
+            var currentCell = PassengerGrid.Instance.GetCell(tempCursor.x, tempCursor.y);
             if (currentCell.cellType == GridCellType.Blocked || currentCell.cellType == GridCellType.Empty) break;
             straightVec.Add(tempCursor);
             if (currentCell.cellType == GridCellType.Walkable || currentCell.cellType == GridCellType.Stop) { pathfindingStartPoint = tempCursor; break; }
@@ -215,7 +251,7 @@ public class PassengerGroup : MonoBehaviour
         if (path == null)
         {
             Debug.LogWarning($"[PathPlan] No path to highest cell found. Trying fallback to nearest stop from {pathfindingStartPoint}.");
-            path = grid.FindNearestStopPath(pathfindingStartPoint);
+            path = PassengerGrid.Instance.FindNearestStopPath(pathfindingStartPoint);
         }
 
         if (path != null)
@@ -238,11 +274,11 @@ public class PassengerGroup : MonoBehaviour
     {
         int maxY = int.MinValue;
         List<Vector2Int> candidates = new List<Vector2Int>();
-        for (int y = 0; y < grid.gridData.height; y++)
+        for (int y = 0; y < PassengerGrid.Instance.gridData.height; y++)
         {
-            for (int x = 0; x < grid.gridData.width; x++)
+            for (int x = 0; x < PassengerGrid.Instance.gridData.width; x++)
             {
-                var c = grid.GetCell(x, y);
+                var c = PassengerGrid.Instance.GetCell(x, y);
                 if (c != null && c.cellType == GridCellType.Walkable)
                 {
                     if (y > maxY) { maxY = y; candidates.Clear(); candidates.Add(new Vector2Int(x, y)); }
@@ -255,7 +291,7 @@ public class PassengerGroup : MonoBehaviour
         int bestLen = int.MaxValue;
         foreach (var cand in candidates)
         {
-            var p = grid.FindPathToTarget(from, cand, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop, GridCellType.WaitingArea });
+            var p = PassengerGrid.Instance.FindPathToTarget(from, cand, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop, GridCellType.WaitingArea });
             if (p != null && p.Count > 0 && p.Count < bestLen)
             {
                 bestLen = p.Count;
@@ -265,42 +301,7 @@ public class PassengerGroup : MonoBehaviour
         return bestPath;
     }
 
-    void Start()
-    {
-        originalPosition = transform.position;
-        OnAvailableSlotsChanged += (slots) => Debug.Log($"[PassengerGroup] {name} kalan slot: {slots}");
-        _lastAvailableSlots = AvailableSlots;
-        OnAvailableSlotsChanged?.Invoke(_lastAvailableSlots);
-
-        SetGroupColor(groupColor);
-
-        if (useGridPosition && grid != null)
-        {
-            transform.position = grid.GetWorldPosition(gridPos);
-            grid.RegisterOccupant(gridPos, this);
-        }
-        else if (!useGridPosition && grid != null)
-        {
-            var gd = grid.gridData;
-            if (gd != null)
-            {
-                Vector3 relative = transform.position - grid.transform.position - gd.worldOffset;
-                int gx = Mathf.RoundToInt(relative.x / gd.cellSize);
-                int gy = Mathf.RoundToInt(relative.z / gd.cellSize);
-                gx = Mathf.Clamp(gx, 0, gd.width - 1);
-                gy = Mathf.Clamp(gy, 0, gd.height - 1);
-                Vector2Int inferred = new Vector2Int(gx, gy);
-                gridPos = inferred;
-                if (grid.IsOccupied(gridPos))
-                {
-                    Debug.LogWarning($"Passenger '{name}' manual placement at {gridPos} conflicts with existing occupant.");
-                }
-                grid.RegisterOccupant(gridPos, this);
-            }
-        }
-
-        if (!allGroups.Contains(this)) allGroups.Add(this);
-    }
+   
 
     void OnDestroy()
     {
@@ -361,7 +362,7 @@ public class PassengerGroup : MonoBehaviour
         {
             if (isMoving) { yield return null; continue; }
             Vector2Int target = followQueue.Dequeue();
-            var cell = grid.GetCell(target.x, target.y);
+            var cell = PassengerGrid.Instance.GetCell(target.x, target.y);
             if (cell == null) { continue; }
             yield return StartCoroutine(MoveToCoroutine(target));
         }
@@ -375,10 +376,10 @@ public class PassengerGroup : MonoBehaviour
         {
             if (isMoving) { yield return null; continue; }
             int stopIndex = checkpointQueue.Dequeue();
-            if (grid == null || grid.gridData == null) continue;
+            if (PassengerGrid.Instance == null || PassengerGrid.Instance.gridData == null) continue;
             if (stopIndex < 0) continue;
             var stopWorldPos = StopManager.Instance.GetStopWorldPosition(stopIndex);
-            var path = grid.FindPathToTarget(gridPos, grid.gridData.stopSlots[Mathf.Clamp(stopIndex,0,grid.gridData.stopSlots.Count-1)], this);
+            var path = PassengerGrid.Instance.FindPathToTarget(gridPos, PassengerGrid.Instance.gridData.stopSlots[Mathf.Clamp(stopIndex,0,PassengerGrid.Instance.gridData.stopSlots.Count-1)], this);
             if (path != null && path.Count > 0)
             {
                 StartCoroutine(ExecuteContinuousPath(path, stopIndex, stopWorldPos));
@@ -393,18 +394,18 @@ public class PassengerGroup : MonoBehaviour
 
     System.Collections.IEnumerator MoveToCoroutine(Vector2Int newGridPos)
     {
-        if (grid == null) yield break;
-        var cell = grid.GetCell(newGridPos.x, newGridPos.y);
+        if (PassengerGrid.Instance == null) yield break;
+        var cell = PassengerGrid.Instance.GetCell(newGridPos.x, newGridPos.y);
         if (cell == null) yield break;
         if (!(cell.cellType == GridCellType.Walkable || cell.cellType == GridCellType.WaitingArea || cell.cellType == GridCellType.Stop)) yield break;
 
-        Vector3 worldTarget = cell.cellTransform != null ? cell.cellTransform.position : grid.GetWorldPosition(newGridPos);
-        grid.UnregisterOccupant(gridPos, this);
-        grid.RegisterOccupant(newGridPos, this);
+        Vector3 worldTarget = cell.cellTransform != null ? cell.cellTransform.position : PassengerGrid.Instance.GetWorldPosition(newGridPos);
+        PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
+        PassengerGrid.Instance.RegisterOccupant(newGridPos, this);
         isMoving = true;
         yield return StartCoroutine(MoveToWorld(worldTarget, newGridPos));
         gridPos = newGridPos;
-        var arrivedCell = grid.GetCell(gridPos.x, gridPos.y);
+        var arrivedCell = PassengerGrid.Instance.GetCell(gridPos.x, gridPos.y);
         if (arrivedCell != null && arrivedCell.cellType == GridCellType.Stop && arrivedCell.stopIndex >= 0)
         {
             BroadcastCheckpointToFollowers(arrivedCell.stopIndex);
@@ -434,7 +435,7 @@ public class PassengerGroup : MonoBehaviour
             for (int i = pathIdx; i < fullPath.Count; i++)
             {
                 var step = fullPath[i];
-                var cell = grid.GetCell(step.x, step.y);
+                var cell = PassengerGrid.Instance.GetCell(step.x, step.y);
                 if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
                 {
                     Debug.LogWarning($"[ContinuousPath] Path blocked by terrain at {step}. Returning home.");
@@ -444,7 +445,7 @@ public class PassengerGroup : MonoBehaviour
                     yield break;
                 }
 
-                var occupant = grid.GetOccupant(step);
+                var occupant = PassengerGrid.Instance.GetOccupant(step);
                 if (occupant != null && occupant != this)
                 {
                     if (ascendIndex >= 0 && i > ascendIndex)
@@ -466,16 +467,16 @@ public class PassengerGroup : MonoBehaviour
 
             if (gridSegment.Count > 0)
             {
-                List<Vector3> worldSegment = gridSegment.ConvertAll(p => grid.GetWorldPosition(p));
+                List<Vector3> worldSegment = gridSegment.ConvertAll(p => PassengerGrid.Instance.GetWorldPosition(p));
                 Vector2Int endOfSegmentPos = gridSegment[gridSegment.Count - 1];
 
-                grid.UnregisterOccupant(gridPos, this);
-                grid.RegisterOccupant(endOfSegmentPos, this);
+                PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
+                PassengerGrid.Instance.RegisterOccupant(endOfSegmentPos, this);
 
-                float duration = (worldSegment.Count * grid.gridData.cellSize) / moveSpeed;
+                float duration = (worldSegment.Count * PassengerGrid.Instance.gridData.cellSize) / moveSpeed;
 
                 var segmentLog = new List<string>();
-                foreach(var pos in gridSegment) segmentLog.Add($"{pos}:{grid.GetCell(pos.x, pos.y)?.cellType}");
+                foreach(var pos in gridSegment) segmentLog.Add($"{pos}:{PassengerGrid.Instance.GetCell(pos.x, pos.y)?.cellType}");
                 Debug.Log("[ContinuousPath] Segment: " + string.Join(" -> ", segmentLog.ToArray()));
 
                 Debug.Log($"[ContinuousPath] Moving along segment of {gridSegment.Count} cells.");
@@ -518,11 +519,11 @@ public class PassengerGroup : MonoBehaviour
                 if (obstacle.isMoving)
                 {
                     Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by moving passenger '{obstacle.name}'. Waiting.");
-                    yield return new WaitUntil(() => grid.GetOccupant(step) != obstacle || !obstacle.isMoving);
+                    yield return new WaitUntil(() => PassengerGrid.Instance.GetOccupant(step) != obstacle || !obstacle.isMoving);
                     continue;
                 }
 
-                var occupiedCell = grid.GetCell(step.x, step.y);
+                var occupiedCell = PassengerGrid.Instance.GetCell(step.x, step.y);
                 bool isJumpable = (occupiedCell.cellType == GridCellType.Stop || occupiedCell.cellType == GridCellType.Walkable);
 
                 if (isJumpable)
@@ -530,7 +531,7 @@ public class PassengerGroup : MonoBehaviour
                     Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is stationary on a jumpable tile. Waiting 1s.");
                     yield return new WaitForSeconds(1f);
 
-                    if (grid.GetOccupant(step) == obstacle)
+                    if (PassengerGrid.Instance.GetOccupant(step) == obstacle)
                     {
                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
                         if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
@@ -552,7 +553,7 @@ public class PassengerGroup : MonoBehaviour
         if (stopIndex != -1)
         {
             yield return StartCoroutine(MoveToWorld(stopWorldPos, gridPos));
-            grid.UnregisterOccupant(gridPos, this);
+            PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
             StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
         }
         isMoving = false;
@@ -583,13 +584,13 @@ public class PassengerGroup : MonoBehaviour
 
     System.Collections.IEnumerator JumpToCoroutine(Vector2Int landingGridPos)
     {
-        if (grid == null) yield break;
-        var landCell = grid.GetCell(landingGridPos.x, landingGridPos.y);
+        if (PassengerGrid.Instance == null) yield break;
+        var landCell = PassengerGrid.Instance.GetCell(landingGridPos.x, landingGridPos.y);
         if (landCell == null) yield break;
-        grid.UnregisterOccupant(gridPos, this);
-        grid.RegisterOccupant(landingGridPos, this);
+        PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
+        PassengerGrid.Instance.RegisterOccupant(landingGridPos, this);
 
-        Vector3 landWorld = landCell.cellTransform != null ? landCell.cellTransform.position : grid.GetWorldPosition(landingGridPos);
+        Vector3 landWorld = landCell.cellTransform != null ? landCell.cellTransform.position : PassengerGrid.Instance.GetWorldPosition(landingGridPos);
         float jumpPower = 1f;
         float duration = 0.45f;
         Vector3 target = new Vector3(landWorld.x, transform.position.y, landWorld.z);
@@ -750,19 +751,19 @@ public class PassengerGroup : MonoBehaviour
     private System.Collections.IEnumerator ReturnToOriginCoroutine()
     {
         // Convert originalPosition (Vector3) to originalGridPos (Vector2Int)
-        if (grid == null || grid.gridData == null)
+        if (PassengerGrid.Instance == null || PassengerGrid.Instance.gridData == null)
         {
             Debug.LogError($"[ReturnToOrigin] Grid or GridData is null for {name}. Cannot pathfind.");
             yield break;
         }
-        var gd = grid.gridData;
-        Vector3 relative = originalPosition - grid.transform.position - gd.worldOffset;
+        var gd = PassengerGrid.Instance.gridData;
+        Vector3 relative = originalPosition - PassengerGrid.Instance.transform.position - gd.worldOffset;
         int gx = Mathf.RoundToInt(relative.x / gd.cellSize);
         int gy = Mathf.RoundToInt(relative.z / gd.cellSize);
         Vector2Int originGridPos = new Vector2Int(gx, gy);
 
         // Find a path from the current grid position to the origin
-        List<Vector2Int> path = grid.FindPathToTarget(gridPos, originGridPos, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.WaitingArea, GridCellType.Stop });
+        List<Vector2Int> path = PassengerGrid.Instance.FindPathToTarget(gridPos, originGridPos, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.WaitingArea, GridCellType.Stop });
 
         if (path != null && path.Count > 0)
         {
@@ -794,9 +795,9 @@ public class PassengerGroup : MonoBehaviour
             // If no path, teleport and also apply the final rotation.
             Debug.LogWarning($"[ReturnToOrigin] No path found for {name} to return home from {gridPos} to {originGridPos}. Teleporting as fallback.");
             transform.position = originalPosition;
-            grid.UnregisterOccupant(gridPos, this);
+            PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
             gridPos = originGridPos;
-            grid.RegisterOccupant(gridPos, this);
+            PassengerGrid.Instance.RegisterOccupant(gridPos, this);
 
             Vector3 finalDirVector = new Vector3(moveDirection.x, 0, moveDirection.y);
             Quaternion finalRotation = transform.rotation;
@@ -819,7 +820,7 @@ public class PassengerGroup : MonoBehaviour
     private void TryMoveToWaitingArea()
     {
         if (isMoving) return;
-        if (grid == null || grid.gridData == null) 
+        if (PassengerGrid.Instance == null || PassengerGrid.Instance.gridData == null) 
         {
             LogPathNotFound();
             return;
@@ -829,13 +830,13 @@ public class PassengerGroup : MonoBehaviour
         float minDistance = float.MaxValue;
 
         // 1. Find the nearest valid waiting area cell
-        foreach (var cell in grid.gridData.cells)
+        foreach (var cell in PassengerGrid.Instance.gridData.cells)
         {
             if (cell.position.y == 1 && cell.cellType == GridCellType.WaitingArea)
             {
-                if (!grid.IsOccupied(cell.position))
+                if (!PassengerGrid.Instance.IsOccupied(cell.position))
                 {
-                    float distance = Vector3.Distance(transform.position, grid.GetWorldPosition(cell.position));
+                    float distance = Vector3.Distance(transform.position, PassengerGrid.Instance.GetWorldPosition(cell.position));
                     if (distance < minDistance)
                     { 
                         minDistance = distance;
@@ -852,7 +853,7 @@ public class PassengerGroup : MonoBehaviour
         }
 
         // 2. Check if a path exists from that cell to a stop
-        var path = grid.FindNearestStopPath(bestCandidate.position);
+        var path = PassengerGrid.Instance.FindNearestStopPath(bestCandidate.position);
         if (path == null || path.Count == 0)
         {
             LogPathNotFound();
@@ -884,14 +885,14 @@ public class PassengerGroup : MonoBehaviour
         var (stopWorldPos, stopIndex) = reservation.Value;
 
         // We need to pathfind from our new starting cell.
-        List<Vector2Int> fullPath = grid.FindPathToTarget(bestCandidate.position, path[path.Count-1], this);
+        List<Vector2Int> fullPath = PassengerGrid.Instance.FindPathToTarget(bestCandidate.position, path[path.Count-1], this);
 
         if (fullPath != null && fullPath.Count > 0)
         {
             // We need to place the passenger on the grid to start the path.
             gridPos = bestCandidate.position;
-            transform.position = grid.GetWorldPosition(gridPos);
-            grid.RegisterOccupant(gridPos, this);
+            transform.position = PassengerGrid.Instance.GetWorldPosition(gridPos);
+            PassengerGrid.Instance.RegisterOccupant(gridPos, this);
 
             OnGroupDeparted?.Invoke(this);
             StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos));

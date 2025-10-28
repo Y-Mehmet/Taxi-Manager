@@ -101,9 +101,17 @@ public class PassengerGroup : MonoBehaviour
         }
     }
 
+    public bool onConveyorBelt = false;
+
     private void HandleTap(PassengerGroup tappedGroup)
     {
         if (tappedGroup != this) return;
+
+        if (onConveyorBelt)
+        {
+            TryMoveToWaitingArea();
+            return;
+        }
 
         if (AbilityManager.Instance != null && AbilityManager.Instance.IsAbilityModeActive)
         {
@@ -799,6 +807,99 @@ public class PassengerGroup : MonoBehaviour
             }
             Transform transformToRotate = modelTransform != null ? modelTransform : transform;
             transformToRotate.rotation = finalRotation;
+        }
+    }
+
+    private void LogPathNotFound()
+    {
+        Debug.Log("Yol bulunamadı");
+        // We can add a visual feedback for the player here later.
+    }
+
+    private void TryMoveToWaitingArea()
+    {
+        if (isMoving) return;
+        if (grid == null || grid.gridData == null) 
+        {
+            LogPathNotFound();
+            return;
+        }
+
+        GridCell bestCandidate = null;
+        float minDistance = float.MaxValue;
+
+        // 1. Find the nearest valid waiting area cell
+        foreach (var cell in grid.gridData.cells)
+        {
+            if (cell.position.y == 1 && cell.cellType == GridCellType.WaitingArea)
+            {
+                if (!grid.IsOccupied(cell.position))
+                {
+                    float distance = Vector3.Distance(transform.position, grid.GetWorldPosition(cell.position));
+                    if (distance < minDistance)
+                    { 
+                        minDistance = distance;
+                        bestCandidate = cell;
+                    }
+                }
+            }
+        }
+
+        if (bestCandidate == null)
+        {
+            LogPathNotFound();
+            return;
+        }
+
+        // 2. Check if a path exists from that cell to a stop
+        var path = grid.FindNearestStopPath(bestCandidate.position);
+        if (path == null || path.Count == 0)
+        {
+            LogPathNotFound();
+            return;
+        }
+
+        // All checks passed, let's move!
+        Debug.Log($"[PassengerGroup] {name} moving from conveyor to waiting area at {bestCandidate.position}");
+
+        // Remove from conveyor
+        if (ConveyorManager.Instance != null)
+        {
+            ConveyorManager.Instance.RemovePassenger(this);
+        }
+        onConveyorBelt = false;
+
+        // The path from FindNearestStopPath starts at the candidate position. We need to move there first.
+        // We can create a new path that starts from the passenger's current world position.
+        // For simplicity, we can just start the pathfinding from the grid.
+        
+        var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
+        if (reservation == null)
+        {
+            LogPathNotFound();
+            // Should we re-add the passenger to the conveyor? For now, no.
+            return;
+        }
+
+        var (stopWorldPos, stopIndex) = reservation.Value;
+
+        // We need to pathfind from our new starting cell.
+        List<Vector2Int> fullPath = grid.FindPathToTarget(bestCandidate.position, path[path.Count-1], this);
+
+        if (fullPath != null && fullPath.Count > 0)
+        {
+            // We need to place the passenger on the grid to start the path.
+            gridPos = bestCandidate.position;
+            transform.position = grid.GetWorldPosition(gridPos);
+            grid.RegisterOccupant(gridPos, this);
+
+            OnGroupDeparted?.Invoke(this);
+            StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos));
+        }
+        else
+        {
+            StopManager.Instance.CancelReservation(stopIndex, this);
+            LogPathNotFound();
         }
     }
 }

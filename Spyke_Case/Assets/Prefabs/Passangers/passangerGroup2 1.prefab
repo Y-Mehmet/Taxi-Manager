@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 4167543372237943838}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 5.5}
+  m_LocalPosition: {x: 3.4686234, y: 0.5475832, z: -6.5414104}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -70,6 +70,7 @@ MonoBehaviour:
   maxGroupSize: 4
   moveDirection: {x: 0, y: 1}
   groupColor: 3
+  originalPosition: {x: 0, y: 0, z: 0}
   modelTransform: {fileID: 6221884853323111485}
   gridPos: {x: 0, y: 0}
   grid: {fileID: 8369232995520237688, guid: d6fa140e6a31d134a981f2cbb1968787, type: 3}
@@ -79,6 +80,7 @@ MonoBehaviour:
   followStepDelay: 1
   railMode: 1
   isRailHead: 0
+  onConveyorBelt: 0
 --- !u!1001 &4928902492959627352
 PrefabInstance:
   m_ObjectHideFlags: 0

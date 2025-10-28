@@ -819,6 +819,12 @@ public class PassengerGroup : MonoBehaviour
 
     private void TryMoveToWaitingArea()
     {
+        if (StopManager.Instance != null && !StopManager.Instance.HasAvailableStops())
+        {
+            Debug.LogWarning($"[{name}] Cannot move from conveyor: All stops are full or reserved.");
+            return;
+        }
+
         Debug.LogWarning($"[{name}] Attempting to move from conveyor to waiting area.");
         if (isMoving) 
         {

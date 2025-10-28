@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,19 +20,16 @@ public class ConveyorManager : MonoBehaviour
         }
     }
 
-    public void Initialize(List<HyperCasualColor> passengerColors, PassengerGroup passengerGroupPrefab)
+    public IEnumerator Initialize(List<HyperCasualColor> passengerColors, PassengerGroup passengerGroupPrefab)
     {
         if (passengerColors == null || passengerColors.Count == 0)
         {
             Debug.Log("[ConveyorManager] No conveyor passengers specified in LevelSpawnSO.");
-            return;
+            yield break;
         }
 
-        if (ConveyorBelt.Instance == null)
-        {
-            Debug.LogError("[ConveyorManager] ConveyorBelt.Instance is not found in the scene! Cannot spawn passengers.");
-            return;
-        }
+        // Wait until the ConveyorBelt instance is ready
+        yield return new WaitUntil(() => ConveyorBelt.Instance != null);
 
         this.passengerGroupPrefab = passengerGroupPrefab;
 

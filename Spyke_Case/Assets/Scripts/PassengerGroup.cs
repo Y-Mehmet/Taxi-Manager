@@ -819,9 +819,15 @@ public class PassengerGroup : MonoBehaviour
 
     private void TryMoveToWaitingArea()
     {
-        if (isMoving) return;
+        Debug.LogWarning($"[{name}] Attempting to move from conveyor to waiting area.");
+        if (isMoving) 
+        {
+            Debug.LogWarning($"[{name}] Aborting move: Already moving.");
+            return;
+        }
         if (PassengerGrid.Instance == null || PassengerGrid.Instance.gridData == null) 
         {
+            Debug.LogError($"[{name}] Aborting move: PassengerGrid or its data is null.");
             LogPathNotFound();
             return;
         }
@@ -829,36 +835,50 @@ public class PassengerGroup : MonoBehaviour
         GridCell bestCandidate = null;
         float minDistance = float.MaxValue;
 
+        Debug.LogWarning($"[{name}] Searching for a suitable waiting area cell (y=1).");
         // 1. Find the nearest valid waiting area cell
         foreach (var cell in PassengerGrid.Instance.gridData.cells)
         {
             if (cell.position.y == 1 && cell.cellType == GridCellType.WaitingArea)
             {
+                Debug.Log($"[{name}] Found candidate cell at {cell.position}.");
                 if (!PassengerGrid.Instance.IsOccupied(cell.position))
                 {
                     float distance = Vector3.Distance(transform.position, PassengerGrid.Instance.GetWorldPosition(cell.position));
+                    Debug.Log($"[{name}]   - Cell {cell.position} is not occupied. Distance: {distance}.");
                     if (distance < minDistance)
                     { 
                         minDistance = distance;
                         bestCandidate = cell;
+                        Debug.LogWarning($"[{name}]   - New best candidate found: {cell.position} with distance {distance}.");
                     }
+                }
+                else
+                {
+                    Debug.Log($"[{name}]   - Cell {cell.position} is occupied.");
                 }
             }
         }
 
         if (bestCandidate == null)
         {
+            Debug.LogError($"[{name}] Failed to find any unoccupied waiting area cell.");
             LogPathNotFound();
             return;
         }
+
+        Debug.LogWarning($"[{name}] Best candidate is {bestCandidate.position}. Now checking if a path exists from there to a stop.");
 
         // 2. Check if a path exists from that cell to a stop
         var path = PassengerGrid.Instance.FindNearestStopPath(bestCandidate.position);
         if (path == null || path.Count == 0)
         {
+            Debug.LogError($"[{name}] No path found from the best candidate cell {bestCandidate.position} to any stop.");
             LogPathNotFound();
             return;
         }
+        
+        Debug.LogWarning($"[{name}] Path found from {bestCandidate.position} to a stop. Length: {path.Count}. Proceeding with move.");
 
         // All checks passed, let's move!
         Debug.Log($"[PassengerGroup] {name} moving from conveyor to waiting area at {bestCandidate.position}");
@@ -877,18 +897,21 @@ public class PassengerGroup : MonoBehaviour
         var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
         if (reservation == null)
         {
+            Debug.LogError($"[{name}] Could not reserve a stop. Aborting move.");
             LogPathNotFound();
             // Should we re-add the passenger to the conveyor? For now, no.
             return;
         }
 
         var (stopWorldPos, stopIndex) = reservation.Value;
+        Debug.LogWarning($"[{name}] Successfully reserved stop {stopIndex}.");
 
         // We need to pathfind from our new starting cell.
         List<Vector2Int> fullPath = PassengerGrid.Instance.FindPathToTarget(bestCandidate.position, path[path.Count-1], this);
 
         if (fullPath != null && fullPath.Count > 0)
         {
+            Debug.LogWarning($"[{name}] Final path to stop calculated. Length: {fullPath.Count}. Executing move.");
             // We need to place the passenger on the grid to start the path.
             gridPos = bestCandidate.position;
             transform.position = PassengerGrid.Instance.GetWorldPosition(gridPos);
@@ -899,6 +922,7 @@ public class PassengerGroup : MonoBehaviour
         }
         else
         {
+            Debug.LogError($"[{name}] Failed to calculate final path from {bestCandidate.position} to stop. Cancelling reservation.");
             StopManager.Instance.CancelReservation(stopIndex, this);
             LogPathNotFound();
         }

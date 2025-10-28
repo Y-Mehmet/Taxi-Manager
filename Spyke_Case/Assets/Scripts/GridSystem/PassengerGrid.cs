@@ -97,10 +97,19 @@ namespace GridSystem
         // Returns a list of grid positions (including the target Stop), or null if none found.
     public List<Vector2Int> FindNearestStopPath(Vector2Int from, PassengerGroup requester = null)
     {
-        if (gridData == null) return null;
+        Debug.Log($"[Pathfinder] Starting FindNearestStopPath from {from}");
+        if (gridData == null) 
+        {
+            Debug.LogError("[Pathfinder] Aborted: gridData is null.");
+            return null;
+        }
         int w = gridData.width;
         int h = gridData.height;
-        if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h) return null;
+        if (from.x < 0 || from.y < 0 || from.x >= w || from.y >= h) 
+        {
+            Debug.LogError($"[Pathfinder] Aborted: 'from' position {from} is out of bounds.");
+            return null;
+        }
 
         bool[,] visited = new bool[w, h];
         Vector2Int[,] parent = new Vector2Int[w, h];
@@ -118,6 +127,7 @@ namespace GridSystem
             {
                 if (!occupancy.ContainsKey(cur))
                 {
+                    Debug.LogWarning($"[Pathfinder] Path found to unoccupied stop at {cur}.");
                     List<Vector2Int> path = new List<Vector2Int>();
                     Vector2Int p = cur;
                     while (p != from) { path.Add(p); p = parent[p.x, p.y]; }
@@ -131,6 +141,9 @@ namespace GridSystem
                 Vector2Int nx = cur + d;
                 if (nx.x < 0 || nx.y < 0 || nx.x >= w || nx.y >= h) continue;
                 if (visited[nx.x, nx.y]) continue;
+                
+                visited[nx.x, nx.y] = true;
+
                 var nc = GetCell(nx.x, nx.y);
                 if (nc == null) continue;
 
@@ -144,12 +157,13 @@ namespace GridSystem
 
                 if (nc.cellType == GridCellType.Walkable || nc.cellType == GridCellType.Stop || nc.cellType == GridCellType.WaitingArea)
                 {
-                    visited[nx.x, nx.y] = true;
                     parent[nx.x, nx.y] = cur;
                     q.Enqueue(nx);
                 }
             }
         }
+
+        Debug.LogError("[Pathfinder] Search complete. No path to an available stop was found.");
         return null;
     }
 

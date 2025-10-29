@@ -17,36 +17,62 @@ public class LevelSpawner : MonoBehaviour
     public PassengerGroup passengerGroupPrefab;
     public UnderpassController underpassControllerPrefab;
     public MetroWagon metroWagonPrefab;
-    // public PathCreator wagonPath; // Vagonların takip edeceği yol. Projende böyle bir bileşen olduğunu varsayıyorum.
+    public ConveyorBelt conveyorBeltPrefab; // Vagonların takip edeceği yol. Projende böyle bir bileşen olduğunu varsayıyorum.
+
+    void Awake()
+    {
+        // --- LEVEL LOADING ---
+        int currentLevel = 0;
+        if (ResourceManager.Instance != null)
+        {
+            // ResourceManager'dan mevcut level'ı alıyoruz. Level'lar 1'den başladığı için 1 ekliyoruz.
+            currentLevel = ResourceManager.Instance.CurrentLevel + 1;
+        }
+        else
+        {
+            Debug.LogError("ResourceManager instance not found!");
+            // Hata durumunda varsayılan olarak 1. level'ı yüklüyoruz.
+            currentLevel = 1;
+        }
+
+        string levelPath = "Levels/Level_" + currentLevel;
+        levelToSpawn = Resources.Load<LevelSpawnSO>(levelPath);
+        
+        if (levelToSpawn == null)
+        {
+            Debug.LogError($"Level asset not found at path: {levelPath}. Trying to load Level_1 as a fallback.");
+            levelPath = "Levels/Level_1";
+            levelToSpawn = Resources.Load<LevelSpawnSO>(levelPath);
+            if (levelToSpawn == null)
+            {
+                Debug.LogError($"Fallback level asset not found at path: {levelPath}. Make sure the level asset exists in the Resources folder.");
+                return;
+            }
+        }
+        // --- END LEVEL LOADING ---
+    }
 
     void Start()
     {
-        // --- GEMINI-DEBUG: Log SO colors ---
-        Debug.LogWarning("--- Logging Underpass Colors from LevelSpawnSO ---");
-        for (int i = 0; i < levelToSpawn.underpasses.Count; i++)
-        {
-            var underpassData = levelToSpawn.underpasses[i];
-            if (underpassData.passengerSequence != null)
-            {
-                string colors = string.Join(", ", underpassData.passengerSequence);
-                Debug.LogWarning($"SO Underpass [{i}] at pos {underpassData.position} has sequence: [{colors}]");
-            }
-            else
-            {
-                Debug.LogWarning($"SO Underpass [{i}] at pos {underpassData.position} has a NULL sequence or color list.");
-            }
-        }
-        Debug.LogWarning("--- End of LevelSpawnSO Log ---");
-        // --- END GEMINI-DEBUG ---
-
         // İlgili yöneticileri SO'dan gelen veriyle başlat.
-        // Her bir yöneticiyi Aşama 3'te güncelledikçe bu satırların yorumunu kaldıracağız.
-
         gridManager.Initialize(levelToSpawn.gridData);
         passengerSpawnManager.Initialize(levelToSpawn.initialPassengerGroups, passengerGroupPrefab, gridManager);
         underpassManager.Initialize(levelToSpawn.underpasses, underpassControllerPrefab, passengerGroupPrefab, gridManager);
         wagonManager.Initialize(levelToSpawn.wagons, metroWagonPrefab);
-        StartCoroutine(conveyorManager.Initialize(levelToSpawn.conveyorPassengers, passengerGroupPrefab));
+
+        // Conditionally spawn conveyor belt and its passengers
+        if (levelToSpawn.conveyorPassengers != null && levelToSpawn.conveyorPassengers.Count > 0)
+        {
+            if (conveyorBeltPrefab != null)
+            {
+                Instantiate(conveyorBeltPrefab, new Vector3(1.99798131f,0.547583222f,-9.10000038f), Quaternion.identity);
+                StartCoroutine(conveyorManager.Initialize(levelToSpawn.conveyorPassengers, passengerGroupPrefab));
+            }
+            else
+            {
+                Debug.LogError("Conveyor passengers are defined in LevelSpawnSO, but ConveyorBelt prefab is not assigned in LevelSpawner!");
+            }
+        }
 
         Debug.Log($"'{levelToSpawn.name}' için spawn süreci başladı.");
     }

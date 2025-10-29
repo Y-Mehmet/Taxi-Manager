@@ -16,6 +16,7 @@ public class ResourceManager : MonoBehaviour
     public int CurrentCoins { get; private set; }
     public int CurrentLevel { get; private set; }
     public List<int> LevelStars { get; private set; }
+    public  int boardingStartIndex {get; private set; }
 
 
     void Awake()
@@ -29,6 +30,7 @@ public class ResourceManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        boardingStartIndex = 13;
     }
 
     void Start()

@@ -46,7 +46,7 @@ public class BoardingManager : MonoBehaviour
         }
 
         // Yolcu alma bölgesinin başlangıç indeksini hesapla.
-        boardingZoneStart = checkpointPath.checkpoints.Count - 21;
+        boardingZoneStart = checkpointPath.checkpoints.Count - ResourceManager.Instance.boardingStartIndex;
 
         // Diğer sistemlerden gelen olayları dinlemeye başla.
         StopManager.OnPassengerArrivedAtStop += HandlePassengerOrWagonChange;

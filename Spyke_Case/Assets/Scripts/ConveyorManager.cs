@@ -20,9 +20,10 @@ public class ConveyorManager : MonoBehaviour
         }
     }
 
-    public IEnumerator Initialize(List<HyperCasualColor> passengerColors, PassengerGroup passengerGroupPrefab)
+    // CORRECTED METHOD SIGNATURE
+    public IEnumerator Initialize(List<PassengerSpawnData> conveyorPassengers, PassengerGroup passengerGroupPrefab)
     {
-        if (passengerColors == null || passengerColors.Count == 0)
+        if (conveyorPassengers == null || conveyorPassengers.Count == 0)
         {
             Debug.Log("[ConveyorManager] No conveyor passengers specified in LevelSpawnSO.");
             yield break;
@@ -33,9 +34,10 @@ public class ConveyorManager : MonoBehaviour
 
         this.passengerGroupPrefab = passengerGroupPrefab;
 
-        for (int i = 0; i < passengerColors.Count; i++)
+        // CORRECTED LOOP AND LOGIC
+        for (int i = 0; i < conveyorPassengers.Count; i++)
         {
-            HyperCasualColor color = passengerColors[i];
+            PassengerSpawnData passengerData = conveyorPassengers[i];
             
             // Instantiate the passenger
             PassengerGroup newPassengerGroup = Instantiate(passengerGroupPrefab);
@@ -47,7 +49,7 @@ public class ConveyorManager : MonoBehaviour
             newPassengerGroup.useGridPosition = false; // It's not on the main grid
             newPassengerGroup.onConveyorBelt = true;
             newPassengerGroup.moveDirection = Vector2Int.up; // Default direction
-            newPassengerGroup.SetGroupColor(color);
+            newPassengerGroup.SetGroupColor(passengerData.color); // Use color from PassengerSpawnData
 
             // Calculate position with 1-unit X offset
             Vector3 spawnPosition = ConveyorBelt.Instance.startPoint.position + new Vector3(i * 1.0f, 0, 0);

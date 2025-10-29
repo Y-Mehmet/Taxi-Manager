@@ -1,4 +1,3 @@
-
 using UnityEditor;
 using UnityEngine;
 using System.IO;
@@ -6,10 +5,16 @@ using System.IO;
 public class LevelGeneratorEditor : EditorWindow
 {
     private int levelNumber = 1;
+    
+    // Override fields
     private bool overrideNumUnderpasses = false;
     private int manualNumUnderpasses = 0;
-    private string jsonPreview = "";
-    private Vector2 scrollPosition;
+    private bool overrideNumConveyor = false;
+    private int manualNumConveyor = 0;
+    private bool overrideNumPassengers = false;
+    private int manualNumPassengers = 0;
+    private bool overrideNumColors = false;
+    private int manualNumColors = 3;
 
     [MenuItem("Tools/Level Generator")]
     public static void ShowWindow()
@@ -22,14 +27,35 @@ public class LevelGeneratorEditor : EditorWindow
         GUILayout.Label("Level Generation", EditorStyles.boldLabel);
 
         levelNumber = EditorGUILayout.IntField("Level Number", levelNumber);
+        
+        EditorGUILayout.Space();
+        GUILayout.Label("Overrides", EditorStyles.boldLabel);
 
-        // Manual override for underpasses
+        // Override UI
         overrideNumUnderpasses = EditorGUILayout.Toggle("Override Underpasses", overrideNumUnderpasses);
         GUI.enabled = overrideNumUnderpasses;
         manualNumUnderpasses = EditorGUILayout.IntField("Number of Underpasses", manualNumUnderpasses);
         GUI.enabled = true;
 
-        if (GUILayout.Button("Generate and Preview JSON"))
+        overrideNumConveyor = EditorGUILayout.Toggle("Override Conveyor Passengers", overrideNumConveyor);
+        GUI.enabled = overrideNumConveyor;
+        manualNumConveyor = EditorGUILayout.IntField("Number of Conveyor Passengers", manualNumConveyor);
+        GUI.enabled = true;
+
+        overrideNumPassengers = EditorGUILayout.Toggle("Override Start Passengers", overrideNumPassengers);
+        GUI.enabled = overrideNumPassengers;
+        manualNumPassengers = EditorGUILayout.IntField("Number of Start Passengers", manualNumPassengers);
+        GUI.enabled = true;
+
+        overrideNumColors = EditorGUILayout.Toggle("Override Color Count", overrideNumColors);
+        GUI.enabled = overrideNumColors;
+        manualNumColors = EditorGUILayout.IntField("Number of Colors", manualNumColors);
+        GUI.enabled = true;
+
+        EditorGUILayout.Space();
+
+        // Combined Generate and Save Button
+        if (GUILayout.Button("Generate & Save Level"))
         {
             if (levelNumber < 1)
             {
@@ -37,68 +63,49 @@ public class LevelGeneratorEditor : EditorWindow
                 return;
             }
 
-            // Use the override if it's toggled, otherwise pass null.
+            // Set override values to null if not toggled
             int? underpassOverride = overrideNumUnderpasses ? (int?)manualNumUnderpasses : null;
+            int? conveyorOverride = overrideNumConveyor ? (int?)manualNumConveyor : null;
+            int? passengerOverride = overrideNumPassengers ? (int?)manualNumPassengers : null;
+            int? colorOverride = overrideNumColors ? (int?)manualNumColors : null;
 
-            // Generate the level definition
-            LevelDefinition levelDef = LevelGenerator.GenerateLevel(levelNumber, underpassOverride);
+            // 1. Generate the level definition
+            LevelDefinition levelDef = LevelGenerator.GenerateLevel(levelNumber, underpassOverride, conveyorOverride, passengerOverride, colorOverride);
 
-            // Convert to JSON for preview
-            jsonPreview = JsonUtility.ToJson(levelDef, true);
-        }
-
-        // Display the JSON preview
-        EditorGUILayout.LabelField("JSON Preview:");
-        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Height(300));
-        EditorGUILayout.TextArea(jsonPreview, GUILayout.ExpandHeight(true));
-        EditorGUILayout.EndScrollView();
-
-        if (GUILayout.Button("Save as LevelSpawnSO"))
-        {
-            if (string.IsNullOrEmpty(jsonPreview))
-            {
-                EditorUtility.DisplayDialog("Error", "Please generate a level first before saving.", "OK");
-                return;
-            }
-
-            // Logic to create and save the ScriptableObject
-            SaveLevelSpawnSO(JsonUtility.FromJson<LevelDefinition>(jsonPreview));
+            // 2. Automatically save the generated definition
+            SaveLevelSpawnSO(levelDef);
         }
     }
 
     private void SaveLevelSpawnSO(LevelDefinition levelDef)
     {
-        string path = EditorUtility.SaveFilePanelInProject(
-            "Save Level Asset",
-            $"Level_{levelDef.levelNumber}.asset",
-            "asset",
-            "Please enter a file name to save the level to."
-        );
+        string directoryPath = "Assets/Resources/Levels";
+        string fileName = $"Level_{levelDef.levelNumber}.asset";
+        string path = Path.Combine(directoryPath, fileName);
 
-        if (string.IsNullOrEmpty(path))
-        {
-            return;
-        }
+        // Ensure the directory exists
+        Directory.CreateDirectory(directoryPath);
 
-        // Check if an asset already exists at the path.
         LevelSpawnSO existingLevelSO = AssetDatabase.LoadAssetAtPath<LevelSpawnSO>(path);
 
         if (existingLevelSO != null)
         {
-            // If it exists, update it.
+            // Update existing asset
             existingLevelSO.initialPassengerGroups = levelDef.initialPassengerGroups;
             existingLevelSO.underpasses = levelDef.underpasses;
             existingLevelSO.wagons = levelDef.wagons;
+            existingLevelSO.conveyorPassengers = levelDef.conveyorPassengers;
             EditorUtility.SetDirty(existingLevelSO);
             Debug.Log($"Updated existing LevelSpawnSO at: {path}", this);
         }
         else
         {
-            // If it doesn't exist, create a new one.
+            // Create new asset
             LevelSpawnSO newLevelSO = CreateInstance<LevelSpawnSO>();
             newLevelSO.initialPassengerGroups = levelDef.initialPassengerGroups;
             newLevelSO.underpasses = levelDef.underpasses;
             newLevelSO.wagons = levelDef.wagons;
+            newLevelSO.conveyorPassengers = levelDef.conveyorPassengers;
 
             AssetDatabase.CreateAsset(newLevelSO, path);
             Debug.Log($"Created new LevelSpawnSO at: {path}", this);

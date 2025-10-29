@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using System.Collections.Generic;
 using GridSystem.Data;
@@ -13,5 +12,5 @@ public class LevelSpawnSO : ScriptableObject
     public List<PassengerSpawnData> initialPassengerGroups;
     public List<UnderpassSpawnData> underpasses;
     public List<WagonSpawnData> wagons;
-    public List<HyperCasualColor> conveyorPassengers;
+    public List<PassengerSpawnData> conveyorPassengers; // CORRECTED TYPE
 }

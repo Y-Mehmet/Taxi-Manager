@@ -17,12 +17,14 @@ public class LevelDefinition
     public List<PassengerSpawnData> initialPassengerGroups;
     public List<UnderpassSpawnData> underpasses;
     public List<WagonSpawnData> wagons;
+    public List<PassengerSpawnData> conveyorPassengers; // ADDED
 
     public LevelDefinition()
     {
         initialPassengerGroups = new List<PassengerSpawnData>();
         underpasses = new List<UnderpassSpawnData>();
         wagons = new List<WagonSpawnData>();
+        conveyorPassengers = new List<PassengerSpawnData>(); // ADDED
     }
 
     public LevelDefinition(int levelNum)
@@ -32,5 +34,6 @@ public class LevelDefinition
         initialPassengerGroups = new List<PassengerSpawnData>();
         underpasses = new List<UnderpassSpawnData>();
         wagons = new List<WagonSpawnData>();
+        conveyorPassengers = new List<PassengerSpawnData>(); // ADDED
     }
 }

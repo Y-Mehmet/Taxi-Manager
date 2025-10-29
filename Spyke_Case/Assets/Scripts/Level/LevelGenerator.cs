@@ -1,3 +1,4 @@
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,13 +13,14 @@ public static class LevelGenerator
     private const int GRID_HEIGHT = 11;
     private static readonly Vector2Int GRID_CENTER = new Vector2Int(3, 5);
 
-    // DÜZELTME: Bu sınıf artık 'null' kontrolü yerine bool bayrağı kullanıyor.
     private class PlacedObject
     {
-        public PassengerSpawnData PassengerData; // struct
-        public UnderpassSpawnData UnderpassData; // struct
+        public PassengerSpawnData PassengerData;
+        public UnderpassSpawnData UnderpassData;
         public bool IsUnderpass { get; private set; }
-        public HyperCasualColor Color => IsUnderpass ? UnderpassData.passengerSequence.First() : PassengerData.color;
+        
+        // Alt geçitler artık çok renkli olduğu için, çözüm sırası için ilk rengi baz alıyoruz.
+        public HyperCasualColor RepresentativeColor => IsUnderpass ? UnderpassData.passengerSequence.First() : PassengerData.color;
 
         public static PlacedObject CreatePassenger(PassengerSpawnData data)
         {
@@ -38,16 +40,18 @@ public static class LevelGenerator
         public int NumInitialPassengers;
         public int NumUnderpasses;
         public int NumColors;
+        public int numConveyorPassengers; // YENİ
         public int PassengerCapacity;
         public int UnderpassSequenceLength;
     }
 
-    public static LevelDefinition GenerateLevel(int levelNumber, int? underpassOverride = null)
+    public static LevelDefinition GenerateLevel(int levelNumber, int? underpassOverride = null, int? conveyorOverride = null, int? passengerOverride = null, int? colorOverride = null)
     {
         Debug.Log($"--- SEVİYE {levelNumber} ÜRETİMİ BAŞLADI ---");
         var levelDef = new LevelDefinition(levelNumber);
-        var difficultyParams = CalculateDifficultyParameters(levelNumber, underpassOverride);
+        var difficultyParams = CalculateDifficultyParameters(levelNumber, underpassOverride, conveyorOverride, passengerOverride, colorOverride);
         
+        GenerateConveyorPassengers(levelDef, difficultyParams);
         var solutionOrder = GenerateSolvableLayout(levelDef, difficultyParams);
         GenerateWagonTrainFromLayout(levelDef, solutionOrder, difficultyParams);
 
@@ -55,7 +59,24 @@ public static class LevelGenerator
         return levelDef;
     }
 
-    private static DifficultyParameters CalculateDifficultyParameters(int levelNumber, int? underpassOverride = null)
+    private static void GenerateConveyorPassengers(LevelDefinition levelDef, DifficultyParameters p)
+    {
+        if (p.numConveyorPassengers <= 0) return;
+
+        var allColors = System.Enum.GetValues(typeof(HyperCasualColor)).Cast<HyperCasualColor>().ToList();
+        var colorsInLevel = allColors.GetRange(0, p.NumColors);
+        var rng = new System.Random();
+
+        for (int i = 0; i < p.numConveyorPassengers; i++)
+        {
+            levelDef.conveyorPassengers.Add(new PassengerSpawnData
+            {
+                color = colorsInLevel[rng.Next(colorsInLevel.Count)],
+            });
+        }
+    }
+
+    private static DifficultyParameters CalculateDifficultyParameters(int levelNumber, int? underpassOverride, int? conveyorOverride, int? passengerOverride, int? colorOverride)
     {
         var parameters = new DifficultyParameters();
         parameters.LevelNumber = levelNumber;
@@ -65,6 +86,7 @@ public static class LevelGenerator
         int tier = (levelNumber - 1) / 10;
         parameters.IsBossLevel = (levelNumber > 0 && levelNumber % 10 == 0);
 
+        // Varsayılan değerler
         if (parameters.IsBossLevel)
         {
             parameters.NumInitialPassengers = 7 + tier;
@@ -77,20 +99,35 @@ public static class LevelGenerator
             parameters.NumInitialPassengers = 4 + baseDifficulty + levelInTier;
             parameters.NumUnderpasses = tier;
         }
-        
+        parameters.numConveyorPassengers = 0;
+        parameters.NumColors = Mathf.Clamp(3 + tier, 3, 11);
+
+        // Override'ları uygula
         if (underpassOverride.HasValue)
         {
-            Debug.Log($"Manuel Alt Geçit Değeri Kullanılıyor: {underpassOverride.Value}");
+            Debug.Log($"[Generator] Manuel Alt Geçit Değeri: {underpassOverride.Value}");
             parameters.NumUnderpasses = underpassOverride.Value;
         }
+        if (conveyorOverride.HasValue)
+        {
+            Debug.Log($"[Generator] Manuel Konveyör Yolcu Değeri: {conveyorOverride.Value}");
+            parameters.numConveyorPassengers = conveyorOverride.Value;
+        }
+        if (passengerOverride.HasValue)
+        {
+            Debug.Log($"[Generator] Manuel Yolcu Değeri: {passengerOverride.Value}");
+            parameters.NumInitialPassengers = passengerOverride.Value;
+        }
+        if (colorOverride.HasValue)
+        {
+            Debug.Log($"[Generator] Manuel Renk Değeri: {colorOverride.Value}");
+            parameters.NumColors = Mathf.Clamp(colorOverride.Value, 2, 11);
+        }
 
-        int desiredColors = 3 + tier;
-        parameters.NumColors = Mathf.Clamp(desiredColors, 3, 11);
-        
         int maxAvailableColors = System.Enum.GetValues(typeof(HyperCasualColor)).Length;
         parameters.NumColors = Mathf.Min(parameters.NumColors, maxAvailableColors);
-        
-        Debug.Log($"Zorluk Parametreleri: Yolcu={parameters.NumInitialPassengers}, AltGeçit={parameters.NumUnderpasses}, Renk={parameters.NumColors}");
+
+        Debug.Log($"Zorluk Parametreleri: Yolcu={parameters.NumInitialPassengers}, AltGeçit={parameters.NumUnderpasses}, Renk={parameters.NumColors}, Konveyör={parameters.numConveyorPassengers}");
         return parameters;
     }
 
@@ -127,7 +164,8 @@ public static class LevelGenerator
 
                 if (tryPlaceUnderpass)
                 {
-                    if (TryPlaceUnderpass(levelDef, p, colorToPlace, basePos, direction, occupiedPositions, out var placedUnderpass))
+                    // DEĞİŞİKLİK: Artık renk havuzunu da gönderiyoruz.
+                    if (TryPlaceUnderpass(levelDef, p, basePos, direction, occupiedPositions, colorsInLevel, rng, out var placedUnderpass))
                     {
                         solutionOrder.Add(PlacedObject.CreateUnderpass(placedUnderpass));
                         underpassesLeftToPlace--;
@@ -146,7 +184,7 @@ public static class LevelGenerator
                     }
                 }
             }
-            if (!placed) Debug.LogWarning($"{colorToPlace} rengi için geçerli bir yer bulunamadı!");
+            if (!placed) Debug.LogWarning($"Geçerli bir yer bulunamadı!");
         }
         return solutionOrder;
     }
@@ -155,13 +193,24 @@ public static class LevelGenerator
     {
         foreach (var placedObject in solutionOrder)
         {
-            int capacity = placedObject.IsUnderpass
-                ? placedObject.UnderpassData.passengerSequence.Count * p.PassengerCapacity
-                : p.PassengerCapacity;
-            
-            for (int i = 0; i < capacity; i++)
+            if (placedObject.IsUnderpass)
             {
-                levelDef.wagons.Add(new WagonSpawnData(placedObject.Color, 1));
+                // DEĞİŞİKLİK: Alt geçidin içindeki her bir yolcu için sırayla vagon oluştur.
+                foreach (var passengerColor in placedObject.UnderpassData.passengerSequence)
+                {
+                    for (int i = 0; i < p.PassengerCapacity; i++)
+                    {
+                        levelDef.wagons.Add(new WagonSpawnData(passengerColor, 1));
+                    }
+                }
+            }
+            else
+            {
+                // Normal yolcular için eskisi gibi devam et.
+                for (int i = 0; i < p.PassengerCapacity; i++)
+                {
+                    levelDef.wagons.Add(new WagonSpawnData(placedObject.RepresentativeColor, 1));
+                }
             }
         }
 
@@ -181,7 +230,6 @@ public static class LevelGenerator
 
     private static bool TryPlacePassenger(LevelDefinition levelDef, HyperCasualColor color, Vector2Int pos, Vector2Int dir, List<Vector2Int> occupied, bool mustBeUnblocked, out PassengerSpawnData placedPassenger)
     {
-        // DÜZELTME: Başarısızlık durumunda 'null' yerine varsayılan bir struct döndürülüyor.
         placedPassenger = new PassengerSpawnData(); 
         if (!IsValidPlacement(pos, occupied)) return false;
         if (CreatesDeadlock(pos, dir, levelDef)) return false;
@@ -193,9 +241,9 @@ public static class LevelGenerator
         return true;
     }
 
-    private static bool TryPlaceUnderpass(LevelDefinition levelDef, DifficultyParameters p, HyperCasualColor color, Vector2Int pos, Vector2Int dir, List<Vector2Int> occupied, out UnderpassSpawnData placedUnderpass)
+    // DEĞİŞİKLİK: Metot imzası ve iç mantığı güncellendi.
+    private static bool TryPlaceUnderpass(LevelDefinition levelDef, DifficultyParameters p, Vector2Int pos, Vector2Int dir, List<Vector2Int> occupied, List<HyperCasualColor> colorsInLevel, System.Random rng, out UnderpassSpawnData placedUnderpass)
     {
-        // DÜZELTME: Başarısızlık durumunda 'null' yerine varsayılan bir struct döndürülüyor.
         placedUnderpass = new UnderpassSpawnData();
         var passengerSpawnPos = pos + dir;
 
@@ -203,11 +251,18 @@ public static class LevelGenerator
         if (!IsValidPlacement(passengerSpawnPos, occupied)) return false;
         if (CreatesDeadlock(passengerSpawnPos, dir, levelDef)) return false;
 
+        // Rastgele renklerden oluşan yolcu dizisi oluştur.
+        var sequence = new List<HyperCasualColor>();
+        for (int i = 0; i < p.UnderpassSequenceLength; i++)
+        {
+            sequence.Add(colorsInLevel[rng.Next(colorsInLevel.Count)]);
+        }
+
         placedUnderpass = new UnderpassSpawnData
         {
             position = pos,
             direction = dir,
-            passengerSequence = Enumerable.Repeat(color, p.UnderpassSequenceLength).ToList()
+            passengerSequence = sequence
         };
         levelDef.underpasses.Add(placedUnderpass);
         occupied.Add(pos);

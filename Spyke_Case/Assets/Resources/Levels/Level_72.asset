@@ -50,75 +50,72 @@ MonoBehaviour:
   - position: {x: 4, y: 4}
     direction: {x: 0, y: 1}
     color: 8
+  - position: {x: 4, y: 9}
+    direction: {x: -1, y: 0}
+    color: 2
   - position: {x: 2, y: 1}
     direction: {x: 0, y: -1}
-    color: 8
+    color: 5
   - position: {x: 3, y: 4}
     direction: {x: 0, y: 1}
-    color: 5
-  - position: {x: 1, y: 1}
-    direction: {x: 1, y: 0}
     color: 1
   - position: {x: 2, y: 6}
     direction: {x: 0, y: -1}
     color: 7
-  - position: {x: 2, y: 8}
-    direction: {x: 1, y: 0}
-    color: 1
   - position: {x: 3, y: 5}
     direction: {x: 0, y: 1}
-    color: 9
+    color: 1
   - position: {x: 1, y: 2}
     direction: {x: -1, y: 0}
-    color: 1
-  - position: {x: 4, y: 9}
-    direction: {x: 0, y: 1}
-    color: 6
+    color: 9
   - position: {x: 5, y: 7}
     direction: {x: -1, y: 0}
-    color: 8
-  - position: {x: 4, y: 6}
-    direction: {x: -1, y: 0}
-    color: 7
-  - position: {x: 5, y: 1}
-    direction: {x: 0, y: -1}
     color: 1
-  - position: {x: 1, y: 8}
+  - position: {x: 5, y: 9}
+    direction: {x: -1, y: 0}
+    color: 6
+  - position: {x: 3, y: 8}
     direction: {x: 1, y: 0}
     color: 8
   - position: {x: 5, y: 8}
     direction: {x: 1, y: 0}
-    color: 6
+    color: 9
+  - position: {x: 1, y: 8}
+    direction: {x: -1, y: 0}
+    color: 1
+  - position: {x: 5, y: 1}
+    direction: {x: -1, y: 0}
+    color: 8
   - position: {x: 3, y: 9}
     direction: {x: 0, y: 1}
-    color: 8
-  - position: {x: 5, y: 9}
-    direction: {x: 1, y: 0}
-    color: 1
-  - position: {x: 2, y: 4}
-    direction: {x: -1, y: 0}
+    color: 6
+  - position: {x: 1, y: 1}
+    direction: {x: 0, y: -1}
     color: 8
   - position: {x: 4, y: 2}
     direction: {x: 1, y: 0}
-    color: 0
+    color: 1
   - position: {x: 3, y: 2}
     direction: {x: 0, y: 1}
+    color: 8
+  - position: {x: 4, y: 6}
+    direction: {x: 1, y: 0}
+    color: 0
+  - position: {x: 2, y: 4}
+    direction: {x: 1, y: 0}
     color: 9
   - position: {x: 1, y: 3}
     direction: {x: -1, y: 0}
     color: 4
-  - position: {x: 2, y: 9}
-    direction: {x: 0, y: -1}
-    color: 3
   - position: {x: 3, y: 6}
     direction: {x: 0, y: 1}
+    color: 3
+  - position: {x: 4, y: 8}
+    direction: {x: 1, y: 0}
     color: 1
   - position: {x: 5, y: 3}
-    direction: {x: 0, y: -1}
-    color: 4
-  - position: {x: 3, y: 8}
     direction: {x: 1, y: 0}
-    color: 3
+    color: 4
   underpasses:
   - position: {x: 5, y: 6}
     direction: {x: 0, y: -1}
@@ -132,9 +129,9 @@ MonoBehaviour:
   - position: {x: 4, y: 3}
     direction: {x: -1, y: 0}
     passengerSequence: 070000000300000009000000070000000400000008000000
-  - position: {x: 4, y: 7}
-    direction: {x: 0, y: 1}
-    passengerSequence: 050000000800000005000000040000000800000009000000
+  - position: {x: 2, y: 9}
+    direction: {x: 0, y: -1}
+    passengerSequence: 090000000400000004000000070000000700000003000000
   wagons:
   - color: 4
     capacity: 1
@@ -328,6 +325,14 @@ MonoBehaviour:
     capacity: 1
   - color: 8
     capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
   - color: 8
     capacity: 1
   - color: 8
@@ -376,14 +381,6 @@ MonoBehaviour:
     capacity: 1
   - color: 8
     capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 8
-    capacity: 1
   - color: 5
     capacity: 1
   - color: 5
@@ -496,37 +493,13 @@ MonoBehaviour:
     capacity: 1
   - color: 8
     capacity: 1
-  - color: 7
+  - color: 9
     capacity: 1
-  - color: 7
+  - color: 9
     capacity: 1
-  - color: 7
+  - color: 9
     capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 5
+  - color: 9
     capacity: 1
   - color: 4
     capacity: 1
@@ -536,13 +509,37 @@ MonoBehaviour:
     capacity: 1
   - color: 4
     capacity: 1
-  - color: 8
+  - color: 4
     capacity: 1
-  - color: 8
+  - color: 4
     capacity: 1
-  - color: 8
+  - color: 4
     capacity: 1
-  - color: 8
+  - color: 4
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 3
     capacity: 1
   - color: 9
     capacity: 1
@@ -647,14 +644,6 @@ MonoBehaviour:
   - color: 4
     capacity: 1
   - color: 4
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 3
     capacity: 1
   conveyorPassengers:
   - position: {x: 0, y: 0}

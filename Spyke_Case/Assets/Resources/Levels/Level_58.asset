@@ -56,11 +56,11 @@ MonoBehaviour:
   - position: {x: 1, y: 2}
     direction: {x: 0, y: 1}
     color: 2
-  - position: {x: 1, y: 6}
-    direction: {x: 0, y: 1}
-    color: 6
   - position: {x: 1, y: 1}
     direction: {x: 0, y: 1}
+    color: 6
+  - position: {x: 2, y: 9}
+    direction: {x: 0, y: -1}
     color: 7
   - position: {x: 1, y: 4}
     direction: {x: 1, y: 0}
@@ -74,50 +74,50 @@ MonoBehaviour:
   - position: {x: 3, y: 7}
     direction: {x: 0, y: 1}
     color: 2
-  - position: {x: 4, y: 7}
-    direction: {x: -1, y: 0}
-    color: 6
   - position: {x: 5, y: 9}
     direction: {x: 0, y: 1}
-    color: 7
+    color: 6
   - position: {x: 5, y: 7}
     direction: {x: 1, y: 0}
-    color: 0
+    color: 7
   - position: {x: 2, y: 6}
     direction: {x: 0, y: 1}
     color: 0
   - position: {x: 4, y: 9}
     direction: {x: 0, y: 1}
-    color: 4
+    color: 0
   - position: {x: 1, y: 3}
     direction: {x: -1, y: 0}
     color: 4
   - position: {x: 1, y: 5}
     direction: {x: 1, y: 0}
-    color: 3
+    color: 4
   - position: {x: 1, y: 9}
     direction: {x: 0, y: 1}
-    color: 2
+    color: 3
   - position: {x: 4, y: 5}
     direction: {x: 1, y: 0}
-    color: 7
-  - position: {x: 2, y: 3}
-    direction: {x: -1, y: 0}
     color: 2
+  - position: {x: 4, y: 7}
+    direction: {x: 0, y: -1}
+    color: 7
   - position: {x: 4, y: 1}
     direction: {x: 1, y: 0}
-    color: 0
+    color: 2
   - position: {x: 5, y: 6}
     direction: {x: 0, y: 1}
+    color: 0
+  - position: {x: 4, y: 4}
+    direction: {x: -1, y: 0}
     color: 2
-  - position: {x: 2, y: 2}
+  - position: {x: 1, y: 6}
     direction: {x: 0, y: -1}
     color: 1
-  - position: {x: 4, y: 4}
+  - position: {x: 2, y: 2}
     direction: {x: 0, y: -1}
     color: 0
-  - position: {x: 2, y: 9}
-    direction: {x: 0, y: 1}
+  - position: {x: 2, y: 3}
+    direction: {x: 0, y: -1}
     color: 5
   underpasses:
   - position: {x: 2, y: 8}

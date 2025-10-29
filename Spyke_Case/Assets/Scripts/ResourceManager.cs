@@ -14,7 +14,8 @@ public class ResourceManager : MonoBehaviour
 
     // Genel Özellikler
     public int CurrentCoins { get; private set; }
-    public int CurrentLevel { get; private set; }
+    [SerializeField]
+    public int CurrentLevel;
     public List<int> LevelStars { get; private set; }
     public  int boardingStartIndex {get; private set; }
 

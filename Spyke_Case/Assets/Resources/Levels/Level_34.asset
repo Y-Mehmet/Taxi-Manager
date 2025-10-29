@@ -71,14 +71,14 @@ MonoBehaviour:
   - position: {x: 3, y: 6}
     direction: {x: 0, y: 1}
     color: 4
-  - position: {x: 5, y: 5}
-    direction: {x: 0, y: -1}
-    color: 5
   - position: {x: 3, y: 7}
     direction: {x: 0, y: 1}
-    color: 0
+    color: 5
   - position: {x: 4, y: 8}
     direction: {x: 0, y: 1}
+    color: 0
+  - position: {x: 5, y: 5}
+    direction: {x: 1, y: 0}
     color: 2
   underpasses:
   - position: {x: 2, y: 7}

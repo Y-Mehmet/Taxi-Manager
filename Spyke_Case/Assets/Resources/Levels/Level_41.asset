@@ -59,32 +59,32 @@ MonoBehaviour:
   - position: {x: 3, y: 3}
     direction: {x: -1, y: 0}
     color: 6
-  - position: {x: 3, y: 9}
-    direction: {x: -1, y: 0}
-    color: 2
-  - position: {x: 1, y: 4}
-    direction: {x: 0, y: 1}
-    color: 0
   - position: {x: 2, y: 1}
     direction: {x: 0, y: -1}
+    color: 2
+  - position: {x: 2, y: 9}
+    direction: {x: 1, y: 0}
     color: 1
   - position: {x: 5, y: 2}
     direction: {x: 0, y: -1}
-    color: 1
+    color: 4
   - position: {x: 5, y: 6}
     direction: {x: 1, y: 0}
     color: 1
   - position: {x: 5, y: 9}
     direction: {x: 0, y: 1}
-    color: 2
+    color: 1
   - position: {x: 4, y: 6}
     direction: {x: 0, y: 1}
-    color: 2
+    color: 5
   - position: {x: 4, y: 5}
     direction: {x: 0, y: 1}
-    color: 1
+    color: 2
   - position: {x: 4, y: 1}
     direction: {x: 0, y: 1}
+    color: 1
+  - position: {x: 2, y: 6}
+    direction: {x: 0, y: -1}
     color: 6
   underpasses:
   - position: {x: 1, y: 5}
@@ -324,22 +324,6 @@ MonoBehaviour:
     capacity: 1
   - color: 2
     capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 1
-    capacity: 1
   - color: 2
     capacity: 1
   - color: 2
@@ -396,6 +380,20 @@ MonoBehaviour:
     capacity: 1
   - color: 1
     capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 1
+    capacity: 1
   - color: 1
     capacity: 1
   - color: 1
@@ -404,13 +402,7 @@ MonoBehaviour:
     capacity: 1
   - color: 1
     capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
+  - color: 1
     capacity: 1
   - color: 4
     capacity: 1
@@ -459,6 +451,14 @@ MonoBehaviour:
   - color: 1
     capacity: 1
   - color: 1
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
     capacity: 1
   - color: 2
     capacity: 1

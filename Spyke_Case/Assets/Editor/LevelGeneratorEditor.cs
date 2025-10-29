@@ -4,8 +4,13 @@ using System.IO;
 
 public class LevelGeneratorEditor : EditorWindow
 {
+    // Single Generation
     private int levelNumber = 1;
     
+    // Batch Generation
+    private int batchStartLevel = 1;
+    private int batchEndLevel = 100;
+
     // Override fields
     private bool overrideNumUnderpasses = false;
     private int manualNumUnderpasses = 0;
@@ -24,12 +29,12 @@ public class LevelGeneratorEditor : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Label("Level Generation", EditorStyles.boldLabel);
-
+        // --- SINGLE LEVEL GENERATION ---
+        EditorGUILayout.LabelField("Single Level Generation", EditorStyles.boldLabel);
         levelNumber = EditorGUILayout.IntField("Level Number", levelNumber);
         
         EditorGUILayout.Space();
-        GUILayout.Label("Overrides", EditorStyles.boldLabel);
+        GUILayout.Label("Overrides (for Single Level)", EditorStyles.boldLabel);
 
         // Override UI
         overrideNumUnderpasses = EditorGUILayout.Toggle("Override Underpasses", overrideNumUnderpasses);
@@ -54,26 +59,72 @@ public class LevelGeneratorEditor : EditorWindow
 
         EditorGUILayout.Space();
 
-        // Combined Generate and Save Button
-        if (GUILayout.Button("Generate & Save Level"))
+        if (GUILayout.Button("Generate & Save Single Level"))
         {
-            if (levelNumber < 1)
+            GenerateSingleLevel();
+        }
+
+        // --- BATCH GENERATION ---
+        EditorGUILayout.Space(20);
+        EditorGUILayout.LabelField("Batch Level Generation", EditorStyles.boldLabel);
+        batchStartLevel = EditorGUILayout.IntField("Start Level", batchStartLevel);
+        batchEndLevel = EditorGUILayout.IntField("End Level", batchEndLevel);
+
+        if (GUILayout.Button("Generate Level Range"))
+        {
+            GenerateBatchLevels();
+        }
+    }
+
+    private void GenerateSingleLevel()
+    {
+        if (levelNumber < 1)
+        {
+            EditorUtility.DisplayDialog("Error", "Level number must be 1 or greater.", "OK");
+            return;
+        }
+
+        int? underpassOverride = overrideNumUnderpasses ? (int?)manualNumUnderpasses : null;
+        int? conveyorOverride = overrideNumConveyor ? (int?)manualNumConveyor : null;
+        int? passengerOverride = overrideNumPassengers ? (int?)manualNumPassengers : null;
+        int? colorOverride = overrideNumColors ? (int?)manualNumColors : null;
+
+        LevelDefinition levelDef = LevelGenerator.GenerateLevel(levelNumber, underpassOverride, conveyorOverride, passengerOverride, colorOverride);
+        SaveLevelSpawnSO(levelDef);
+    }
+
+    private void GenerateBatchLevels()
+    {
+        if (batchStartLevel < 1 || batchEndLevel < batchStartLevel)
+        {
+            EditorUtility.DisplayDialog("Error", "Invalid level range. Start level must be 1 or greater and less than or equal to end level.", "OK");
+            return;
+        }
+
+        try
+        {
+            AssetDatabase.StartAssetEditing();
+            int totalLevels = (batchEndLevel - batchStartLevel) + 1;
+            for (int i = 0; i < totalLevels; i++)
             {
-                EditorUtility.DisplayDialog("Error", "Level number must be 1 or greater.", "OK");
-                return;
+                int currentLevel = batchStartLevel + i;
+                EditorUtility.DisplayProgressBar(
+                    "Generating Levels", 
+                    $"Processing Level {currentLevel}...", 
+                    (float)i / totalLevels
+                );
+                // For batch generation, we don't use overrides.
+                LevelDefinition levelDef = LevelGenerator.GenerateLevel(currentLevel, null, null, null, null);
+                SaveLevelSpawnSO(levelDef);
             }
-
-            // Set override values to null if not toggled
-            int? underpassOverride = overrideNumUnderpasses ? (int?)manualNumUnderpasses : null;
-            int? conveyorOverride = overrideNumConveyor ? (int?)manualNumConveyor : null;
-            int? passengerOverride = overrideNumPassengers ? (int?)manualNumPassengers : null;
-            int? colorOverride = overrideNumColors ? (int?)manualNumColors : null;
-
-            // 1. Generate the level definition
-            LevelDefinition levelDef = LevelGenerator.GenerateLevel(levelNumber, underpassOverride, conveyorOverride, passengerOverride, colorOverride);
-
-            // 2. Automatically save the generated definition
-            SaveLevelSpawnSO(levelDef);
+        }
+        finally
+        {
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.StopAssetEditing();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            EditorUtility.DisplayDialog("Success", $"Successfully generated and saved levels from {batchStartLevel} to {batchEndLevel}.", "OK");
         }
     }
 
@@ -83,38 +134,26 @@ public class LevelGeneratorEditor : EditorWindow
         string fileName = $"Level_{levelDef.levelNumber}.asset";
         string path = Path.Combine(directoryPath, fileName);
 
-        // Ensure the directory exists
         Directory.CreateDirectory(directoryPath);
 
         LevelSpawnSO existingLevelSO = AssetDatabase.LoadAssetAtPath<LevelSpawnSO>(path);
 
         if (existingLevelSO != null)
         {
-            // Update existing asset
             existingLevelSO.initialPassengerGroups = levelDef.initialPassengerGroups;
             existingLevelSO.underpasses = levelDef.underpasses;
             existingLevelSO.wagons = levelDef.wagons;
             existingLevelSO.conveyorPassengers = levelDef.conveyorPassengers;
             EditorUtility.SetDirty(existingLevelSO);
-            Debug.Log($"Updated existing LevelSpawnSO at: {path}", this);
         }
         else
         {
-            // Create new asset
             LevelSpawnSO newLevelSO = CreateInstance<LevelSpawnSO>();
             newLevelSO.initialPassengerGroups = levelDef.initialPassengerGroups;
             newLevelSO.underpasses = levelDef.underpasses;
             newLevelSO.wagons = levelDef.wagons;
             newLevelSO.conveyorPassengers = levelDef.conveyorPassengers;
-
             AssetDatabase.CreateAsset(newLevelSO, path);
-            Debug.Log($"Created new LevelSpawnSO at: {path}", this);
         }
-
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-
-        EditorUtility.FocusProjectWindow();
-        Selection.activeObject = AssetDatabase.LoadAssetAtPath<LevelSpawnSO>(path);
     }
 }

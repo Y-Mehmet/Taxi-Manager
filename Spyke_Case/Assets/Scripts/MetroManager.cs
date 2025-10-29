@@ -86,23 +86,28 @@ public class MetroManager : MonoBehaviour
         Debug.Log("<color=green>TRAIN MOVEMENT RESTARTED.</color>");
     }
 
-    public void ToggleSpeed()
+    public void SetSpeedMultiplier(float newMultiplier)
     {
-        if (currentSpeedMultiplier == 4.0f)
-        {
-            currentSpeedMultiplier = 1.0f;
-        }
-        else if (currentSpeedMultiplier == 1.0f)
-        {
-            currentSpeedMultiplier = 2.0f;
-        }
-        else // currentSpeedMultiplier == 2.0f
-        {
-            currentSpeedMultiplier = 1.0f;
-        }
+        if (Mathf.Approximately(currentSpeedMultiplier, newMultiplier)) return;
 
+        currentSpeedMultiplier = newMultiplier;
         ApplySpeedMultiplier();
         OnSpeedMultiplierChanged?.Invoke($"{currentSpeedMultiplier}x");
+        Debug.Log($"[MetroManager] Speed explicitly set to {currentSpeedMultiplier}x.");
+    }
+
+    public void ToggleSpeed()
+    {
+        float newSpeed;
+        if (currentSpeedMultiplier == 1.0f)
+        {
+            newSpeed = 2.0f;
+        }
+        else
+        {
+            newSpeed = 1.0f;
+        }
+        SetSpeedMultiplier(newSpeed);
     }
 
     private void ApplySpeedMultiplier()

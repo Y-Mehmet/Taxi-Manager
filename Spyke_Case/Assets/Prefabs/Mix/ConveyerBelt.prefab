@@ -218,7 +218,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f47cccb97d816234994ed7284f30e6d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  passengerGroupsOnBelt: []
   speed: 2
+  passengerSpacing: 1
   startPoint: {fileID: 8124248080218945781}
   endPoint: {fileID: 4659874115686409441}
+  passengerGroupsOnBelt: []

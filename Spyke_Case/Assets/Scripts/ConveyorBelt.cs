@@ -7,39 +7,31 @@ public class ConveyorBelt : MonoBehaviour
 
     [Header("Belt Configuration")]
     [SerializeField] private float speed = 1f;
-    public float passengerSpacing = 1.2f; // Made public to be accessed by ConveyorManager
     public Transform startPoint;
     public Transform endPoint;
 
     [Header("Runtime State")]
     [SerializeField] private List<PassengerGroup> passengerGroupsOnBelt = new List<PassengerGroup>();
-    [SerializeField] private Vector3 queueTailPosition; // The position for the next recycled passenger
-
-    private Vector3 beltDirection;
+    
+    // A static, fixed X-coordinate to teleport passengers to, calculated by ConveyorManager.
+    private float respawnX;
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            beltDirection = (endPoint.position - startPoint.position).normalized;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    public void SetInitialTailPosition(Vector3 position)
+    public void SetRespawnX(float x)
     {
-        queueTailPosition = position;
+        respawnX = x;
+        Debug.Log($"[ConveyorBelt] Respawn X coordinate set to: {respawnX}");
     }
 
     void Update()
     {
         if (passengerGroupsOnBelt.Count == 0) return;
 
-        // Iterate backwards to safely remove items while looping
         for (int i = passengerGroupsOnBelt.Count - 1; i >= 0; i--)
         {
             var passenger = passengerGroupsOnBelt[i];
@@ -49,18 +41,18 @@ public class ConveyorBelt : MonoBehaviour
                 continue;
             }
 
-            // Check if the passenger has passed the end point
-            if (Vector3.Dot(endPoint.position - passenger.transform.position, beltDirection) < 0)
+            // Check if the passenger has passed the end point's X coordinate.
+            if (passenger.transform.position.x < endPoint.position.x)
             {
-                // --- Simplified Recycling Logic ---
-                passenger.transform.position = queueTailPosition;
-                // Update the tail position for the next passenger, moving it further out
-                queueTailPosition += startPoint.right * passengerSpacing;
+                // --- User's Explicit Formula ---
+                // Teleport the passenger to the calculated fixed X, preserving its Y and Z.
+                var currentPos = passenger.transform.position;
+                passenger.transform.position = new Vector3(respawnX, currentPos.y, currentPos.z);
             }
             else
             {
-                // Move passenger along the belt
-                passenger.transform.position += beltDirection * speed * Time.deltaTime;
+                // Move passenger to the left (negative X).
+                passenger.transform.position += Vector3.left * speed * Time.deltaTime;
             }
         }
     }

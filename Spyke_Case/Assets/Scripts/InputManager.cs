@@ -1,28 +1,20 @@
 using UnityEngine;
 using System;
 
-/// <summary>
-/// Handles all player input, such as touches and clicks, in a centralized place.
-/// It detects which objects are tapped and fires events accordingly.
-/// </summary>
 public class InputManager : MonoBehaviour
 {
-    // A singleton instance to ensure only one InputManager exists.
     public static InputManager Instance { get; private set; }
 
-    // Event fired when a PassengerGroup is successfully tapped.
     public static event Action<PassengerGroup> OnPassengerGroupTapped;
 
-    // A flag to disable input, for example when the game is over.
     private bool isInputDisabled = false;
+    private bool initialTapDone = false; // Flag for the one-time tap-to-start mechanic
 
     private void Awake()
     {
-        // Singleton pattern
         if (Instance == null)
         {
             Instance = this;
-          //  DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -32,14 +24,12 @@ public class InputManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // Subscribe to the game over event to disable input
         UberManager.OnGameOver += DisableInput;
         UIManager.OnSpeedToggleClicked += ToggleSpeed;
     }
 
     private void OnDisable()
     {
-        // Unsubscribe to prevent memory leaks
         if (UberManager.Instance != null)
         {
              UberManager.OnGameOver -= DisableInput;
@@ -49,35 +39,44 @@ public class InputManager : MonoBehaviour
 
     void Update()
     {
-        // If input is disabled, do nothing.
         if (isInputDisabled) return;
 
-        // Detect screen tap/click
+        // --- One-time tap to start mechanic ---
+        if (!initialTapDone)
+        {
+            // Check for any tap or click, but don't process the raycast yet.
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (MetroManager.Instance != null)
+                {
+                    // On the first tap, reduce speed from 4x to 1x.
+                    MetroManager.Instance.SetSpeedMultiplier(1.0f);
+                }
+                initialTapDone = true;
+                // Absorb the first tap; don't process it for passenger selection.
+                return; 
+            }
+        }
+        // --- End of one-time tap mechanic ---
+
+        // Regular input processing starts after the first tap.
         if (!TryGetTouchPosition(out Vector3 touchPosition))
         {
             return;
         }
 
-        // Cast a ray from the camera to the tap position
         Ray ray = Camera.main.ScreenPointToRay(touchPosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            // Check if the ray hit a PassengerGroup
             PassengerGroup tappedGroup = hit.transform.GetComponent<PassengerGroup>();
             if (tappedGroup != null)
             {
-                // Fire the event, passing the tapped group
                 Debug.Log($"[InputManager] Tapped on {tappedGroup.name}");
                 OnPassengerGroupTapped?.Invoke(tappedGroup);
             }
         }
     }
 
-    /// <summary>
-    /// Checks for touch or mouse input and returns the screen position.
-    /// </summary>
-    /// <param name="position">The screen position of the input.</param>
-    /// <returns>True if there was a new touch or click, false otherwise.</returns>
     private bool TryGetTouchPosition(out Vector3 position)
     {
         position = Vector3.zero;
@@ -99,9 +98,6 @@ public class InputManager : MonoBehaviour
         return false;
     }
     
-    /// <summary>
-    /// Public method to disable all input processing.
-    /// </summary>
     public void DisableInput()
     {
         Debug.Log("[InputManager] Input has been disabled.");

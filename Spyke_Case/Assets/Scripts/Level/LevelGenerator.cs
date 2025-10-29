@@ -105,12 +105,36 @@ public static class LevelGenerator
     
     private static void GenerateWagonTrainFromLayout(LevelDefinition levelDef, List<PlacedObject> solutionOrder, DifficultyParameters p, System.Random rng)
     {
+        // Generate wagons for the main solvable layout (initial passengers and underpasses)
         foreach (var obj in solutionOrder)
         {
-            if (obj.IsUnderpass) { foreach (var color in obj.UnderpassData.passengerSequence) { for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(color, 1)); } }
-            else { for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(obj.RepresentativeColor, 1)); }
+            if (obj.IsUnderpass)
+            {
+                foreach (var color in obj.UnderpassData.passengerSequence)
+                {
+                    for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(color, 1));
+                }
+            }
+            else
+            {
+                for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(obj.RepresentativeColor, 1));
+            }
         }
-        if (p.IsBossLevel) { levelDef.wagons = levelDef.wagons.OrderBy(_ => rng.Next()).ToList(); }
+
+        // *** THE FIX: Generate wagons for conveyor passengers as well ***
+        foreach (var conveyorPassenger in levelDef.conveyorPassengers)
+        {
+            for (int i = 0; i < p.PassengerCapacity; i++)
+            {
+                levelDef.wagons.Add(new WagonSpawnData(conveyorPassenger.color, 1));
+            }
+        }
+
+        // Shuffle the entire wagon list for variety, especially in boss levels
+        if (p.IsBossLevel || levelDef.wagons.Count > 10) // Add some variety to longer levels too
+        {
+            levelDef.wagons = levelDef.wagons.OrderBy(_ => rng.Next()).ToList();
+        }
     }
 
     // --- Placement and Validation Logic ---
@@ -119,7 +143,7 @@ public static class LevelGenerator
         placedPassenger = default;
         if (!IsValidPlacement(pos, occupied)) return false;
         if (mustBeUnblocked && !IsPathClear(pos, dir, occupied)) return false;
-        if (CreatesSharedTargetDeadlock(pos, dir, levelDef)) return false; // NEW CHECK
+        if (CreatesSharedTargetDeadlock(pos, dir, levelDef)) return false;
         if (CreatesCircularDeadlock(pos, dir, levelDef)) return false;
         placedPassenger = new PassengerSpawnData { position = pos, direction = dir, color = color };
         levelDef.initialPassengerGroups.Add(placedPassenger);
@@ -132,7 +156,7 @@ public static class LevelGenerator
         placedUnderpass = default;
         var passengerSpawnPos = pos + dir;
         if (!IsValidPlacement(pos, occupied) || !IsValidPlacement(passengerSpawnPos, occupied)) return false;
-        if (CreatesSharedTargetDeadlock(passengerSpawnPos, dir, levelDef)) return false; // NEW CHECK
+        if (CreatesSharedTargetDeadlock(passengerSpawnPos, dir, levelDef)) return false;
         if (CreatesCircularDeadlock(passengerSpawnPos, dir, levelDef)) return false;
         var sequence = Enumerable.Range(0, p.UnderpassSequenceLength).Select(_ => colors[rng.Next(colors.Count)]).ToList();
         placedUnderpass = new UnderpassSpawnData { position = pos, direction = dir, passengerSequence = sequence };
@@ -161,8 +185,7 @@ public static class LevelGenerator
         var allBlockers = GetAllBlockers(levelDef);
         foreach (var blocker in allBlockers)
         {
-            var blockerTarget = blocker.Position + blocker.Direction;
-            if (blockerTarget == candidateTarget) return true;
+            if ((blocker.Position + blocker.Direction) == candidateTarget) return true;
         }
         return false;
     }
@@ -172,10 +195,8 @@ public static class LevelGenerator
         var blockers = GetAllBlockers(levelDef);
         var candidate = new Blocker { Position = candidatePos, Direction = candidateDir };
         blockers.Add(candidate);
-        
         var dependencyChain = new List<Blocker>();
         var current = candidate;
-
         for (int i = 0; i < blockers.Count + 1; i++) 
         {
             dependencyChain.Add(current);

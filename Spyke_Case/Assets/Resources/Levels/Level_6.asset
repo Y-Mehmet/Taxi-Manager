@@ -148,3 +148,4 @@ MonoBehaviour:
     capacity: 1
   - color: 2
     capacity: 1
+  conveyorPassengers: []

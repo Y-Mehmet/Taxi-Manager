@@ -2017,4 +2017,4 @@ MonoBehaviour:
     capacity: 0
   - color: 0
     capacity: 0
-  conveyorPassengers: 00000000010000000a00000006000000080000000a000000090000000500000002000000
+  conveyorPassengers: []

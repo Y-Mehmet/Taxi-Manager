@@ -75,6 +75,8 @@ MonoBehaviour:
   wagons:
   - color: 4
     capacity: 1
+  - color: 7
+    capacity: 1
   - color: 4
     capacity: 1
   - color: 6
@@ -85,27 +87,43 @@ MonoBehaviour:
     capacity: 1
   - color: 2
     capacity: 1
+  - color: 6
+    capacity: 1
   - color: 2
     capacity: 1
   - color: 4
     capacity: 1
   - color: 7
     capacity: 1
-  - color: 7
+  - color: 2
     capacity: 1
   - color: 7
     capacity: 1
   - color: 7
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 3
     capacity: 1
   - color: 3
     capacity: 1
   - color: 0
+    capacity: 1
+  - color: 5
     capacity: 1
   - color: 3
     capacity: 1
   - color: 4
     capacity: 1
   - color: 3
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 3
     capacity: 1
@@ -117,6 +135,12 @@ MonoBehaviour:
     capacity: 1
   - color: 7
     capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 2
+    capacity: 1
   - color: 3
     capacity: 1
   - color: 0
@@ -129,7 +153,19 @@ MonoBehaviour:
     capacity: 1
   - color: 0
     capacity: 1
+  - color: 3
+    capacity: 1
   - color: 5
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 3
     capacity: 1
   - color: 2
     capacity: 1
@@ -137,9 +173,71 @@ MonoBehaviour:
     capacity: 1
   - color: 4
     capacity: 1
+  - color: 5
+    capacity: 1
   - color: 1
     capacity: 1
   - color: 3
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 7
     capacity: 1
   - color: 3
     capacity: 1
@@ -149,40 +247,6 @@ MonoBehaviour:
     capacity: 1
   - color: 5
     capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 6
-    capacity: 1
   - color: 5
     capacity: 1
   - color: 1
@@ -197,9 +261,17 @@ MonoBehaviour:
     capacity: 1
   - color: 7
     capacity: 1
+  - color: 4
+    capacity: 1
   - color: 0
     capacity: 1
   - color: 3
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 0
     capacity: 1
   - color: 3
     capacity: 1
@@ -217,6 +289,8 @@ MonoBehaviour:
     capacity: 1
   - color: 3
     capacity: 1
+  - color: 3
+    capacity: 1
   - color: 4
     capacity: 1
   - color: 4
@@ -224,6 +298,8 @@ MonoBehaviour:
   - color: 4
     capacity: 1
   - color: 2
+    capacity: 1
+  - color: 7
     capacity: 1
   - color: 4
     capacity: 1
@@ -238,6 +314,12 @@ MonoBehaviour:
   - color: 0
     capacity: 1
   - color: 4
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 0
     capacity: 1
   - color: 0
     capacity: 1
@@ -251,6 +333,10 @@ MonoBehaviour:
     capacity: 1
   - color: 1
     capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 5
+    capacity: 1
   - color: 5
     capacity: 1
   - color: 2
@@ -259,7 +345,15 @@ MonoBehaviour:
     capacity: 1
   - color: 1
     capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 5
+    capacity: 1
   - color: 4
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 6
     capacity: 1
   - color: 6
     capacity: 1
@@ -275,6 +369,8 @@ MonoBehaviour:
     capacity: 1
   - color: 4
     capacity: 1
+  - color: 2
+    capacity: 1
   - color: 4
     capacity: 1
   - color: 4
@@ -284,6 +380,10 @@ MonoBehaviour:
   - color: 2
     capacity: 1
   - color: 2
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 7
     capacity: 1
   - color: 7
     capacity: 1
@@ -303,13 +403,21 @@ MonoBehaviour:
     capacity: 1
   - color: 6
     capacity: 1
+  - color: 7
+    capacity: 1
   - color: 4
+    capacity: 1
+  - color: 3
     capacity: 1
   - color: 0
     capacity: 1
   - color: 7
     capacity: 1
   - color: 6
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
     capacity: 1
   - color: 3
     capacity: 1
@@ -319,13 +427,27 @@ MonoBehaviour:
     capacity: 1
   - color: 7
     capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
   - color: 3
+    capacity: 1
+  - color: 2
     capacity: 1
   - color: 1
     capacity: 1
   - color: 6
     capacity: 1
+  - color: 1
+    capacity: 1
   - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 3
     capacity: 1
   - color: 5
     capacity: 1
@@ -336,12 +458,16 @@ MonoBehaviour:
   - color: 2
     capacity: 1
   - color: 0
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 6
     capacity: 1
   - color: 0
     capacity: 1
   - color: 0
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 3
     capacity: 1
@@ -355,7 +481,15 @@ MonoBehaviour:
     capacity: 1
   - color: 2
     capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 0
+    capacity: 1
   - color: 4
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 7
     capacity: 1
   - color: 2
     capacity: 1
@@ -363,11 +497,17 @@ MonoBehaviour:
     capacity: 1
   - color: 7
     capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 3
+    capacity: 1
   - color: 3
     capacity: 1
   - color: 2
     capacity: 1
   - color: 3
+    capacity: 1
+  - color: 5
     capacity: 1
   - color: 6
     capacity: 1
@@ -375,9 +515,13 @@ MonoBehaviour:
     capacity: 1
   - color: 4
     capacity: 1
+  - color: 3
+    capacity: 1
   - color: 2
     capacity: 1
   - color: 3
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 4
     capacity: 1

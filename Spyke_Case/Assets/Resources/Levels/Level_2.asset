@@ -115,3 +115,4 @@ MonoBehaviour:
     capacity: 0
   - color: 0
     capacity: 0
+  conveyorPassengers: []

@@ -16,7 +16,7 @@ MonoBehaviour:
   initialPassengerGroups:
   - position: {x: 2, y: 1}
     direction: {x: 1, y: 0}
-    color: 1
+    color: 0
   underpasses: []
   wagons:
   - color: 0

@@ -5,19 +5,24 @@ public class ConveyorBelt : MonoBehaviour
 {
     public static ConveyorBelt Instance { get; private set; }
 
-    [SerializeField] private List<PassengerGroup> passengerGroupsOnBelt = new List<PassengerGroup>();
-    [SerializeField] private float speed = 2f;
-    
     [Header("Belt Configuration")]
+    [SerializeField] private float speed = 1f;
+    public float passengerSpacing = 1.2f; // Made public to be accessed by ConveyorManager
     public Transform startPoint;
     public Transform endPoint;
+
+    [Header("Runtime State")]
+    [SerializeField] private List<PassengerGroup> passengerGroupsOnBelt = new List<PassengerGroup>();
+    [SerializeField] private Vector3 queueTailPosition; // The position for the next recycled passenger
+
+    private Vector3 beltDirection;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            Debug.LogWarning("[ConveyorBelt] Singleton instance is set. ConveyorBelt is ready.");
+            beltDirection = (endPoint.position - startPoint.position).normalized;
         }
         else
         {
@@ -25,22 +30,37 @@ public class ConveyorBelt : MonoBehaviour
         }
     }
 
+    public void SetInitialTailPosition(Vector3 position)
+    {
+        queueTailPosition = position;
+    }
+
     void Update()
     {
-        // Each passenger moves independently.
-        foreach (var passenger in passengerGroupsOnBelt)
-        {
-            if (passenger == null || !passenger.gameObject.activeSelf) continue;
+        if (passengerGroupsOnBelt.Count == 0) return;
 
-            // If passenger reaches the end, loop it back to the start.
-            if (passenger.transform.position.x < endPoint.position.x)
+        // Iterate backwards to safely remove items while looping
+        for (int i = passengerGroupsOnBelt.Count - 1; i >= 0; i--)
+        {
+            var passenger = passengerGroupsOnBelt[i];
+            if (passenger == null)
             {
-                passenger.transform.position = startPoint.position;
+                passengerGroupsOnBelt.RemoveAt(i);
+                continue;
+            }
+
+            // Check if the passenger has passed the end point
+            if (Vector3.Dot(endPoint.position - passenger.transform.position, beltDirection) < 0)
+            {
+                // --- Simplified Recycling Logic ---
+                passenger.transform.position = queueTailPosition;
+                // Update the tail position for the next passenger, moving it further out
+                queueTailPosition += startPoint.right * passengerSpacing;
             }
             else
             {
-                // Otherwise, move it left.
-                passenger.transform.position += Vector3.left * speed * Time.deltaTime;
+                // Move passenger along the belt
+                passenger.transform.position += beltDirection * speed * Time.deltaTime;
             }
         }
     }

@@ -20,44 +20,46 @@ public class ConveyorManager : MonoBehaviour
         }
     }
 
-    // CORRECTED METHOD SIGNATURE
     public IEnumerator Initialize(List<PassengerSpawnData> conveyorPassengers, PassengerGroup passengerGroupPrefab)
     {
         if (conveyorPassengers == null || conveyorPassengers.Count == 0)
         {
-            Debug.Log("[ConveyorManager] No conveyor passengers specified in LevelSpawnSO.");
             yield break;
         }
 
-        // Wait until the ConveyorBelt instance is ready
         yield return new WaitUntil(() => ConveyorBelt.Instance != null);
 
         this.passengerGroupPrefab = passengerGroupPrefab;
 
-        // CORRECTED LOOP AND LOGIC
         for (int i = 0; i < conveyorPassengers.Count; i++)
         {
             PassengerSpawnData passengerData = conveyorPassengers[i];
             
-            // Instantiate the passenger
             PassengerGroup newPassengerGroup = Instantiate(passengerGroupPrefab);
             
-            // Set parent to the ConveyorBelt
             newPassengerGroup.transform.SetParent(ConveyorBelt.Instance.transform);
 
-            // Set properties as per the new requirements
-            newPassengerGroup.useGridPosition = false; // It's not on the main grid
+            newPassengerGroup.useGridPosition = false;
             newPassengerGroup.onConveyorBelt = true;
-            newPassengerGroup.moveDirection = Vector2Int.up; // Default direction
-            newPassengerGroup.SetGroupColor(passengerData.color); // Use color from PassengerSpawnData
+            newPassengerGroup.moveDirection = Vector2Int.up;
+            newPassengerGroup.SetGroupColor(passengerData.color);
 
-            // Calculate position with 1-unit X offset
-            Vector3 spawnPosition = ConveyorBelt.Instance.startPoint.position + new Vector3(i * 1.0f, 0, 0);
+            // --- CORRECTED INITIAL POSITIONING ---
+            // Use the belt's startPoint.right vector for correct spacing regardless of rotation
+            float spacing = ConveyorBelt.Instance.passengerSpacing;
+            Vector3 offset = ConveyorBelt.Instance.startPoint.right * i * spacing;
+            Vector3 spawnPosition = ConveyorBelt.Instance.startPoint.position + offset;
             newPassengerGroup.transform.position = spawnPosition;
 
-            // Add the passenger to the belt's management list
             ConveyorBelt.Instance.AddPassenger(newPassengerGroup);
         }
+
+        // --- SET THE INITIAL TAIL POSITION FOR RECYCLING ---
+        // The tail is where the *next* passenger would spawn.
+        float finalSpacing = ConveyorBelt.Instance.passengerSpacing;
+        Vector3 tailOffset = ConveyorBelt.Instance.startPoint.right * conveyorPassengers.Count * finalSpacing;
+        Vector3 initialTailPosition = ConveyorBelt.Instance.startPoint.position + tailOffset;
+        ConveyorBelt.Instance.SetInitialTailPosition(initialTailPosition);
     }
 
     public void RemovePassenger(PassengerGroup passenger)

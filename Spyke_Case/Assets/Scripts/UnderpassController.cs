@@ -89,15 +89,40 @@ public class UnderpassController : MonoBehaviour
         {
             AnimateNextPassengerToStart();
         }
+        else // The queue is now empty
+        {
+            // Ensure the waiting spot is cleared in the grid system
+            Vector2Int waitingSpot = myGridPosition + startCellOffset;
+            if (GridSystem.PassengerGrid.Instance != null)
+            {
+                var occupant = GridSystem.PassengerGrid.Instance.GetOccupant(waitingSpot);
+                if (occupant != null)
+                {
+                    Debug.Log($"[UnderpassController] Last passenger departed. Clearing occupant {occupant.name} from waiting spot {waitingSpot}.");
+                    GridSystem.PassengerGrid.Instance.UnregisterOccupant(waitingSpot, occupant);
+                }
+            }
+        }
     }
 
     public void ReturnPassengerToEndOfQueue(PassengerGroup returnedPassenger)
     {
         if (returnedPassenger == null) return;
 
+        // Defensive check: Prevent adding a duplicate if it was never properly dequeued.
+        if (passengerQueue.Contains(returnedPassenger))
+        {
+            Debug.LogWarning($"[UnderpassController] Tried to re-add {returnedPassenger.name} which was already in the queue. Aborting recall to prevent duplicates.");
+            return;
+        }
+
+        bool queueWasEmpty = passengerQueue.Count == 0;
+
+        // Deactivate and position the passenger in the hiding spot first
         returnedPassenger.gameObject.SetActive(false);
         returnedPassenger.transform.position = this.transform.position;
 
+        // Set rotation
         Transform transformToRotate = returnedPassenger.modelTransform != null ? returnedPassenger.modelTransform : returnedPassenger.transform;
         Vector3 directionVector = new Vector3(returnedPassenger.moveDirection.x, 0, returnedPassenger.moveDirection.y);
         if (directionVector != Vector3.zero)
@@ -105,9 +130,21 @@ public class UnderpassController : MonoBehaviour
             transformToRotate.rotation = Quaternion.LookRotation(directionVector);
         }
 
+        // Add to the queue
         passengerQueue.Enqueue(returnedPassenger);
+
+        // Re-subscribe to the event for this passenger that is now back in the queue
+        returnedPassenger.OnGroupDeparted += OnPassengerDeparted;
+
         UpdateCounterText();
         LogQueueState($"After {returnedPassenger.name} Recalled");
+
+        // If the queue was empty, this new passenger is now the active one.
+        if (queueWasEmpty)
+        {
+            Debug.Log($"[UnderpassController] Queue was empty. Activating {returnedPassenger.name} as the new lead.");
+            AnimateNextPassengerToStart();
+        }
     }
 
     private void ActivateFirstPassenger()
@@ -140,13 +177,20 @@ public class UnderpassController : MonoBehaviour
     {
         PassengerGroup nextGroup = passengerQueue.Peek();
         nextGroup.gameObject.SetActive(true);
-        
+
         Vector2Int startCellGridPos = myGridPosition + startCellOffset;
         Vector3 targetPos = gridManager.GetWorldPosition(startCellGridPos);
 
+        // Register the passenger in the grid at its destination BEFORE animating.
+        if (GridSystem.PassengerGrid.Instance != null)
+        {
+            GridSystem.PassengerGrid.Instance.RegisterOccupant(startCellGridPos, nextGroup);
+        }
+        nextGroup.gridPos = startCellGridPos;
+
         activeQueueAnimation = nextGroup.transform.DOMove(targetPos, 0.5f)
             .SetEase(Ease.OutQuad)
-            .OnComplete(() => 
+            .OnComplete(() =>
             {
                 nextGroup.GetComponent<Collider>().enabled = true;
                 activeQueueAnimation = null;

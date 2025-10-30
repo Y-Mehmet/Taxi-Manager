@@ -192,7 +192,7 @@ public class AbilityManager : MonoBehaviour
             if (selectedPassenger.OriginUnderpass != null)
             {
                 Debug.Log($"[AbilityManager] Recalling passenger '{selectedPassenger.name}' to its Underpass.");
-                selectedPassenger.OriginUnderpass.ReturnPassengerToFront(selectedPassenger);
+                selectedPassenger.OriginUnderpass.ReturnPassengerToEndOfQueue(selectedPassenger);
                 handled = true;
             }
             // Scenario 2: Passenger is from a Conveyor

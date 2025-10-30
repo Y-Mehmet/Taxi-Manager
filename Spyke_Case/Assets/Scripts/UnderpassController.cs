@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using System.Linq;
+using System.Text;
 
 public class UnderpassController : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class UnderpassController : MonoBehaviour
     private Queue<PassengerGroup> passengerQueue = new Queue<PassengerGroup>();
     private GridManager gridManager;
     private Vector2Int myGridPosition;
+    private Tween activeQueueAnimation = null;
 
     private void Awake()
     {
@@ -28,61 +30,57 @@ public class UnderpassController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// UnderpassManager tarafından çağrılarak bu alt geçidi başlatır.
-    /// </summary>
     public void Initialize(GridManager gridManager, Vector2Int gridPosition, PassengerGroup passengerPrefab, List<HyperCasualColor> sequence)
     {
         this.gridManager = gridManager;
         this.myGridPosition = gridPosition;
 
-        // Yolcuları oluştur ve kuyruğa ekle
+        int groupIndex = 0;
         foreach (var color in sequence)
         {
-            Vector3 spawnPos = transform.position; // Bu obje zaten EndCell'e spawn edilecek
+            Vector3 spawnPos = transform.position;
             PassengerGroup newGroup = Instantiate(passengerPrefab, spawnPos, Quaternion.identity, transform);
+            newGroup.name = groupIndex.ToString();
             newGroup.SetGroupColor(color);
             newGroup.moveDirection = this.startCellOffset;
-            newGroup.GetComponent<Collider>().enabled = false;
-            
-            // Set origin for ability logic
             newGroup.OriginUnderpass = this;
+            newGroup.followTarget = null;
+            newGroup.railMode = false;
+
+            // Subscribe to the INSTANCE event for this specific passenger
+            newGroup.OnGroupDeparted += OnPassengerDeparted;
+
+            if (groupIndex > 0)
+            {
+                newGroup.gameObject.SetActive(false);
+            }
 
             passengerQueue.Enqueue(newGroup);
-        }
-
-        // --- GEMINI-DEBUG: Log spawned passenger colors ---
-        Debug.LogWarning($"--- Logging Spawned Passenger Colors for Underpass {name} ---");
-        int groupIndex = 0;
-        foreach (var group in passengerQueue)
-        {
-            if (group != null)
-            {
-                Debug.LogWarning($"Spawned Passenger [{groupIndex}] has color: {group.groupColor}");
-            }
-            else
-            {
-                Debug.LogWarning($"Spawned Passenger [{groupIndex}] is NULL.");
-            }
             groupIndex++;
         }
-        Debug.LogWarning("--- End of Spawned Passenger Log ---");
-        // --- END GEMINI-DEBUG ---
 
-        // İlk yolcuyu bekleme noktasına taşı ve aktifleştir
         ActivateFirstPassenger();
         UpdateCounterText();
+        LogQueueState("Initial State");
     }
 
-    /// <summary>
-    /// Bir yolcu bu kuyruktan ayrıldığında UnderpassManager tarafından çağrılır.
-    /// </summary>
+    private void OnPassengerDeparted(PassengerGroup departedGroup)
+    {
+        // Safety check: This should always be true now that we use instance events.
+        if (passengerQueue.Count > 0 && passengerQueue.Peek() == departedGroup)
+        {
+            HandleDeparture();
+            LogQueueState($"After {departedGroup.name} Departed");
+        }
+    }
+
     public void HandleDeparture()
     {
         if (passengerQueue.Count > 0)
         {
-            PassengerGroup departedGroup = passengerQueue.Dequeue();
-            // İsteğe bağlı: departedGroup objesini yok et (Destroy)
+            // Unsubscribe from the departing passenger's event to prevent memory leaks
+            PassengerGroup departedPassenger = passengerQueue.Dequeue();
+            if(departedPassenger != null) departedPassenger.OnGroupDeparted -= OnPassengerDeparted;
         }
 
         UpdateCounterText();
@@ -93,29 +91,23 @@ public class UnderpassController : MonoBehaviour
         }
     }
 
-    public void ReturnPassengerToFront(PassengerGroup returnedPassenger)
+    public void ReturnPassengerToEndOfQueue(PassengerGroup returnedPassenger)
     {
-        Debug.Log($"[UnderpassController] {name} is recalling {returnedPassenger.name} to the front of the queue.");
+        if (returnedPassenger == null) return;
 
-        List<PassengerGroup> newQueueOrder = new List<PassengerGroup>();
-        newQueueOrder.Add(returnedPassenger);
+        returnedPassenger.gameObject.SetActive(false);
+        returnedPassenger.transform.position = this.transform.position;
 
-        if (passengerQueue.Count > 0)
+        Transform transformToRotate = returnedPassenger.modelTransform != null ? returnedPassenger.modelTransform : returnedPassenger.transform;
+        Vector3 directionVector = new Vector3(returnedPassenger.moveDirection.x, 0, returnedPassenger.moveDirection.y);
+        if (directionVector != Vector3.zero)
         {
-            PassengerGroup currentActive = passengerQueue.Peek();
-            if (currentActive != null && currentActive != returnedPassenger)
-            {
-                Debug.Log($"[UnderpassController] Deactivating current passenger {currentActive.name} and putting it behind {returnedPassenger.name}.");
-                currentActive.GetComponent<Collider>().enabled = false;
-                currentActive.transform.position = this.transform.position; // Move to hiding spot
-            }
-            newQueueOrder.AddRange(passengerQueue.ToList());
+            transformToRotate.rotation = Quaternion.LookRotation(directionVector);
         }
 
-        passengerQueue = new Queue<PassengerGroup>(newQueueOrder);
-
-        ActivateFirstPassenger();
+        passengerQueue.Enqueue(returnedPassenger);
         UpdateCounterText();
+        LogQueueState($"After {returnedPassenger.name} Recalled");
     }
 
     private void ActivateFirstPassenger()
@@ -123,26 +115,23 @@ public class UnderpassController : MonoBehaviour
         if (passengerQueue.Count > 0)
         {
             PassengerGroup firstGroup = passengerQueue.Peek();
+            firstGroup.gameObject.SetActive(true);
             Vector2Int startCellGridPos = myGridPosition + startCellOffset;
 
-            // Update grid system and passenger state
             if (GridSystem.PassengerGrid.Instance != null)
             {
                 GridSystem.PassengerGrid.Instance.RegisterOccupant(startCellGridPos, firstGroup);
             }
             firstGroup.gridPos = startCellGridPos;
 
-            // Update transform
             firstGroup.transform.position = gridManager.GetWorldPosition(startCellGridPos);
             firstGroup.GetComponent<Collider>().enabled = true;
 
-            // Set rotation to face its move direction
             Transform transformToRotate = firstGroup.modelTransform != null ? firstGroup.modelTransform : firstGroup.transform;
             Vector3 directionVector = new Vector3(firstGroup.moveDirection.x, 0, firstGroup.moveDirection.y);
             if (directionVector != Vector3.zero)
             {
-                Quaternion targetRotation = Quaternion.LookRotation(directionVector);
-                transformToRotate.rotation = targetRotation;
+                transformToRotate.rotation = Quaternion.LookRotation(directionVector);
             }
         }
     }
@@ -150,15 +139,17 @@ public class UnderpassController : MonoBehaviour
     private void AnimateNextPassengerToStart()
     {
         PassengerGroup nextGroup = passengerQueue.Peek();
+        nextGroup.gameObject.SetActive(true);
+        
         Vector2Int startCellGridPos = myGridPosition + startCellOffset;
         Vector3 targetPos = gridManager.GetWorldPosition(startCellGridPos);
 
-        // Animasyon tamamlandığında grubu tıklanabilir yap
-        nextGroup.transform.DOMove(targetPos, 0.5f)
+        activeQueueAnimation = nextGroup.transform.DOMove(targetPos, 0.5f)
             .SetEase(Ease.OutQuad)
             .OnComplete(() => 
             {
                 nextGroup.GetComponent<Collider>().enabled = true;
+                activeQueueAnimation = null;
             });
     }
 
@@ -166,10 +157,28 @@ public class UnderpassController : MonoBehaviour
     {
         if (queueCounterText != null)
         {
-            // Aktif olan hariç, kuyrukta bekleyenlerin sayısı
             int waitingCount = passengerQueue.Count > 0 ? passengerQueue.Count - 1 : 0;
             queueCounterText.text = waitingCount.ToString();
         }
+    }
+
+    private void LogQueueState(string context)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append($"<color=cyan>[{context}] Underpass '{name}' Queue:</color> ");
+        if (passengerQueue.Count == 0)
+        {
+            sb.Append("(Empty)");
+        }
+        else
+        {
+            PassengerGroup activePassenger = passengerQueue.Peek();
+            foreach (var passenger in passengerQueue)
+            {
+                sb.Append($"{passenger.name} ({(passenger == activePassenger ? "Active" : "Passive")}), ");
+            }
+        }
+        Debug.Log(sb.ToString());
     }
 
     public Queue<PassengerGroup> GetQueue()

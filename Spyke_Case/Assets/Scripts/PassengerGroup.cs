@@ -6,7 +6,7 @@ using GridSystem.Data;
 using DG.Tweening;
 public class PassengerGroup : MonoBehaviour
 {
-    public static event System.Action<PassengerGroup> OnGroupDeparted;
+    public event System.Action<PassengerGroup> OnGroupDeparted;
     public static event System.Action OnGroupClicked;
     public event System.Action<int> OnGroupSizeDecreased;
     public event System.Action<int> OnAvailableSlotsChanged;

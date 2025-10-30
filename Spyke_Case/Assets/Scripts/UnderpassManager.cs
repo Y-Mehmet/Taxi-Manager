@@ -35,22 +35,5 @@ public class UnderpassManager : MonoBehaviour
                 groupToUnderpassMap[groupInQueue] = newUnderpass;
             }
         }
-
-        // Event dinleyicisini başlat
-        PassengerGroup.OnGroupDeparted += OnPassengerGroupDeparted;
-    }
-
-    private void OnDisable()
-    {
-        PassengerGroup.OnGroupDeparted -= OnPassengerGroupDeparted;
-    }
-
-    private void OnPassengerGroupDeparted(PassengerGroup departedGroup)
-    {
-        if (groupToUnderpassMap.TryGetValue(departedGroup, out UnderpassController controller))
-        {
-            controller.HandleDeparture();
-            groupToUnderpassMap.Remove(departedGroup);
-        }
     }
 }

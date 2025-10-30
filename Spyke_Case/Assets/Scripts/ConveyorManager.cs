@@ -38,6 +38,7 @@ public class ConveyorManager : MonoBehaviour
 
             newPassengerGroup.useGridPosition = false;
             newPassengerGroup.onConveyorBelt = true;
+            newPassengerGroup.fromConveyor = true; // Set origin for ability logic
             newPassengerGroup.moveDirection = Vector2Int.up; // This is not used for movement, but for logic.
             newPassengerGroup.SetGroupColor(passengerData.color);
 

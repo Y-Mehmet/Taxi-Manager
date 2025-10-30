@@ -72,4 +72,51 @@ public class ConveyorBelt : MonoBehaviour
             passengerGroupsOnBelt.Remove(passenger);
         }
     }
+
+    public void AddPassengerToEmptySlot(PassengerGroup passenger)
+    {
+        if (passenger == null) return;
+
+        passenger.transform.SetParent(this.transform);
+        passenger.onConveyorBelt = true;
+
+        if (passengerGroupsOnBelt.Count == 0)
+        {
+            float spawnX = startPoint.position.x;
+            Vector3 spawnPosition = new Vector3(spawnX, startPoint.position.y, startPoint.position.z);
+            passenger.transform.position = spawnPosition;
+            AddPassenger(passenger);
+            return;
+        }
+
+        passengerGroupsOnBelt.Sort((a, b) => b.transform.position.x.CompareTo(a.transform.position.x));
+
+        const float desiredSpacing = 1.5f;
+        bool slotFound = false;
+
+        for (int i = 0; i < passengerGroupsOnBelt.Count - 1; i++)
+        {
+            Vector3 currentPos = passengerGroupsOnBelt[i].transform.position;
+            Vector3 nextPos = passengerGroupsOnBelt[i + 1].transform.position;
+
+            if (currentPos.x - nextPos.x > desiredSpacing * 2)
+            {
+                float spawnX = nextPos.x + (currentPos.x - nextPos.x) / 2;
+                Vector3 spawnPosition = new Vector3(spawnX, startPoint.position.y, startPoint.position.z);
+                passenger.transform.position = spawnPosition;
+                slotFound = true;
+                break;
+            }
+        }
+
+        if (!slotFound)
+        {
+            float lastX = passengerGroupsOnBelt[0].transform.position.x;
+            float spawnX = lastX + desiredSpacing;
+            Vector3 spawnPosition = new Vector3(spawnX, startPoint.position.y, startPoint.position.z);
+            passenger.transform.position = spawnPosition;
+        }
+
+        AddPassenger(passenger);
+    }
 }

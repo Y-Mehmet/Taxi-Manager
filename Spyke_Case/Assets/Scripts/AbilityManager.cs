@@ -184,12 +184,38 @@ public class AbilityManager : MonoBehaviour
 
         if (isAtStop)
         {
-            Debug.Log($"[AbilityManager] Recalling passenger group '{selectedPassenger.name}' to its origin.");
-            
-            // Call the new method on the passenger group
-            selectedPassenger.ReturnToOrigin();
+            // Evict from the stop first
+            StopManager.Instance.EvictPassenger(selectedPassenger);
 
-            Debug.Log($"[AbilityManager] Passenger '{selectedPassenger.name}' at a stop selected for Recall ability. SUCCESS.");
+            bool handled = false;
+            // Scenario 1: Passenger is from an Underpass
+            if (selectedPassenger.OriginUnderpass != null)
+            {
+                Debug.Log($"[AbilityManager] Recalling passenger '{selectedPassenger.name}' to its Underpass.");
+                selectedPassenger.OriginUnderpass.ReturnPassengerToFront(selectedPassenger);
+                handled = true;
+            }
+            // Scenario 2: Passenger is from a Conveyor
+            else if (selectedPassenger.fromConveyor)
+            {
+                Debug.Log($"[AbilityManager] Recalling passenger '{selectedPassenger.name}' to the Conveyor Belt.");
+                if (ConveyorBelt.Instance != null)
+                {
+                    ConveyorBelt.Instance.AddPassengerToEmptySlot(selectedPassenger);
+                    handled = true;
+                }
+                else
+                {
+                    Debug.LogError("[AbilityManager] ConveyorBelt instance not found! Cannot return passenger.");
+                }
+            }
+
+            // Fallback for any other passenger type
+            if (!handled)
+            {
+                Debug.LogWarning($"[AbilityManager] Passenger '{selectedPassenger.name}' has an unknown origin. Using generic ReturnToOrigin().");
+                selectedPassenger.ReturnToOrigin();
+            }
 
             // Consume the ability and exit the mode
             CancelAbilityMode();

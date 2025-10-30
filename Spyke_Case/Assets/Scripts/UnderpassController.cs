@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
+using System.Linq;
 
 public class UnderpassController : MonoBehaviour
 {
@@ -35,8 +36,6 @@ public class UnderpassController : MonoBehaviour
         this.gridManager = gridManager;
         this.myGridPosition = gridPosition;
 
-
-
         // Yolcuları oluştur ve kuyruğa ekle
         foreach (var color in sequence)
         {
@@ -45,6 +44,10 @@ public class UnderpassController : MonoBehaviour
             newGroup.SetGroupColor(color);
             newGroup.moveDirection = this.startCellOffset;
             newGroup.GetComponent<Collider>().enabled = false;
+            
+            // Set origin for ability logic
+            newGroup.OriginUnderpass = this;
+
             passengerQueue.Enqueue(newGroup);
         }
 
@@ -90,14 +93,57 @@ public class UnderpassController : MonoBehaviour
         }
     }
 
+    public void ReturnPassengerToFront(PassengerGroup returnedPassenger)
+    {
+        Debug.Log($"[UnderpassController] {name} is recalling {returnedPassenger.name} to the front of the queue.");
+
+        List<PassengerGroup> newQueueOrder = new List<PassengerGroup>();
+        newQueueOrder.Add(returnedPassenger);
+
+        if (passengerQueue.Count > 0)
+        {
+            PassengerGroup currentActive = passengerQueue.Peek();
+            if (currentActive != null && currentActive != returnedPassenger)
+            {
+                Debug.Log($"[UnderpassController] Deactivating current passenger {currentActive.name} and putting it behind {returnedPassenger.name}.");
+                currentActive.GetComponent<Collider>().enabled = false;
+                currentActive.transform.position = this.transform.position; // Move to hiding spot
+            }
+            newQueueOrder.AddRange(passengerQueue.ToList());
+        }
+
+        passengerQueue = new Queue<PassengerGroup>(newQueueOrder);
+
+        ActivateFirstPassenger();
+        UpdateCounterText();
+    }
+
     private void ActivateFirstPassenger()
     {
         if (passengerQueue.Count > 0)
         {
             PassengerGroup firstGroup = passengerQueue.Peek();
             Vector2Int startCellGridPos = myGridPosition + startCellOffset;
+
+            // Update grid system and passenger state
+            if (GridSystem.PassengerGrid.Instance != null)
+            {
+                GridSystem.PassengerGrid.Instance.RegisterOccupant(startCellGridPos, firstGroup);
+            }
+            firstGroup.gridPos = startCellGridPos;
+
+            // Update transform
             firstGroup.transform.position = gridManager.GetWorldPosition(startCellGridPos);
             firstGroup.GetComponent<Collider>().enabled = true;
+
+            // Set rotation to face its move direction
+            Transform transformToRotate = firstGroup.modelTransform != null ? firstGroup.modelTransform : firstGroup.transform;
+            Vector3 directionVector = new Vector3(firstGroup.moveDirection.x, 0, firstGroup.moveDirection.y);
+            if (directionVector != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(directionVector);
+                transformToRotate.rotation = targetRotation;
+            }
         }
     }
 

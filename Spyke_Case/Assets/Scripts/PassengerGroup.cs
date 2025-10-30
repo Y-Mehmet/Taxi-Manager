@@ -50,6 +50,10 @@ public class PassengerGroup : MonoBehaviour
     public Vector2Int moveDirection = Vector2Int.up;
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
     public Vector3 originalPosition;
+
+    // Origin tracking for abilities
+    public UnderpassController OriginUnderpass { get; set; }
+    public bool fromConveyor = false;
     [SerializeField]
      float moveSpeed = 7f; 
     public Transform modelTransform;

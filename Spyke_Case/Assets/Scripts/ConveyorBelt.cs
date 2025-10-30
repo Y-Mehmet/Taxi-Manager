@@ -80,6 +80,10 @@ public class ConveyorBelt : MonoBehaviour
         passenger.transform.SetParent(this.transform);
         passenger.onConveyorBelt = true;
 
+        // Set rotation to face forward on the belt
+        Transform transformToRotate = passenger.modelTransform != null ? passenger.modelTransform : passenger.transform;
+        transformToRotate.rotation = Quaternion.LookRotation(Vector3.forward);
+
         if (passengerGroupsOnBelt.Count == 0)
         {
             float spawnX = startPoint.position.x;

@@ -14,342 +14,255 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gridData: {fileID: 0}
   initialPassengerGroups:
+  - position: {x: 4, y: 4}
+    direction: {x: 1, y: 0}
+    color: 8
+  - position: {x: 5, y: 2}
+    direction: {x: 0, y: 1}
+    color: 9
+  - position: {x: 2, y: 4}
+    direction: {x: 0, y: -1}
+    color: 4
+  - position: {x: 5, y: 4}
+    direction: {x: 1, y: 0}
+    color: 1
   - position: {x: 5, y: 5}
     direction: {x: -1, y: 0}
+    color: 7
+  - position: {x: 3, y: 5}
+    direction: {x: 1, y: 0}
+    color: 7
+  - position: {x: 3, y: 1}
+    direction: {x: 1, y: 0}
+    color: 10
+  - position: {x: 1, y: 6}
+    direction: {x: 1, y: 0}
+    color: 2
+  - position: {x: 5, y: 8}
+    direction: {x: 0, y: -1}
+    color: 3
+  - position: {x: 1, y: 7}
+    direction: {x: -1, y: 0}
+    color: 8
+  - position: {x: 1, y: 8}
+    direction: {x: 1, y: 0}
+    color: 5
+  - position: {x: 3, y: 6}
+    direction: {x: -1, y: 0}
+    color: 5
+  - position: {x: 2, y: 3}
+    direction: {x: 0, y: -1}
     color: 6
   - position: {x: 3, y: 2}
     direction: {x: 0, y: 1}
-    color: 2
-  - position: {x: 2, y: 8}
-    direction: {x: -1, y: 0}
-    color: 5
-  - position: {x: 1, y: 5}
-    direction: {x: 0, y: -1}
-    color: 2
-  - position: {x: 3, y: 7}
-    direction: {x: -1, y: 0}
-    color: 8
-  - position: {x: 5, y: 9}
-    direction: {x: 0, y: 1}
-    color: 6
-  - position: {x: 2, y: 1}
-    direction: {x: 0, y: -1}
-    color: 5
-  - position: {x: 5, y: 7}
-    direction: {x: 1, y: 0}
     color: 10
-  - position: {x: 3, y: 1}
-    direction: {x: 0, y: 1}
-    color: 0
-  - position: {x: 5, y: 8}
-    direction: {x: -1, y: 0}
-    color: 4
-  - position: {x: 4, y: 6}
-    direction: {x: 1, y: 0}
-    color: 6
   - position: {x: 4, y: 1}
-    direction: {x: 0, y: -1}
-    color: 2
-  - position: {x: 2, y: 5}
-    direction: {x: 0, y: 1}
-    color: 8
-  - position: {x: 5, y: 2}
-    direction: {x: -1, y: 0}
-    color: 3
-  - position: {x: 1, y: 6}
-    direction: {x: 0, y: 1}
-    color: 2
-  - position: {x: 4, y: 3}
-    direction: {x: 0, y: 1}
+    direction: {x: 1, y: 0}
     color: 9
+  - position: {x: 4, y: 3}
+    direction: {x: 1, y: 0}
+    color: 3
   - position: {x: 1, y: 1}
     direction: {x: 0, y: -1}
-    color: 9
-  - position: {x: 5, y: 4}
+    color: 10
+  - position: {x: 4, y: 9}
     direction: {x: 0, y: -1}
-    color: 6
-  - position: {x: 2, y: 4}
-    direction: {x: 0, y: -1}
-    color: 2
-  - position: {x: 2, y: 6}
-    direction: {x: -1, y: 0}
-    color: 3
+    color: 0
   - position: {x: 2, y: 9}
-    direction: {x: 0, y: -1}
-    color: 6
-  - position: {x: 4, y: 5}
+    direction: {x: -1, y: 0}
+    color: 9
+  - position: {x: 2, y: 8}
     direction: {x: 0, y: 1}
-    color: 2
+    color: 0
   - position: {x: 5, y: 1}
     direction: {x: 1, y: 0}
-    color: 4
-  - position: {x: 1, y: 9}
-    direction: {x: 0, y: 1}
-    color: 0
+    color: 2
   - position: {x: 1, y: 2}
     direction: {x: 1, y: 0}
+    color: 8
+  - position: {x: 5, y: 3}
+    direction: {x: 0, y: 1}
     color: 4
-  - position: {x: 3, y: 6}
+  - position: {x: 1, y: 5}
     direction: {x: 0, y: 1}
     color: 2
-  - position: {x: 4, y: 2}
-    direction: {x: 0, y: -1}
-    color: 7
-  - position: {x: 5, y: 3}
-    direction: {x: 0, y: -1}
-    color: 4
   - position: {x: 5, y: 6}
+    direction: {x: 1, y: 0}
+    color: 1
+  - position: {x: 3, y: 9}
+    direction: {x: 0, y: -1}
+    color: 5
+  - position: {x: 4, y: 2}
+    direction: {x: 1, y: 0}
+    color: 6
+  - position: {x: 4, y: 8}
+    direction: {x: -1, y: 0}
+    color: 5
+  - position: {x: 5, y: 9}
+    direction: {x: 0, y: -1}
+    color: 1
+  - position: {x: 1, y: 9}
+    direction: {x: -1, y: 0}
+    color: 5
+  - position: {x: 2, y: 7}
     direction: {x: 0, y: 1}
-    color: 0
+    color: 1
+  underpasses:
+  - position: {x: 3, y: 8}
+    direction: {x: 0, y: -1}
+    passengerSequence: 0a0000000700000002000000010000000500000006000000
+  - position: {x: 5, y: 7}
+    direction: {x: -1, y: 0}
+    passengerSequence: 020000000700000002000000070000000600000007000000
+  - position: {x: 4, y: 5}
+    direction: {x: 0, y: 1}
+    passengerSequence: 060000000400000006000000060000000300000002000000
+  - position: {x: 2, y: 5}
+    direction: {x: 0, y: 1}
+    passengerSequence: 010000000200000008000000000000000300000002000000
+  - position: {x: 1, y: 3}
+    direction: {x: 0, y: 1}
+    passengerSequence: 050000000700000004000000010000000000000005000000
+  - position: {x: 3, y: 3}
+    direction: {x: 0, y: 1}
+    passengerSequence: 0a0000000900000004000000040000000200000001000000
   - position: {x: 2, y: 2}
     direction: {x: 0, y: -1}
-    color: 2
-  - position: {x: 3, y: 8}
-    direction: {x: 0, y: 1}
-    color: 1
-  - position: {x: 1, y: 8}
-    direction: {x: -1, y: 0}
-    color: 1
-  - position: {x: 3, y: 5}
-    direction: {x: 0, y: -1}
-    color: 6
-  underpasses:
-  - position: {x: 4, y: 9}
-    direction: {x: -1, y: 0}
-    passengerSequence: 070000000200000009000000020000000700000004000000
-  - position: {x: 3, y: 3}
-    direction: {x: -1, y: 0}
-    passengerSequence: 0a0000000100000003000000030000000900000001000000
-  - position: {x: 4, y: 7}
-    direction: {x: 0, y: 1}
-    passengerSequence: 0900000002000000010000000a0000000a00000003000000
-  - position: {x: 1, y: 4}
-    direction: {x: 0, y: -1}
-    passengerSequence: 030000000300000007000000050000000100000009000000
-  - position: {x: 3, y: 4}
-    direction: {x: 1, y: 0}
-    passengerSequence: 060000000700000008000000010000000800000003000000
-  - position: {x: 2, y: 7}
-    direction: {x: -1, y: 0}
-    passengerSequence: 090000000600000000000000000000000400000007000000
+    passengerSequence: 070000000000000005000000070000000400000004000000
   wagons:
-  - color: 1
-    capacity: 1
-  - color: 7
+  - color: 9
     capacity: 1
   - color: 4
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 8
     capacity: 1
   - color: 0
     capacity: 1
-  - color: 9
+  - color: 6
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 6
     capacity: 1
   - color: 3
     capacity: 1
-  - color: 3
+  - color: 10
     capacity: 1
-  - color: 3
+  - color: 0
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 6
     capacity: 1
   - color: 6
     capacity: 1
   - color: 5
     capacity: 1
+  - color: 3
+    capacity: 1
   - color: 2
     capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 4
+    capacity: 1
   - color: 9
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 7
     capacity: 1
   - color: 5
     capacity: 1
   - color: 2
     capacity: 1
-  - color: 2
+  - color: 5
+    capacity: 1
+  - color: 7
     capacity: 1
   - color: 9
     capacity: 1
   - color: 10
     capacity: 1
-  - color: 9
+  - color: 4
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
     capacity: 1
   - color: 8
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 7
     capacity: 1
   - color: 6
     capacity: 1
   - color: 5
     capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 0
+  - color: 1
     capacity: 1
   - color: 4
     capacity: 1
   - color: 7
     capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 1
-    capacity: 1
   - color: 7
     capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 6
+  - color: 5
     capacity: 1
   - color: 4
     capacity: 1
   - color: 1
     capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
-    capacity: 1
   - color: 6
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 10
     capacity: 1
   - color: 1
     capacity: 1
-  - color: 2
+  - color: 10
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 1
     capacity: 1
   - color: 0
     capacity: 1
-  - color: 8
+  - color: 1
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 7
     capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 4
+  - color: 8
     capacity: 1
   - color: 2
     capacity: 1
@@ -357,29 +270,79 @@ MonoBehaviour:
     capacity: 1
   - color: 0
     capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 4
+  - color: 2
     capacity: 1
   - color: 2
     capacity: 1
-  - color: 3
+  - color: 7
     capacity: 1
-  - color: 3
+  - color: 10
     capacity: 1
-  - color: 6
+  - color: 2
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 8
     capacity: 1
   - color: 7
     capacity: 1
   - color: 1
     capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 4
+    capacity: 1
   - color: 2
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 0
     capacity: 1
   - color: 5
     capacity: 1
@@ -387,223 +350,41 @@ MonoBehaviour:
     capacity: 1
   - color: 6
     capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 8
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 1
-    capacity: 1
   - color: 2
     capacity: 1
   - color: 7
     capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 1
-    capacity: 1
   - color: 2
     capacity: 1
-  - color: 5
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 4
-    capacity: 1
   - color: 3
-    capacity: 1
-  - color: 6
-    capacity: 1
-  - color: 2
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 10
-    capacity: 1
-  - color: 3
-    capacity: 1
-  - color: 9
     capacity: 1
   - color: 7
     capacity: 1
-  - color: 3
+  - color: 2
     capacity: 1
-  - color: 5
+  - color: 6
+    capacity: 1
+  - color: 3
     capacity: 1
   - color: 6
     capacity: 1
   - color: 4
     capacity: 1
-  - color: 4
+  - color: 5
     capacity: 1
   - color: 1
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 5
     capacity: 1
   - color: 7
     capacity: 1
@@ -611,78 +392,326 @@ MonoBehaviour:
     capacity: 1
   - color: 4
     capacity: 1
-  - color: 2
+  - color: 1
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 1
     capacity: 1
   - color: 2
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 3
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 4
     capacity: 1
   - color: 6
     capacity: 1
   - color: 7
     capacity: 1
-  - color: 0
+  - color: 8
     capacity: 1
-  - color: 1
+  - color: 7
     capacity: 1
-  - color: 1
+  - color: 10
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 6
     capacity: 1
   - color: 2
     capacity: 1
   - color: 4
     capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 4
+  - color: 3
     capacity: 1
   - color: 7
     capacity: 1
   - color: 9
     capacity: 1
-  - color: 1
+  - color: 7
     capacity: 1
   - color: 2
     capacity: 1
   - color: 1
     capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 0
+  - color: 7
     capacity: 1
   - color: 2
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 9
-    capacity: 1
-  - color: 1
-    capacity: 1
-  - color: 0
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 4
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 7
-    capacity: 1
-  - color: 0
     capacity: 1
   - color: 6
     capacity: 1
   - color: 10
     capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 0
+    capacity: 1
   - color: 2
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 6
     capacity: 1
   - color: 2
     capacity: 1
   - color: 1
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 6
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 9
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 8
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 10
+    capacity: 1
+  - color: 4
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 0
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 5
+    capacity: 1
+  - color: 7
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 2
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 1
+    capacity: 1
+  - color: 3
+    capacity: 1
+  - color: 0
     capacity: 1
   conveyorPassengers: []

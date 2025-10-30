@@ -7,7 +7,7 @@ public static class LevelGenerator
     // --- Constants and Structs ---
     private const int GRID_WIDTH = 7;
     private const int GRID_HEIGHT = 11;
-    private static readonly Vector2Int GRID_CENTER = new Vector2Int(3, 5);
+    private const int MAX_GENERATION_RETRIES = 1000;
 
     private class PlacedObject
     {
@@ -25,129 +25,128 @@ public static class LevelGenerator
         public bool IsBossLevel;
     }
 
-    private struct Blocker
+    private class PassengerNode
     {
         public Vector2Int Position; 
         public Vector2Int Direction;
+        public PassengerNode BlockedBy;
+        public PassengerNode(Vector2Int pos, Vector2Int dir) { Position = pos; Direction = dir; BlockedBy = null; }
     }
 
-    // --- Public Generation Method ---
+    // --- PUBLIC GENERATION METHOD ---
     public static LevelDefinition GenerateLevel(int levelNumber, int? underpassOverride = null, int? conveyorOverride = null, int? passengerOverride = null, int? colorOverride = null)
     {
-        Debug.Log($"--- SEVİYE {levelNumber} ÜRETİMİ BAŞLADI ---");
-        var levelDef = new LevelDefinition(levelNumber);
         var rng = new System.Random(levelNumber);
         var difficultyParams = CalculateDifficultyParameters(levelNumber, rng, underpassOverride, conveyorOverride, passengerOverride, colorOverride);
+
+        LevelDefinition levelDef;
+        List<PlacedObject> solutionOrder = null; // Must be declared here
+        bool isSolvable;
+        int retries = 0;
+
+        // --- GENERATE-AND-TEST LOOP ---
+        do
+        {
+            levelDef = new LevelDefinition(levelNumber);
+            // This now returns the crucial solution order
+            solutionOrder = AttemptToGenerateLayout(levelDef, difficultyParams, rng);
+            
+            isSolvable = IsLayoutSolvable(levelDef);
+
+            if (!isSolvable)
+            {
+                retries++;
+                Debug.LogWarning($"Level {levelNumber} failed validation. Retrying... ({retries}/{MAX_GENERATION_RETRIES})");
+            }
+
+        } while (!isSolvable && retries < MAX_GENERATION_RETRIES);
+
+        if (!isSolvable)
+        {
+            Debug.LogError($"FAILED to generate a solvable layout for Level {levelNumber} after {MAX_GENERATION_RETRIES} attempts.");
+            return null; // Signal failure
+        }
+
+        Debug.Log($"--- Level {levelNumber} validation PASSED. Finalizing... ---");
         GenerateConveyorPassengers(levelDef, difficultyParams, rng);
-        var solutionOrder = GenerateSolvableLayout(levelDef, difficultyParams, rng);
+        // Use the solutionOrder that was validated with the successful layout
         GenerateWagonTrainFromLayout(levelDef, solutionOrder, difficultyParams, rng);
-        Debug.Log($"--- SEVİYE {levelNumber} ÜRETİMİ TAMAMLANDI ---");
         return levelDef;
     }
 
-    // --- Generation Steps ---
-    private static DifficultyParameters CalculateDifficultyParameters(int levelNumber, System.Random rng, int? underpassOverride, int? conveyorOverride, int? passengerOverride, int? colorOverride)
+    // --- LAYOUT VALIDATION (THE "SUPER-CHECK") ---
+    private static bool IsLayoutSolvable(LevelDefinition levelDef)
     {
-        var p = new DifficultyParameters { LevelNumber = levelNumber, PassengerCapacity = 4, UnderpassSequenceLength = 6 };
-        int tier = (levelNumber - 1) / 10;
-        p.IsBossLevel = (levelNumber > 0 && levelNumber % 10 == 0);
-        if (p.IsBossLevel) { p.NumInitialPassengers = 7 + tier; p.NumUnderpasses = 2 + tier; }
-        else { int baseDifficulty = tier * 5; int levelInTier = (levelNumber - 1) % 10; p.NumInitialPassengers = 4 + baseDifficulty + levelInTier; p.NumUnderpasses = tier; }
-        p.NumColors = Mathf.Clamp(3 + tier, 3, 11);
-        if (levelNumber > 19 && rng.NextDouble() < 0.40) { p.numConveyorPassengers = rng.Next(10, 31); } else { p.numConveyorPassengers = 0; }
-        if (underpassOverride.HasValue) p.NumUnderpasses = underpassOverride.Value;
-        if (passengerOverride.HasValue) p.NumInitialPassengers = passengerOverride.Value;
-        if (colorOverride.HasValue) p.NumColors = Mathf.Clamp(colorOverride.Value, 2, 11);
-        if (conveyorOverride.HasValue) p.numConveyorPassengers = conveyorOverride.Value;
-        p.NumColors = Mathf.Min(p.NumColors, System.Enum.GetValues(typeof(HyperCasualColor)).Length);
-        Debug.Log($"Zorluk: Yolcu={p.NumInitialPassengers}, AltGeçit={p.NumUnderpasses}, Renk={p.NumColors}, Konveyör={p.numConveyorPassengers}");
-        return p;
+        var allNodes = new List<PassengerNode>();
+        var nodeMap = new Dictionary<Vector2Int, PassengerNode>();
+        foreach (var p in levelDef.initialPassengerGroups) { var node = new PassengerNode(p.position, p.direction); allNodes.Add(node); if (!nodeMap.ContainsKey(p.position)) nodeMap.Add(p.position, node); }
+        foreach (var u in levelDef.underpasses) { var pos = u.position + u.direction; var node = new PassengerNode(pos, u.direction); allNodes.Add(node); if (!nodeMap.ContainsKey(pos)) nodeMap.Add(pos, node); }
+        foreach (var node in allNodes) { var targetPos = node.Position + node.Direction; if (nodeMap.ContainsKey(targetPos)) { node.BlockedBy = nodeMap[targetPos]; } }
+        var visiting = new HashSet<PassengerNode>();
+        var visited = new HashSet<PassengerNode>();
+        foreach (var node in allNodes) { if (!visited.Contains(node)) { if (HasCycleDFS(node, visiting, visited)) return false; } }
+        return true;
     }
 
-    private static void GenerateConveyorPassengers(LevelDefinition levelDef, DifficultyParameters p, System.Random rng)
+    private static bool HasCycleDFS(PassengerNode node, HashSet<PassengerNode> visiting, HashSet<PassengerNode> visited)
     {
-        if (p.numConveyorPassengers <= 0) return;
-        var colors = System.Enum.GetValues(typeof(HyperCasualColor)).Cast<HyperCasualColor>().ToList().GetRange(0, p.NumColors);
-        for (int i = 0; i < p.numConveyorPassengers; i++) { levelDef.conveyorPassengers.Add(new PassengerSpawnData { color = colors[rng.Next(colors.Count)] }); }
+        visiting.Add(node);
+        if (node.BlockedBy != null) { if (visiting.Contains(node.BlockedBy)) return true; if (!visited.Contains(node.BlockedBy)) { if (HasCycleDFS(node.BlockedBy, visiting, visited)) return true; } }
+        visiting.Remove(node);
+        visited.Add(node);
+        return false;
     }
 
-    private static List<PlacedObject> GenerateSolvableLayout(LevelDefinition levelDef, DifficultyParameters p, System.Random rng)
+    // --- ATTEMPT TO GENERATE A LAYOUT ---
+    private static List<PlacedObject> AttemptToGenerateLayout(LevelDefinition levelDef, DifficultyParameters p, System.Random rng)
     {
         var occupied = new List<Vector2Int>();
-        var solutionOrder = new List<PlacedObject>();
+        var solutionOrder = new List<PlacedObject>(); // This is now correctly created and returned
         var colors = System.Enum.GetValues(typeof(HyperCasualColor)).Cast<HyperCasualColor>().ToList().GetRange(0, p.NumColors);
         int totalObjects = p.NumInitialPassengers + p.NumUnderpasses;
         var spawns = new List<Vector2Int>();
         for (int x = 1; x < GRID_WIDTH - 1; x++) for (int y = 1; y < GRID_HEIGHT - 1; y++) spawns.Add(new Vector2Int(x, y));
-        spawns = spawns.OrderBy(pos => Vector2.Distance(pos, GRID_CENTER)).ToList();
-        var colorOrder = Enumerable.Range(0, totalObjects).Select(_ => colors[rng.Next(colors.Count)]).ToList();
+        spawns = spawns.OrderBy(pos => Vector2.Distance(pos, new Vector2Int(3,5))).ToList();
         int underpassesLeft = p.NumUnderpasses;
-        foreach (var color in colorOrder)
+        for(int i = 0; i < totalObjects; i++)
         {
             bool placed = false;
-            for (int i = 0; i < 1000; i++)
+            for (int j = 0; j < 500; j++)
             {
                 var pos = spawns[rng.Next(spawns.Count)];
                 var dir = GetRandomDirection(rng);
                 if (underpassesLeft > 0 && rng.Next(0, 3) == 0)
                 {
-                    if (TryPlaceUnderpass(levelDef, p, pos, dir, occupied, colors, rng, out var item)) { solutionOrder.Add(PlacedObject.CreateUnderpass(item)); underpassesLeft--; placed = true; break; }
+                    if (TryPlaceUnderpass(levelDef, p, pos, dir, occupied, colors, rng, out var underpass)) 
+                    { 
+                        solutionOrder.Add(PlacedObject.CreateUnderpass(underpass));
+                        underpassesLeft--; 
+                        placed = true; 
+                        break; 
+                    }
                 }
                 else
                 {
-                    if (TryPlacePassenger(levelDef, color, pos, dir, occupied, solutionOrder.Count < colors.Count, out var item)) { solutionOrder.Add(PlacedObject.CreatePassenger(item)); placed = true; break; }
+                    if (TryPlacePassenger(levelDef, colors[rng.Next(colors.Count)], pos, dir, occupied, out var passenger)) 
+                    { 
+                        solutionOrder.Add(PlacedObject.CreatePassenger(passenger));
+                        placed = true; 
+                        break; 
+                    }
                 }
             }
-            if (!placed) Debug.LogWarning($"Geçerli bir yer bulunamadı!");
         }
-        return solutionOrder;
+        return solutionOrder; // Return the generated order
     }
     
-    private static void GenerateWagonTrainFromLayout(LevelDefinition levelDef, List<PlacedObject> solutionOrder, DifficultyParameters p, System.Random rng)
-    {
-        // Generate wagons for the main solvable layout (initial passengers and underpasses)
-        foreach (var obj in solutionOrder)
-        {
-            if (obj.IsUnderpass)
-            {
-                foreach (var color in obj.UnderpassData.passengerSequence)
-                {
-                    for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(color, 1));
-                }
-            }
-            else
-            {
-                for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(obj.RepresentativeColor, 1));
-            }
-        }
-
-        // *** THE FIX: Generate wagons for conveyor passengers as well ***
-        foreach (var conveyorPassenger in levelDef.conveyorPassengers)
-        {
-            for (int i = 0; i < p.PassengerCapacity; i++)
-            {
-                levelDef.wagons.Add(new WagonSpawnData(conveyorPassenger.color, 1));
-            }
-        }
-
-        // Shuffle the entire wagon list for variety, especially in boss levels
-        if (p.IsBossLevel || levelDef.wagons.Count > 10) // Add some variety to longer levels too
-        {
-            levelDef.wagons = levelDef.wagons.OrderBy(_ => rng.Next()).ToList();
-        }
-    }
-
-    // --- Placement and Validation Logic ---
-    private static bool TryPlacePassenger(LevelDefinition levelDef, HyperCasualColor color, Vector2Int pos, Vector2Int dir, List<Vector2Int> occupied, bool mustBeUnblocked, out PassengerSpawnData placedPassenger)
+    // --- Simplified Placement Logic ---
+    private static bool TryPlacePassenger(LevelDefinition levelDef, HyperCasualColor color, Vector2Int pos, Vector2Int dir, List<Vector2Int> occupied, out PassengerSpawnData placedPassenger)
     {
         placedPassenger = default;
         if (!IsValidPlacement(pos, occupied)) return false;
-        if (mustBeUnblocked && !IsPathClear(pos, dir, occupied)) return false;
-        if (CreatesSharedTargetDeadlock(pos, dir, levelDef)) return false;
-        if (CreatesCircularDeadlock(pos, dir, levelDef)) return false;
-        placedPassenger = new PassengerSpawnData { position = pos, direction = dir, color = color };
-        levelDef.initialPassengerGroups.Add(placedPassenger);
+        levelDef.initialPassengerGroups.Add(new PassengerSpawnData { position = pos, direction = dir, color = color });
         occupied.Add(pos);
+        placedPassenger = levelDef.initialPassengerGroups.Last();
         return true;
     }
 
@@ -156,58 +155,18 @@ public static class LevelGenerator
         placedUnderpass = default;
         var passengerSpawnPos = pos + dir;
         if (!IsValidPlacement(pos, occupied) || !IsValidPlacement(passengerSpawnPos, occupied)) return false;
-        if (CreatesSharedTargetDeadlock(passengerSpawnPos, dir, levelDef)) return false;
-        if (CreatesCircularDeadlock(passengerSpawnPos, dir, levelDef)) return false;
         var sequence = Enumerable.Range(0, p.UnderpassSequenceLength).Select(_ => colors[rng.Next(colors.Count)]).ToList();
-        placedUnderpass = new UnderpassSpawnData { position = pos, direction = dir, passengerSequence = sequence };
-        levelDef.underpasses.Add(placedUnderpass);
+        levelDef.underpasses.Add(new UnderpassSpawnData { position = pos, direction = dir, passengerSequence = sequence });
         occupied.Add(pos);
         occupied.Add(passengerSpawnPos);
+        placedUnderpass = levelDef.underpasses.Last();
         return true;
     }
 
-    private static bool IsPathClear(Vector2Int pos, Vector2Int dir, List<Vector2Int> occupied) => !occupied.Contains(pos + dir);
+    // --- Other Helper Methods (Some are Unchanged) ---
     private static Vector2Int GetRandomDirection(System.Random rng) { int v = rng.Next(4); return v == 0 ? Vector2Int.up : v == 1 ? Vector2Int.down : v == 2 ? Vector2Int.left : Vector2Int.right; }
     private static bool IsValidPlacement(Vector2Int pos, List<Vector2Int> occupied) => !(pos.x <= 0 || pos.x >= GRID_WIDTH - 1 || pos.y <= 0 || pos.y >= GRID_HEIGHT - 1 || occupied.Contains(pos));
-
-    // --- Deadlock Detection ---
-    private static List<Blocker> GetAllBlockers(LevelDefinition levelDef)
-    {
-        var blockers = new List<Blocker>();
-        levelDef.initialPassengerGroups.ForEach(pass => blockers.Add(new Blocker { Position = pass.position, Direction = pass.direction }));
-        levelDef.underpasses.ForEach(u => blockers.Add(new Blocker { Position = u.position + u.direction, Direction = u.direction }));
-        return blockers;
-    }
-
-    private static bool CreatesSharedTargetDeadlock(Vector2Int candidatePos, Vector2Int candidateDir, LevelDefinition levelDef)
-    {
-        var candidateTarget = candidatePos + candidateDir;
-        var allBlockers = GetAllBlockers(levelDef);
-        foreach (var blocker in allBlockers)
-        {
-            if ((blocker.Position + blocker.Direction) == candidateTarget) return true;
-        }
-        return false;
-    }
-
-    private static bool CreatesCircularDeadlock(Vector2Int candidatePos, Vector2Int candidateDir, LevelDefinition levelDef)
-    {
-        var blockers = GetAllBlockers(levelDef);
-        var candidate = new Blocker { Position = candidatePos, Direction = candidateDir };
-        blockers.Add(candidate);
-        var dependencyChain = new List<Blocker>();
-        var current = candidate;
-        for (int i = 0; i < blockers.Count + 1; i++) 
-        {
-            dependencyChain.Add(current);
-            var targetCell = current.Position + current.Direction;
-            var nextBlockerIndex = blockers.FindIndex(b => b.Position == targetCell);
-            if (nextBlockerIndex == -1) return false;
-            var nextInChain = blockers[nextBlockerIndex];
-            if (nextInChain.Position == candidate.Position) return true;
-            if (dependencyChain.Any(b => b.Position == nextInChain.Position)) return true;
-            current = nextInChain;
-        }
-        return true;
-    }
+    private static void GenerateConveyorPassengers(LevelDefinition levelDef, DifficultyParameters p, System.Random rng) { if (p.numConveyorPassengers <= 0) return; var c = System.Enum.GetValues(typeof(HyperCasualColor)).Cast<HyperCasualColor>().ToList().GetRange(0, p.NumColors); for (int i = 0; i < p.numConveyorPassengers; i++) { levelDef.conveyorPassengers.Add(new PassengerSpawnData { color = c[rng.Next(c.Count)] }); } }
+    private static DifficultyParameters CalculateDifficultyParameters(int levelNumber, System.Random rng, int? u, int? c, int? ps, int? clr) { var p = new DifficultyParameters { LevelNumber = levelNumber, PassengerCapacity = 4, UnderpassSequenceLength = 6 }; int tier = (levelNumber - 1) / 10; p.IsBossLevel = (levelNumber > 0 && levelNumber % 10 == 0); if (p.IsBossLevel) { p.NumInitialPassengers = 7 + tier; p.NumUnderpasses = 2 + tier; } else { int baseDifficulty = tier * 5; int levelInTier = (levelNumber - 1) % 10; p.NumInitialPassengers = 4 + baseDifficulty + levelInTier; p.NumUnderpasses = tier; } p.NumColors = Mathf.Clamp(3 + tier, 3, 11); if (levelNumber > 19 && rng.NextDouble() < 0.40) { p.numConveyorPassengers = rng.Next(10, 31); } else { p.numConveyorPassengers = 0; } if (u.HasValue) p.NumUnderpasses = u.Value; if (ps.HasValue) p.NumInitialPassengers = ps.Value; if (clr.HasValue) p.NumColors = Mathf.Clamp(clr.Value, 2, 11); if (c.HasValue) p.numConveyorPassengers = c.Value; p.NumColors = Mathf.Min(p.NumColors, System.Enum.GetValues(typeof(HyperCasualColor)).Length); return p; }
+    private static void GenerateWagonTrainFromLayout(LevelDefinition levelDef, List<PlacedObject> solutionOrder, DifficultyParameters p, System.Random rng) { foreach (var obj in solutionOrder) { if (obj.IsUnderpass) { foreach (var color in obj.UnderpassData.passengerSequence) { for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(color, 1)); } } else { for (int i = 0; i < p.PassengerCapacity; i++) levelDef.wagons.Add(new WagonSpawnData(obj.RepresentativeColor, 1)); } } foreach (var conveyorPassenger in levelDef.conveyorPassengers) { for (int i = 0; i < p.PassengerCapacity; i++) { levelDef.wagons.Add(new WagonSpawnData(conveyorPassenger.color, 1)); } } if (p.IsBossLevel || levelDef.wagons.Count > 10) { levelDef.wagons = levelDef.wagons.OrderBy(_ => rng.Next()).ToList(); } }
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cad60a39ba6cd2c4c9a940391bdc6a6c, type: 3}
   m_Name: Level_81
   m_EditorClassIdentifier: 
-  gridData: {fileID: 0}
+  gridData: {fileID: 11400000, guid: 83d622d7c165c5443bc7848147e7cc49, type: 2}
   initialPassengerGroups:
   - position: {x: 2, y: 4}
     direction: {x: 1, y: 0}

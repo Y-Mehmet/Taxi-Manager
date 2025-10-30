@@ -4,7 +4,6 @@ using System.IO;
 
 public class LevelGeneratorEditor : EditorWindow
 {
-    // ... (fields remain the same) ...
     private int levelNumber = 1;
     private int batchStartLevel = 1;
     private int batchEndLevel = 100;
@@ -25,14 +24,10 @@ public class LevelGeneratorEditor : EditorWindow
 
     private void OnGUI()
     {
-        // --- SINGLE LEVEL GENERATION ---
         EditorGUILayout.LabelField("Single Level Generation", EditorStyles.boldLabel);
         levelNumber = EditorGUILayout.IntField("Level Number", levelNumber);
-        
         EditorGUILayout.Space();
         GUILayout.Label("Overrides (for Single Level)", EditorStyles.boldLabel);
-
-        // ... (Override UI remains the same) ...
         overrideNumUnderpasses = EditorGUILayout.Toggle("Override Underpasses", overrideNumUnderpasses);
         GUI.enabled = overrideNumUnderpasses;
         manualNumUnderpasses = EditorGUILayout.IntField("Number of Underpasses", manualNumUnderpasses);
@@ -49,20 +44,15 @@ public class LevelGeneratorEditor : EditorWindow
         GUI.enabled = overrideNumColors;
         manualNumColors = EditorGUILayout.IntField("Number of Colors", manualNumColors);
         GUI.enabled = true;
-
         EditorGUILayout.Space();
-
         if (GUILayout.Button("Generate & Save Single Level"))
         {
             GenerateSingleLevel();
         }
-
-        // --- BATCH GENERATION ---
         EditorGUILayout.Space(20);
         EditorGUILayout.LabelField("Batch Level Generation", EditorStyles.boldLabel);
         batchStartLevel = EditorGUILayout.IntField("Start Level", batchStartLevel);
         batchEndLevel = EditorGUILayout.IntField("End Level", batchEndLevel);
-
         if (GUILayout.Button("Generate Level Range"))
         {
             GenerateBatchLevels();
@@ -72,15 +62,11 @@ public class LevelGeneratorEditor : EditorWindow
     private void GenerateSingleLevel()
     {
         if (levelNumber < 1) { EditorUtility.DisplayDialog("Error", "Level number must be 1 or greater.", "OK"); return; }
-
         int? underpassOverride = overrideNumUnderpasses ? (int?)manualNumUnderpasses : null;
         int? conveyorOverride = overrideNumConveyor ? (int?)manualNumConveyor : null;
         int? passengerOverride = overrideNumPassengers ? (int?)manualNumPassengers : null;
         int? colorOverride = overrideNumColors ? (int?)manualNumColors : null;
-
         LevelDefinition levelDef = LevelGenerator.GenerateLevel(levelNumber, underpassOverride, conveyorOverride, passengerOverride, colorOverride);
-
-        // --- THE FIX: Handle generation failure ---
         if (levelDef == null)
         {
             EditorUtility.DisplayDialog("Generation Failed", $"Failed to generate a valid layout for Level {levelNumber} after multiple attempts. Please try different parameters or a different level number.", "OK");
@@ -95,10 +81,8 @@ public class LevelGeneratorEditor : EditorWindow
     private void GenerateBatchLevels()
     {
         if (batchStartLevel < 1 || batchEndLevel < batchStartLevel) { EditorUtility.DisplayDialog("Error", "Invalid level range.", "OK"); return; }
-
         int successCount = 0;
         bool generationFailed = false;
-
         try
         {
             AssetDatabase.StartAssetEditing();
@@ -107,17 +91,13 @@ public class LevelGeneratorEditor : EditorWindow
             {
                 int currentLevel = batchStartLevel + i;
                 EditorUtility.DisplayProgressBar("Generating Levels", $"Processing Level {currentLevel}...", (float)i / totalLevels);
-                
                 LevelDefinition levelDef = LevelGenerator.GenerateLevel(currentLevel, null, null, null, null);
-
-                // --- THE FIX: Handle generation failure ---
                 if (levelDef == null)
                 {
                     EditorUtility.DisplayDialog("Batch Generation Failed", $"Failed to generate a valid layout for Level {currentLevel} after multiple attempts. Stopping batch process. {successCount} levels were generated successfully.", "OK");
                     generationFailed = true;
-                    break; // Stop the batch process
+                    break;
                 }
-
                 SaveLevelSpawnSO(levelDef);
                 successCount++;
             }

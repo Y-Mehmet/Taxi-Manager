@@ -259,7 +259,6 @@ public class PassengerGroup : MonoBehaviour
             List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
             fullPath.AddRange(path);
             Debug.LogWarning($"[PathPlan] Path found for {name}. Length: {fullPath.Count}. Starting movement.");
-            OnGroupDeparted?.Invoke(this);
             StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos));
         }
         else
@@ -554,6 +553,7 @@ public class PassengerGroup : MonoBehaviour
         {
             yield return StartCoroutine(MoveToWorld(stopWorldPos, gridPos));
             PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
+            OnGroupDeparted?.Invoke(this);
             StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
         }
         isMoving = false;

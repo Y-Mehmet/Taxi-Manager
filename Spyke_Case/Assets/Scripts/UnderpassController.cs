@@ -35,30 +35,7 @@ public class UnderpassController : MonoBehaviour
         this.gridManager = gridManager;
         this.myGridPosition = gridPosition;
 
-        // --- GEMINI-MODIFIED: Set Underpass Color ---
-        if (sequence != null && sequence.Count > 0)
-        {
-            // Use the first color of the sequence to define the underpass's own color.
-            HyperCasualColor underpassColor = sequence[0];
-            Renderer mainRenderer = GetComponent<Renderer>(); // Try to get renderer on the main object first
-            if (mainRenderer == null) mainRenderer = GetComponentInChildren<Renderer>(); // Fallback to children
 
-            if (mainRenderer != null)
-            {
-                Debug.Log($"[UnderpassController] Setting underpass color for {name} to {underpassColor}");
-                // Assuming ToColor() is an extension method available for HyperCasualColor enum
-                mainRenderer.material.color = underpassColor.ToColor();
-            }
-            else
-            {
-                Debug.LogWarning($"[UnderpassController] No Renderer found on {name} or its children to set the color.");
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"[UnderpassController] Passenger sequence for {name} is null or empty. Cannot set underpass color.");
-        }
-        // --- END GEMINI-MODIFIED ---
 
         // Yolcuları oluştur ve kuyruğa ekle
         foreach (var color in sequence)

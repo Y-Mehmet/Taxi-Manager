@@ -71,9 +71,9 @@ MonoBehaviour:
   moveDirection: {x: 0, y: 1}
   groupColor: 3
   originalPosition: {x: 0, y: 0, z: 0}
+  moveSpeed: 7
   modelTransform: {fileID: 6221884853323111485}
   gridPos: {x: 0, y: 0}
-  grid: {fileID: 8369232995520237688, guid: d6fa140e6a31d134a981f2cbb1968787, type: 3}
   useGridPosition: 0
   directionIndicator: {fileID: 0}
   followTarget: {fileID: 0}
@@ -180,7 +180,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 703297684959455145, guid: d71399be4cca0884d9a25a6f24a261a5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.5
+      value: 0.475
       objectReference: {fileID: 0}
     - target: {fileID: 703297684959455145, guid: d71399be4cca0884d9a25a6f24a261a5, type: 3}
       propertyPath: m_LocalPosition.z

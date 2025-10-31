@@ -443,14 +443,8 @@ public class PassengerGroup : MonoBehaviour
                 var cell = PassengerGrid.Instance.GetCell(step.x, step.y);
                 if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
                 {
-                    if (fromConveyor)
-                    {
-                        yield return StartCoroutine(ReturnToConveyor());
-                    }
-                    else
-                    {
-                        yield return StartCoroutine(GoHome());
-                    }
+                    if (fromConveyor) { yield return StartCoroutine(ReturnToConveyor()); }
+                    else { yield return StartCoroutine(GoHome()); }
                     isMoving = false;
                     yield break;
                 }
@@ -458,19 +452,13 @@ public class PassengerGroup : MonoBehaviour
                 var occupant = PassengerGrid.Instance.GetOccupant(step);
                 if (occupant != null && occupant != this)
                 {
-                    // Per user request, ignore passengers that originated from the conveyor belt
-                    if (occupant.fromConveyor)
-                    {
-                        continue; // Treat the cell as empty and continue path execution
-                    }
-
+                    if (occupant.fromConveyor) { continue; }
                     if (ascendIndex >= 0 && i > ascendIndex)
                     {
                         var c = cell;
                         bool isJumpable = (c.cellType == GridCellType.Stop || c.cellType == GridCellType.Walkable);
                         if (isJumpable && !occupant.isMoving) continue;
                     }
-
                     segmentEndIdx = i;
                     obstacle = occupant;
                     break;
@@ -485,12 +473,7 @@ public class PassengerGroup : MonoBehaviour
             {
                 List<Vector3> worldSegment = gridSegment.ConvertAll(p => PassengerGrid.Instance.GetWorldPosition(p));
                 Vector2Int endOfSegmentPos = gridSegment[gridSegment.Count - 1];
-
                 bool isFinalSegment = (segmentEndIdx == -1 && stopIndex != -1);
-                if (isFinalSegment)
-                {
-                    worldSegment.Add(stopWorldPos);
-                }
 
                 PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
                 PassengerGrid.Instance.RegisterOccupant(endOfSegmentPos, this);
@@ -500,12 +483,11 @@ public class PassengerGroup : MonoBehaviour
                 var segmentLog = new List<string>();
                 foreach(var pos in gridSegment) segmentLog.Add($"{pos}:{PassengerGrid.Instance.GetCell(pos.x, pos.y)?.cellType}");
                 Debug.Log("[ContinuousPath] Segment: " + string.Join(" -> ", segmentLog.ToArray()));
-
                 Debug.Log($"[ContinuousPath] Moving along segment of {worldSegment.Count} world points.");
                 
                 Transform transformToRotate = modelTransform != null ? modelTransform : transform;
-                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.CatmullRom).SetEase(Ease.InOutSine);
 
+                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear).SetEase(Ease.Linear);
                 activeMovementTween = pathTween;
                 activeTweenBaseSpeed = moveSpeed;
                 activeMovementType = MovementType.Path;
@@ -515,9 +497,7 @@ public class PassengerGroup : MonoBehaviour
                 {
                     float lookAheadPercentage = pathTween.ElapsedPercentage() + 0.05f; 
                     if (lookAheadPercentage > 1f) lookAheadPercentage = 1f;
-                    
                     Vector3 lookAtPos = pathTween.PathGetPoint(lookAheadPercentage);
-
                     if (Vector3.Distance(transform.position, lookAtPos) > 0.1f)
                     {
                         Vector3 lookTarget = new Vector3(lookAtPos.x, transformToRotate.position.y, lookAtPos.z);
@@ -526,86 +506,91 @@ public class PassengerGroup : MonoBehaviour
                         transformToRotate.rotation = Quaternion.Euler(0f, e.y, 0f);
                     }
                 });
-
-                pathTween.OnComplete(() => { 
+                
+                pathTween.OnComplete(() => {
                     if (activeMovementTween == pathTween) { activeMovementTween = null; activeMovementType = MovementType.None; activeMovementPathPoints = null; }
-                    
-                    if (isFinalSegment)
-                    {
-                        PassengerGrid.Instance.UnregisterOccupant(endOfSegmentPos, this);
-                        OnGroupDeparted?.Invoke(this);
-                        StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
-                        isMoving = false;
-                    }
                 });
 
                 yield return pathTween.WaitForCompletion();
                 
                 gridPos = endOfSegmentPos;
                 pathIdx += gridSegment.Count;
+
+                if (isFinalSegment)
+                {
+                    // Move to the stop position
+                    float finalMoveDuration = Vector3.Distance(transform.position, stopWorldPos) / moveSpeed;
+                    Sequence finalMoveSequence = DOTween.Sequence();
+                    Vector3 directionToStop = (stopWorldPos - transform.position).normalized;
+                    directionToStop.y = 0;
+                    Quaternion lookAtStopRotation = transform.rotation;
+                    if (directionToStop != Vector3.zero)
+                    {
+                        lookAtStopRotation = Quaternion.LookRotation(directionToStop);
+                    }
+                    finalMoveSequence.Join(transform.DOMove(stopWorldPos, finalMoveDuration).SetEase(Ease.Linear));
+                    finalMoveSequence.Join(transformToRotate.DORotateQuaternion(lookAtStopRotation, finalMoveDuration * 0.5f).SetEase(Ease.Linear));
+                    yield return finalMoveSequence.WaitForCompletion();
+
+                    // Arrived at stop: Trigger checkpoint logic here
+                    StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
+
+                    // Park the passenger
+                    Quaternion finalParkingRotation = Quaternion.LookRotation(Vector3.right); // Changed to (1,0) direction
+                    var parkingTween = transformToRotate.DORotateQuaternion(finalParkingRotation, 0.3f).SetEase(Ease.OutSine);
+
+                    parkingTween.OnComplete(() => {
+                        PassengerGrid.Instance.UnregisterOccupant(endOfSegmentPos, this);
+                        OnGroupDeparted?.Invoke(this);
+                        isMoving = false;
+                    });
+
+                    yield return parkingTween.WaitForCompletion();
+                    
+                    yield break;
+                }
             }
 
             if (obstacle != null)
             {
                 var step = fullPath[segmentEndIdx];
-
                 if (obstacle.isMoving)
                 {
                     Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by moving passenger '{obstacle.name}'. Waiting.");
                     yield return new WaitUntil(() => PassengerGrid.Instance.GetOccupant(step) != obstacle || !obstacle.isMoving);
                     continue;
                 }
-
                 var occupiedCell = PassengerGrid.Instance.GetCell(step.x, step.y);
                 bool isJumpable = (occupiedCell.cellType == GridCellType.Stop || occupiedCell.cellType == GridCellType.Walkable);
-
                 if (isJumpable)
                 {
                     Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is stationary on a jumpable tile. Waiting 1s.");
                     yield return new WaitForSeconds(1f);
-
                     if (PassengerGrid.Instance.GetOccupant(step) == obstacle)
                     {
                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
-
                         if(obstacle != null)
                         {
                             Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
                             transformToShake.DOShakeRotation(0.5f, new Vector3(0, 45, 0), 10, 90, true);
                         }
-
                         if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                        if (fromConveyor)
-                        {
-                            yield return StartCoroutine(ReturnToConveyor());
-                        }
-                        else
-                        {
-                            yield return StartCoroutine(GoHome());
-                        }
+                        if (fromConveyor) { yield return StartCoroutine(ReturnToConveyor()); }
+                        else { yield return StartCoroutine(GoHome()); }
                         isMoving = false;
                         yield break;
                     }
                     continue;
                 }
-
                 Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by non-jumpable obstacle '{obstacle.name}'. Returning to origin.");
-
                 if(obstacle != null)
                 {
                     Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
                     transformToShake.DOShakeRotation(0.5f, new Vector3(0, 45, 0), 10, 90, true);
                 }
-
                 if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                if (fromConveyor)
-                {
-                    yield return StartCoroutine(ReturnToConveyor());
-                }
-                else
-                {
-                    yield return StartCoroutine(GoHome());
-                }
+                if (fromConveyor) { yield return StartCoroutine(ReturnToConveyor()); }
+                else { yield return StartCoroutine(GoHome()); }
                 isMoving = false;
                 yield break;
             }

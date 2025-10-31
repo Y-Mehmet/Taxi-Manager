@@ -910,7 +910,7 @@ public class PassengerGroup : MonoBehaviour
 
         if (PassengerGrid.Instance.IsOccupied(closestCell.position))
         {
-            Debug.LogError($"[{name}] Aborting move: The closest waiting area cell {closestCell.position} is occupied by another group.");
+            Debug.LogWarning($"[{name}] Aborting move: The closest waiting area cell {closestCell.position} is occupied by another group.");
             LogPathNotFound();
             return;
         }
@@ -926,7 +926,7 @@ public class PassengerGroup : MonoBehaviour
             if (gridCell != null && gridCell.cellType == GridCellType.Blocked)
             {
                 Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by terrain at {cellToTest}.");
-                StartCoroutine(BounceVisual());
+                if (modelTransform != null) modelTransform.DOShakePosition(0.3f, 0.15f);
                 return;
             }
 
@@ -937,7 +937,7 @@ public class PassengerGroup : MonoBehaviour
                 if (occupant != null)
                 {
                     Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by '{occupant.name}' at {cellToTest}.");
-                    StartCoroutine(BounceVisual());
+                    if (modelTransform != null) modelTransform.DOShakePosition(0.3f, 0.15f);
                     return;
                 }
             }

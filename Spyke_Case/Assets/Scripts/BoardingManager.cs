@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using DG.Tweening;
 
 /// <summary>
 /// Yolcu alma bölgesindeki vagonların renklerini takip eden ve yolcularla vagonları verimli bir şekilde eşleştiren merkezi sistem.
@@ -151,8 +152,17 @@ public class BoardingManager : MonoBehaviour
                     // Yükü (vagonu) oyundan kaldır.
                     WagonManager.Instance.DeregisterWagon(availableWagon);
                     WagonManager.Instance.TriggerWagonRemovalEvent(availableWagon, availableWagon.transform);
-                    availableWagon.gameObject.SetActive(false);
-                    Debug.Log($"<color=yellow>YÜK ALINDI:</color> {availableWagon.name} yükü oyundan kaldırıldı.");
+
+                    // Animate the wagon moving to the passenger, then deactivate it.
+                    Transform wagonTransform = availableWagon.transform;
+                    wagonTransform.SetParent(null); // Unparent to move freely
+                    Sequence sequence = DOTween.Sequence();
+                    sequence.Append(wagonTransform.DOMove(passenger.transform.position, 0.5f).SetEase(Ease.InQuad));
+                    sequence.Join(wagonTransform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.InQuad));
+                    sequence.OnComplete(() => {
+                        availableWagon.gameObject.SetActive(false);
+                        Debug.Log($"<color=yellow>YÜK ALINDI:</color> {availableWagon.name} yükü animasyon sonunda kaldırıldı.");
+                    });
 
                     // Add earnings
                     GameManager.Instance.AddLevelEarnings(20);

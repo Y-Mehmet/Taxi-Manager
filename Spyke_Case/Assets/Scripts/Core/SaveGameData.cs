@@ -28,6 +28,9 @@ public class SaveGameData
     public int passengerCapacityLevel;
     public int passengerSpawnRateLevel;
     public int offlineEarningsLevel;
+    public float soundFxVolume;
+    public float musicVolume;
+
     
     /// <summary>
     /// Yeni bir oyun başladığında veya hiç kayıt dosyası bulunmadığında
@@ -44,5 +47,8 @@ public class SaveGameData
         passengerCapacityLevel = 1;
         passengerSpawnRateLevel = 1;
         offlineEarningsLevel = 1;
+        soundFxVolume=0.5f;
+        musicVolume=0.5f;
+
     }
 }

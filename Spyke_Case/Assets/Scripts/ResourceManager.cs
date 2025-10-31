@@ -19,7 +19,9 @@ public class ResourceManager : MonoBehaviour
     public List<int> LevelStars { get; private set; }
     public  int boardingStartIndex {get; private set; }
 
+    public float musicVolume, soundFxVolume;
 
+    
     void Awake()
     {
         if (Instance == null)
@@ -64,6 +66,8 @@ public class ResourceManager : MonoBehaviour
         CurrentCoins = data.coinCount;
         CurrentLevel = data.levelIndex; // Hata düzeltildi: levelIndex kullanılıyor
         LevelStars = data.levelStarsCount;
+        soundFxVolume=data.soundFxVolume;
+        musicVolume=data.musicVolume;
         
         OnCoinsChanged?.Invoke(CurrentCoins);
     }
@@ -78,6 +82,8 @@ public class ResourceManager : MonoBehaviour
         data.coinCount = CurrentCoins;
         data.levelIndex = CurrentLevel; // Hata düzeltildi: levelIndex kullanılıyor
         data.levelStarsCount = LevelStars;
+        data.soundFxVolume=soundFxVolume;
+        data.musicVolume=musicVolume;
     }
 
     // --- Coin Metodları --- //

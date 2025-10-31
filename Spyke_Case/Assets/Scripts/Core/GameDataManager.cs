@@ -72,9 +72,9 @@ public class GameDataManager : MonoBehaviour
 
         // Diğer yöneticilerden verileri topla
         // Bu yöneticilerin sahnede aktif ve erişilebilir olduğu varsayılır.
-        FindObjectOfType<ResourceManager>()?.SaveData(saveData);
-        FindObjectOfType<AbilityManager>()?.SaveData(saveData);
-        FindObjectOfType<MetroManager>()?.SaveData(saveData);
+       ResourceManager.Instance?.SaveData(saveData);
+       AbilityManager.Instance?.SaveData(saveData);
+       MetroManager.Instance?.SaveData(saveData);
         // Diğer yöneticiler için de benzer çağrılar eklenebilir.
 
         SaveSystem.Save(saveData);

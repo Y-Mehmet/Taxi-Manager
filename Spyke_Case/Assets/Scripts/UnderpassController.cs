@@ -160,6 +160,8 @@ public class UnderpassController : MonoBehaviour
                 GridSystem.PassengerGrid.Instance.RegisterOccupant(startCellGridPos, firstGroup);
             }
             firstGroup.gridPos = startCellGridPos;
+            firstGroup.homeGridPos = startCellGridPos;
+            Debug.Log($"[UnderpassController] Set homeGridPos for {firstGroup.name} to {startCellGridPos}");
 
             firstGroup.transform.position = gridManager.GetWorldPosition(startCellGridPos);
             firstGroup.GetComponent<Collider>().enabled = true;
@@ -187,6 +189,8 @@ public class UnderpassController : MonoBehaviour
             GridSystem.PassengerGrid.Instance.RegisterOccupant(startCellGridPos, nextGroup);
         }
         nextGroup.gridPos = startCellGridPos;
+        nextGroup.homeGridPos = startCellGridPos;
+        Debug.Log($"[UnderpassController] Set homeGridPos for {nextGroup.name} to {startCellGridPos}");
 
         activeQueueAnimation = nextGroup.transform.DOMove(targetPos, 0.5f)
             .SetEase(Ease.OutQuad)
@@ -228,5 +232,10 @@ public class UnderpassController : MonoBehaviour
     public Queue<PassengerGroup> GetQueue()
     {
         return passengerQueue;
+    }
+
+    public Vector2Int GetWaitingSpotGridPosition()
+    {
+        return myGridPosition + startCellOffset;
     }
 }

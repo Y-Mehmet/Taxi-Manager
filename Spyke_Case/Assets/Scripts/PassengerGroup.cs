@@ -50,6 +50,7 @@ public class PassengerGroup : MonoBehaviour
     public Vector2Int moveDirection = Vector2Int.up;
     public HyperCasualColor groupColor = HyperCasualColor.Yellow;
     public Vector3 originalPosition;
+    public Vector2Int homeGridPos;
 
     // Origin tracking for abilities
     public UnderpassController OriginUnderpass { get; set; }
@@ -140,6 +141,7 @@ public class PassengerGroup : MonoBehaviour
                 PassengerGrid.Instance.RegisterOccupant(gridPos, this);
             }
         }
+        homeGridPos = gridPos;
 
         if (!allGroups.Contains(this)) allGroups.Add(this); // Renamed to avoid conflict
     }
@@ -442,8 +444,7 @@ public class PassengerGroup : MonoBehaviour
                 if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
                 {
                     Debug.LogWarning($"[ContinuousPath] Path blocked by terrain at {step}. Returning home.");
-                    if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                    yield return StartCoroutine(GoHome(overallOrigin));
+                    yield return StartCoroutine(GoHome());
                     isMoving = false;
                     yield break;
                 }
@@ -538,7 +539,7 @@ public class PassengerGroup : MonoBehaviour
                     {
                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
                         if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                        yield return StartCoroutine(GoHome(overallOrigin));
+                        yield return StartCoroutine(GoHome());
                         isMoving = false;
                         yield break;
                     }
@@ -547,7 +548,7 @@ public class PassengerGroup : MonoBehaviour
 
                 Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by non-jumpable obstacle '{obstacle.name}'. Returning to origin.");
                 if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                yield return StartCoroutine(GoHome(overallOrigin));
+                yield return StartCoroutine(GoHome());
                 isMoving = false;
                 yield break;
             }
@@ -563,10 +564,17 @@ public class PassengerGroup : MonoBehaviour
         isMoving = false;
     }
 
-    System.Collections.IEnumerator GoHome(Vector2Int origin)
+    System.Collections.IEnumerator GoHome()
     {
+        Vector2Int targetPos = homeGridPos;
+        if (OriginUnderpass != null)
+        {
+            targetPos = OriginUnderpass.GetWaitingSpotGridPosition();
+        }
+
+        Debug.Log($"[GoHome] {name} returning to homeGridPos: {targetPos}");
         isMoving = true;
-        yield return StartCoroutine(MoveToCoroutine(origin));
+        yield return StartCoroutine(MoveToCoroutine(targetPos));
         Vector3 finalDirVector = new Vector3(moveDirection.x, 0, moveDirection.y);
         Quaternion finalRotation = transform.rotation;
         if (finalDirVector != Vector3.zero)

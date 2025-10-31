@@ -6776,6 +6776,10 @@ PrefabInstance:
       propertyPath: startSpawnPoint.z
       value: 8.5
       objectReference: {fileID: 0}
+    - target: {fileID: 3425082259358771783, guid: 98942fc966f54aa439ac53a25e794046, type: 3}
+      propertyPath: distanceBetweenWagons
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 3676540215726345986, guid: 98942fc966f54aa439ac53a25e794046, type: 3}
       propertyPath: m_Name
       value: WagonManager

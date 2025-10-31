@@ -74,7 +74,7 @@ MonoBehaviour:
   underpasses:
   - position: {x: 5, y: 8}
     direction: {x: 0, y: 1}
-    passengerSequence: 020000000100000001000000010000000100000000000000
+    passengerSequence: 0200000001000000
   - position: {x: 3, y: 9}
     direction: {x: 1, y: 0}
     passengerSequence: 020000000000000000000000020000000200000001000000

@@ -486,6 +486,12 @@ public class PassengerGroup : MonoBehaviour
                 List<Vector3> worldSegment = gridSegment.ConvertAll(p => PassengerGrid.Instance.GetWorldPosition(p));
                 Vector2Int endOfSegmentPos = gridSegment[gridSegment.Count - 1];
 
+                bool isFinalSegment = (segmentEndIdx == -1 && stopIndex != -1);
+                if (isFinalSegment)
+                {
+                    worldSegment.Add(stopWorldPos);
+                }
+
                 PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
                 PassengerGrid.Instance.RegisterOccupant(endOfSegmentPos, this);
 
@@ -495,17 +501,16 @@ public class PassengerGroup : MonoBehaviour
                 foreach(var pos in gridSegment) segmentLog.Add($"{pos}:{PassengerGrid.Instance.GetCell(pos.x, pos.y)?.cellType}");
                 Debug.Log("[ContinuousPath] Segment: " + string.Join(" -> ", segmentLog.ToArray()));
 
-                Debug.Log($"[ContinuousPath] Moving along segment of {gridSegment.Count} cells.");
+                Debug.Log($"[ContinuousPath] Moving along segment of {worldSegment.Count} world points.");
                 
                 Transform transformToRotate = modelTransform != null ? modelTransform : transform;
-                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear).SetEase(Ease.Linear);
+                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.CatmullRom).SetEase(Ease.InOutSine);
 
                 activeMovementTween = pathTween;
                 activeTweenBaseSpeed = moveSpeed;
                 activeMovementType = MovementType.Path;
                 activeMovementPathPoints = worldSegment.ToArray();
-                pathTween.OnComplete(() => { if (activeMovementTween == pathTween) { activeMovementTween = null; activeMovementType = MovementType.None; activeMovementPathPoints = null; } });
-
+                
                 pathTween.OnUpdate(() =>
                 {
                     float lookAheadPercentage = pathTween.ElapsedPercentage() + 0.05f; 
@@ -519,6 +524,18 @@ public class PassengerGroup : MonoBehaviour
                         transformToRotate.LookAt(lookTarget, Vector3.up);
                         Vector3 e = transformToRotate.eulerAngles;
                         transformToRotate.rotation = Quaternion.Euler(0f, e.y, 0f);
+                    }
+                });
+
+                pathTween.OnComplete(() => { 
+                    if (activeMovementTween == pathTween) { activeMovementTween = null; activeMovementType = MovementType.None; activeMovementPathPoints = null; }
+                    
+                    if (isFinalSegment)
+                    {
+                        PassengerGrid.Instance.UnregisterOccupant(endOfSegmentPos, this);
+                        OnGroupDeparted?.Invoke(this);
+                        StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
+                        isMoving = false;
                     }
                 });
 
@@ -551,7 +568,6 @@ public class PassengerGroup : MonoBehaviour
                     {
                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
 
-                        // Shake the obstacle that was hit
                         if(obstacle != null)
                         {
                             Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
@@ -575,7 +591,6 @@ public class PassengerGroup : MonoBehaviour
 
                 Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by non-jumpable obstacle '{obstacle.name}'. Returning to origin.");
 
-                // Shake the obstacle that was hit
                 if(obstacle != null)
                 {
                     Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
@@ -583,19 +598,19 @@ public class PassengerGroup : MonoBehaviour
                 }
 
                 if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                yield return StartCoroutine(GoHome());
+                if (fromConveyor)
+                {
+                    yield return StartCoroutine(ReturnToConveyor());
+                }
+                else
+                {
+                    yield return StartCoroutine(GoHome());
+                }
                 isMoving = false;
                 yield break;
             }
         }
-
-        if (stopIndex != -1)
-        {
-            yield return StartCoroutine(MoveToWorld(stopWorldPos, gridPos));
-            PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
-            OnGroupDeparted?.Invoke(this);
-            StopManager.Instance.ConfirmArrivalAtStop(stopIndex, this);
-        }
+        
         isMoving = false;
     }
 
@@ -761,7 +776,7 @@ public class PassengerGroup : MonoBehaviour
                     Vector3 prev = currPos;
                     foreach (var p in remaining) { totalDist += Vector3.Distance(prev, p); prev = p; }
                     float newDur = totalDist / moveSpeed;
-                    var pathTween = transform.DOPath(remaining.ToArray(), newDur, PathType.Linear).SetEase(Ease.Linear);
+                    var pathTween = transform.DOPath(remaining.ToArray(), newDur, PathType.CatmullRom).SetEase(Ease.InOutSine);
                     activeMovementTween = pathTween;
                     activeTweenBaseSpeed = moveSpeed;
                     activeMovementPathPoints = remaining.ToArray();

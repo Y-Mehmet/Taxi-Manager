@@ -56,7 +56,7 @@ public class PassengerGroup : MonoBehaviour
     public UnderpassController OriginUnderpass { get; set; }
     public bool fromConveyor = false;
     [SerializeField]
-     float moveSpeed = 7f; 
+     float moveSpeed = 10f; 
     public Transform modelTransform;
     public Vector2Int gridPos; 
 
@@ -65,6 +65,9 @@ public class PassengerGroup : MonoBehaviour
     public bool useGridPosition = false;
     [Header("Yön Göstergesi")]
     public Transform directionIndicator;
+
+    [Header("Effects")]
+    public ParticleSystem exhaustParticles;
 
     [Header("Convoy (train) settings")]
     public PassengerGroup followTarget = null;
@@ -178,6 +181,21 @@ public class PassengerGroup : MonoBehaviour
     {
         UpdateFollowQueue();
         UpdateCheckpointQueue();
+
+        if (isMoving)
+        {
+            if (exhaustParticles != null && !exhaustParticles.isPlaying)
+            {
+                exhaustParticles.Play();
+            }
+        }
+        else
+        {
+            if (exhaustParticles != null && exhaustParticles.isPlaying)
+            {
+                exhaustParticles.Stop();
+            }
+        }
     }
 
     public void TryMoveForwardWithLog()
@@ -487,7 +505,7 @@ public class PassengerGroup : MonoBehaviour
                 
                 Transform transformToRotate = modelTransform != null ? modelTransform : transform;
 
-                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear).SetEase(Ease.Linear);
+                var pathTween = transform.DOPath(worldSegment.ToArray(), duration, PathType.Linear).SetEase(Ease.InQuad);
                 activeMovementTween = pathTween;
                 activeTweenBaseSpeed = moveSpeed;
                 activeMovementType = MovementType.Path;
@@ -528,7 +546,7 @@ public class PassengerGroup : MonoBehaviour
                     {
                         lookAtStopRotation = Quaternion.LookRotation(directionToStop);
                     }
-                    finalMoveSequence.Join(transform.DOMove(stopWorldPos, finalMoveDuration).SetEase(Ease.Linear));
+                    finalMoveSequence.Join(transform.DOMove(stopWorldPos, finalMoveDuration).SetEase(Ease.InQuad));
                     finalMoveSequence.Join(transformToRotate.DORotateQuaternion(lookAtStopRotation, finalMoveDuration * 0.5f).SetEase(Ease.Linear));
                     yield return finalMoveSequence.WaitForCompletion();
 

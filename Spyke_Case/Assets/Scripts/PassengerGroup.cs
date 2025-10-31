@@ -550,6 +550,14 @@ public class PassengerGroup : MonoBehaviour
                     if (PassengerGrid.Instance.GetOccupant(step) == obstacle)
                     {
                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
+
+                        // Shake the obstacle that was hit
+                        if(obstacle != null)
+                        {
+                            Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
+                            transformToShake.DOShakeRotation(0.5f, new Vector3(0, 45, 0), 10, 90, true);
+                        }
+
                         if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                         if (fromConveyor)
                         {
@@ -566,6 +574,14 @@ public class PassengerGroup : MonoBehaviour
                 }
 
                 Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by non-jumpable obstacle '{obstacle.name}'. Returning to origin.");
+
+                // Shake the obstacle that was hit
+                if(obstacle != null)
+                {
+                    Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
+                    transformToShake.DOShakeRotation(0.5f, new Vector3(0, 45, 0), 10, 90, true);
+                }
+
                 if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                 yield return StartCoroutine(GoHome());
                 isMoving = false;

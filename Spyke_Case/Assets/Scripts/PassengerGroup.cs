@@ -443,8 +443,14 @@ public class PassengerGroup : MonoBehaviour
                 var cell = PassengerGrid.Instance.GetCell(step.x, step.y);
                 if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
                 {
-                    Debug.LogWarning($"[ContinuousPath] Path blocked by terrain at {step}. Returning home.");
-                    yield return StartCoroutine(GoHome());
+                    if (fromConveyor)
+                    {
+                        yield return StartCoroutine(ReturnToConveyor());
+                    }
+                    else
+                    {
+                        yield return StartCoroutine(GoHome());
+                    }
                     isMoving = false;
                     yield break;
                 }
@@ -539,7 +545,14 @@ public class PassengerGroup : MonoBehaviour
                     {
                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
                         if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
-                        yield return StartCoroutine(GoHome());
+                        if (fromConveyor)
+                        {
+                            yield return StartCoroutine(ReturnToConveyor());
+                        }
+                        else
+                        {
+                            yield return StartCoroutine(GoHome());
+                        }
                         isMoving = false;
                         yield break;
                     }
@@ -591,6 +604,27 @@ public class PassengerGroup : MonoBehaviour
             .WaitForCompletion();
 
         transformToRotate.rotation = finalRotation;
+        isMoving = false;
+    }
+
+    System.Collections.IEnumerator ReturnToConveyor()
+    {
+        isMoving = true;
+        // Unregister from the grid
+        if (PassengerGrid.Instance != null)
+        {
+            PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
+        }
+
+        // Tell the manager to put us back on the belt
+        if (ConveyorManager.Instance != null)
+        {
+            ConveyorManager.Instance.ReturnPassengerToBelt(this);
+        }
+        
+        // Wait a frame to ensure managers can process
+        yield return null; 
+        
         isMoving = false;
     }
 
@@ -879,6 +913,34 @@ public class PassengerGroup : MonoBehaviour
             Debug.LogError($"[{name}] Aborting move: The closest waiting area cell {closestCell.position} is occupied by another group.");
             LogPathNotFound();
             return;
+        }
+
+        // New pre-check: Scan the entire column for obstructions before committing to the move.
+        int targetColumnX = closestCell.position.x;
+        for (int y = closestCell.position.y; y < PassengerGrid.Instance.gridData.height; y++)
+        {
+            Vector2Int cellToTest = new Vector2Int(targetColumnX, y);
+            var gridCell = PassengerGrid.Instance.GetCell(cellToTest.x, cellToTest.y);
+
+            // Check for terrain blocks
+            if (gridCell != null && gridCell.cellType == GridCellType.Blocked)
+            {
+                Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by terrain at {cellToTest}.");
+                StartCoroutine(BounceVisual());
+                return;
+            }
+
+            // Check for other passengers
+            if (PassengerGrid.Instance.IsOccupied(cellToTest))
+            {
+                var occupant = PassengerGrid.Instance.GetOccupant(cellToTest);
+                if (occupant != null)
+                {
+                    Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by '{occupant.name}' at {cellToTest}.");
+                    StartCoroutine(BounceVisual());
+                    return;
+                }
+            }
         }
 
         Debug.LogWarning($"[{name}] Closest waiting area cell {closestCell.position} is free. Teleporting and starting pathfind.");

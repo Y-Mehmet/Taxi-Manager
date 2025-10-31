@@ -64,4 +64,12 @@ public class ConveyorManager : MonoBehaviour
             ConveyorBelt.Instance.RemovePassenger(passenger);
         }
     }
+
+    public void ReturnPassengerToBelt(PassengerGroup passenger)
+    {
+        if (ConveyorBelt.Instance != null)
+        {
+            ConveyorBelt.Instance.AddPassengerToEmptySlot(passenger);
+        }
+    }
 }

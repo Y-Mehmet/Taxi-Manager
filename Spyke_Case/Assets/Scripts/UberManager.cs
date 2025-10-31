@@ -116,7 +116,24 @@ public class UberManager : MonoBehaviour
             }
 
             // Vagonu deaktif et
-            wagonToCollect.gameObject.SetActive(false);
+            // wagonToCollect.gameObject.SetActive(false); // Replaced with animation
+
+            // Animate the wagon moving to the Uber, then deactivate it.
+            Transform wagonTransform = wagonToCollect.transform;
+            Transform uberTransform = uber1_mission.transform;
+
+            // Unparent the wagon so it can move freely in world space
+            wagonTransform.SetParent(null); 
+
+            Sequence collectSequence = DOTween.Sequence();
+            collectSequence.Append(wagonTransform.DOMove(uberTransform.position, 0.5f).SetEase(Ease.InQuad));
+            collectSequence.Join(wagonTransform.DOScale(Vector3.zero, 0.5f).SetEase(Ease.InQuad));
+            collectSequence.OnComplete(() => {
+                wagonToCollect.gameObject.SetActive(false);
+            });
+
+            // Wait for the animation to complete before continuing the Uber sequence
+            yield return collectSequence.WaitForCompletion();
 
             // Animasyonları oluştur
             Sequence sequence = DOTween.Sequence();

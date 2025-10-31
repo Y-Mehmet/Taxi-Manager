@@ -900,6 +900,42 @@ public class PassengerGroup : MonoBehaviour
         // We can add a visual feedback for the player here later.
     }
 
+    public void PlayDepartureAnimation()
+    {
+        // This is a "show" animation. The passenger is already considered "gone" by the game logic.
+        // Unregister from the grid so it doesn't block pathfinding during its departure.
+        if (PassengerGrid.Instance != null)
+        {
+            PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
+        }
+        // Disable its collider to prevent any further interaction.
+        var col = GetComponent<Collider>();
+        if(col != null) col.enabled = false;
+
+        Sequence departureSequence = DOTween.Sequence();
+
+        // 1. Wait for 0.5 seconds.
+        departureSequence.AppendInterval(0.5f);
+
+        // 2. Animate departure with a smooth curve
+        Vector3 startPos = transform.position;
+        // Intermediate point to define the curve: 1 unit down (Z) and 1 unit right (X)
+        Vector3 curvePoint = new Vector3(startPos.x + 1f, startPos.y, startPos.z - 1f);
+        // Final point off-screen
+        Vector3 finalPos = new Vector3(10f, startPos.y, startPos.z - 1f);
+
+        Vector3[] path = { curvePoint, finalPos };
+
+        // Append the path animation. The total duration can be adjusted.
+        // We'll use a consistent ease for the whole path. Ease.InOutSine gives a nice feel.
+        departureSequence.Append(transform.DOPath(path, 1.8f, PathType.CatmullRom).SetEase(Ease.InOutSine));
+
+        // 3. Deactivate on complete.
+        departureSequence.OnComplete(() => {
+            gameObject.SetActive(false);
+        });
+    }
+
     private void TryMoveToWaitingArea()
     {
         if (StopManager.Instance != null && !StopManager.Instance.HasAvailableStops())

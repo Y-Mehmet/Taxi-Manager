@@ -51,11 +51,7 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentState != GameState.Playing) return;
 
-        // Check if there are any wagons left
-        if (WagonManager.Instance.GetActiveWagons().Count == 0)
-        {
-            WinLevel();
-        }
+        CheckWinCondition(); // Call the new method
     }
 
     private void WinLevel()
@@ -112,5 +108,20 @@ public class GameManager : MonoBehaviour
 
         // TODO: Show game over screen
         PanelManager.Instance.ShowPanel(PanelID.TryAgainPanel);
+    }
+
+    public void CheckWinCondition()
+    {
+        if (CurrentState != GameState.Playing) return;
+
+        bool noWagonsLeft = WagonManager.Instance.GetActiveWagons().Count == 0;
+        bool noPassengersAtStops = StopManager.Instance.GetOccupiedStops().Count == 0;
+        bool noUnderpassPassengers = UnderpassManager.Instance.AreAllQueuesEmpty();
+        // TODO: Add check for conveyor passengers if needed. For now, assume they are handled by other means.
+
+        if (noWagonsLeft && noPassengersAtStops && noUnderpassPassengers)
+        {
+            WinLevel();
+        }
     }
 }

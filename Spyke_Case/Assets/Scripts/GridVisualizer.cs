@@ -7,7 +7,7 @@ public class GridVisualizer : MonoBehaviour
     [Header("Görsel Ayarlar")]
     public GameObject cellCubePrefab;
     public bool showGridLines = true;
-    public Color gridLineColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+    public Color gridLineColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
 
     private GridData gridData;
     private Material[] cellTypeMaterials;
@@ -42,7 +42,7 @@ public class GridVisualizer : MonoBehaviour
                     case GridCellType.Empty: mat.color = Color.black; break;
                     case GridCellType.Blocked: mat.color = Color.red; break;
                     case GridCellType.Walkable: mat.color = Color.white; break;
-                    case GridCellType.WaitingArea: mat.color = Color.yellow; break;
+                    case GridCellType.WaitingArea: mat.color = Color.clear; break;
                     case GridCellType.Stop: mat.color = Color.blue; break;
                 }
                 cellTypeMaterials[i] = mat;

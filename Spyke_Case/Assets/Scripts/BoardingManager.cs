@@ -174,9 +174,14 @@ public class BoardingManager : MonoBehaviour
                     // Eğer işçinin kapasitesi dolduysa (yani 0'a ulaştıysa), işçiyi de oyundan kaldır.
                     if (passenger.GroupSize <= 0)
                     {
+                        // The stop is now free for other passengers.
                         StopManager.Instance.FreeStop(stopIndex);
-                        passenger.gameObject.SetActive(false);
-                        Debug.Log($"<color=green>İŞÇİ GÖREVİ TAMAMLADI:</color> {passenger.name} işçisi kapasitesi dolduğu için kaldırıldı.");
+                        
+                        // Start the departure animation instead of deactivating immediately.
+                        passenger.PlayDepartureAnimation();
+
+                        Debug.Log($"<color=green>İŞÇİ GÖREVİ TAMAMLADI:</color> {passenger.name} işçisi kapasitesi dolduğu için kaldırıldı ve çıkış animasyonu başladı.");
+                        GameManager.Instance.CheckWinCondition(); // Check for win condition after passenger departs
                     }
                     
                     // Bir eşleşme bulunduktan sonra bu frame için işlemi bitir.

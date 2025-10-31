@@ -5752,11 +5752,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3188904758332346821, guid: 4dece1366f7f1c14090654a4c0c0db81, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2594
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188904758332346821, guid: 4dece1366f7f1c14090654a4c0c0db81, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1008
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3188904758332346821, guid: 4dece1366f7f1c14090654a4c0c0db81, type: 3}
       propertyPath: m_LocalPosition.z
@@ -5794,6 +5794,10 @@ PrefabInstance:
       propertyPath: mainCanvas
       value: 
       objectReference: {fileID: 4699654721783090772}
+    - target: {fileID: 3805000837578113147, guid: 4dece1366f7f1c14090654a4c0c0db81, type: 3}
+      propertyPath: initialPoolSize
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

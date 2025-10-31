@@ -46,4 +46,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   clickEffectPrefab: {fileID: 1592714564595610635, guid: d054fa76c08888848a7bb31d9cce2f00, type: 3}
   mainCanvas: {fileID: 0}
-  initialPoolSize: 5
+  initialPoolSize: 1

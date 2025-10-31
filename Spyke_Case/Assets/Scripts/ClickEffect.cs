@@ -12,8 +12,9 @@ public class ClickEffect : MonoBehaviour
         ps = GetComponent<ParticleSystem>();
         Debug.LogWarning($"[{name}] AWAKE. ParticleSystem component is: {(ps == null ? "NULL" : "Assigned")}");
         
+        var main = ps.main; // 'main' modülünü burada alıyoruz
+
         // Loop ayarının kapalı olduğundan emin ol
-        var main = ps.main;
         if (main.loop)
         {
             Debug.LogWarning($"[{name}] Loop should be disabled for pooled one-shot effects.");
@@ -21,10 +22,29 @@ public class ClickEffect : MonoBehaviour
         }
         
         // ParticleSystem'in "Play On Awake" (POA) ayarını kapatın. 
-        if (ps.playOnAwake)
+        if (main.playOnAwake)
         {
             Debug.LogWarning($"[{name}] Disabling 'Play On Awake'.");
-            ps.playOnAwake = false;
+            main.playOnAwake = false;
+        }
+
+        // YENİ KONTROL: StopAction (Durdurma Eylemi)
+        // Havuzlama (pooling) yaparken, StopAction'ın 'None' olması gerekir.
+        // Eğer 'Disable' veya 'Destroy' ise, script'in kontrolüyle çakışır.
+        if (main.stopAction != ParticleSystemStopAction.None)
+        {
+            Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Stop Action' ayarı '{main.stopAction}' olarak ayarlanmış. Havuzlama için 'None' olmalıdır. 'None' olarak ayarlanıyor.");
+            main.stopAction = ParticleSystemStopAction.None;
+        }
+
+        // YENİ KONTROL: Culling Mode (Görünmezse Duraklatma)
+        // Eğer Culling Mode 'Automatic' veya 'Pause' ise,
+        // UI Canvas'ta SetActive(false) yapıldığında simülasyonu duraklatabilir ve tekrar başladığında görünmez olabilir.
+        if (main.cullingMode != ParticleSystemCullingMode.AlwaysSimulate)
+        {
+            Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Culling Mode' ayarı '{main.cullingMode}'. 'AlwaysSimulate' olarak ayarlanması, havuzlanan UI efektlerinin görünmez olma sorununu çözebilir. Ayar 'AlwaysSimulate' olarak değiştiriliyor.");
+            // Culling mode'u koddan zorla (en güvenli yöntem)
+            main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
         }
     }
 

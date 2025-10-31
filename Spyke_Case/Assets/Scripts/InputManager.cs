@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.EventSystems; // UI kontrolü için eklendi
 
 public class InputManager : MonoBehaviour
 {
@@ -30,6 +31,7 @@ public class InputManager : MonoBehaviour
 
     private void OnDisable()
     {
+        // Null kontrolü, oyun sonu/kapanışı senaryolarında önemlidir.
         if (UberManager.Instance != null)
         {
              UberManager.OnGameOver -= DisableInput;
@@ -41,12 +43,26 @@ public class InputManager : MonoBehaviour
     {
         if (isInputDisabled) return;
 
-        // --- One-time tap to start mechanic ---
-        if (!initialTapDone)
+        // Tıklama/Dokunma tespitini tek bir yerden yapalım.
+        // Hem fare tıklaması hem de mobil dokunma için 'GetInputDown' adında yeni bir metot kullanacağız.
+
+        if (GetInputDown(out Vector3 screenPosition))
         {
-            // Check for any tap or click, but don't process the raycast yet.
-            if (Input.GetMouseButtonDown(0))
+            // --- Tıklama Efekti ---
+            // Her tıklamada/dokunmada ClickEffectManager'a ekran pozisyonunu göndererek efekti oynat.
+            // Bu efektin UI katmanında çalışması ClickEffectManager'ın iç implementasyonuna bağlıdır.
+            if (ClickEffectManager.Instance != null)
             {
+                // Ekran koordinatlarını (pixel) gönderiyoruz.
+                ClickEffectManager.Instance.PlayEffect(screenPosition); 
+            }
+            // --- Tıklama Efekti Bitti ---
+
+
+            // --- One-time tap to start mechanic ---
+            if (!initialTapDone)
+            {
+                // Check for any tap or click.
                 if (MetroManager.Instance != null)
                 {
                     // On the first tap, reduce speed from 4x to 1x.
@@ -56,48 +72,72 @@ public class InputManager : MonoBehaviour
                 // Absorb the first tap; don't process it for passenger selection.
                 return; 
             }
-        }
-        // --- End of one-time tap mechanic ---
+            // --- End of one-time tap mechanic ---
 
-        // Regular input processing starts after the first tap.
-        if (!TryGetTouchPosition(out Vector3 touchPosition))
-        {
-            return;
-        }
 
-        Ray ray = Camera.main.ScreenPointToRay(touchPosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
-        {
-            PassengerGroup tappedGroup = hit.transform.GetComponent<PassengerGroup>();
-            if (tappedGroup != null)
+            // Regular input processing starts after the first tap.
+            
+            // UI element'lara dokunulup dokunulmadığını kontrol et. 
+            // UI'ya dokunulduysa oyun dünyasındaki objelere tıklamayı engelle (istenirse).
+            if (EventSystem.current.IsPointerOverGameObject())
             {
-                Debug.Log($"[InputManager] Tapped on {tappedGroup.name}");
-                OnPassengerGroupTapped?.Invoke(tappedGroup);
+                // UI objesi üzerine tıklandı/dokunuldu. Raycast işlemini atla.
+                return;
+            }
+
+
+            // Yolcu Grubu Tespiti için Raycast
+            Ray ray = Camera.main.ScreenPointToRay(screenPosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                PassengerGroup tappedGroup = hit.transform.GetComponent<PassengerGroup>();
+                if (tappedGroup != null)
+                {
+                    Debug.Log($"[InputManager] Tapped on {tappedGroup.name}");
+                    OnPassengerGroupTapped?.Invoke(tappedGroup);
+                }
             }
         }
     }
 
-    private bool TryGetTouchPosition(out Vector3 position)
-    {
-        position = Vector3.zero;
 
-#if UNITY_EDITOR
+    /// <summary>
+    /// Hem mobil dokunmayı hem de fare tıklamasını tek bir metodla kontrol eder.
+    /// </summary>
+    /// <param name="screenPosition">Dokunma/Tıklama'nın ekran pozisyonu (pixel).</param>
+    /// <returns>Tıklama/Dokunma olayı gerçekleştiyse true döner.</returns>
+    private bool GetInputDown(out Vector3 screenPosition)
+    {
+        screenPosition = Vector3.zero;
+
+        // Mobil Dokunma Kontrolü
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began)
+            {
+                screenPosition = touch.position;
+                return true;
+            }
+        }
+
+        // Editor/Fare Tıklaması Kontrolü (Mobil cihazlarda çalışmaz)
+        #if UNITY_EDITOR || UNITY_STANDALONE
         if (Input.GetMouseButtonDown(0))
         {
-            position = Input.mousePosition;
+            screenPosition = Input.mousePosition;
             return true;
         }
-#endif
-
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-        {
-            position = Input.GetTouch(0).position;
-            return true;
-        }
+        #endif
 
         return false;
     }
-    
+
+
+    // Bu metot artık kullanılmıyor, GetInputDown ile birleştirildi.
+    // private bool TryGetTouchPosition(out Vector3 position) {...}
+
+
     public void DisableInput()
     {
         Debug.Log("[InputManager] Input has been disabled.");

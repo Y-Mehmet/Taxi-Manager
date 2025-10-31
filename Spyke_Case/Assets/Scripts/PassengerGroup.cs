@@ -296,7 +296,7 @@ public class PassengerGroup : MonoBehaviour
         int bestLen = int.MaxValue;
         foreach (var cand in candidates)
         {
-            var p = PassengerGrid.Instance.FindPathToTarget(from, cand, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop, GridCellType.WaitingArea });
+            var p = PassengerGrid.Instance.FindPathToTarget(from, cand, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop });
             if (p != null && p.Count > 0 && p.Count < bestLen)
             {
                 bestLen = p.Count;

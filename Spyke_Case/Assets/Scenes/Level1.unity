@@ -2109,7 +2109,7 @@ GameObject:
   - component: {fileID: 694935368}
   - component: {fileID: 694935367}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: disactif
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2139,7 +2139,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a3b1c637360d884aa719f1e2b7cf995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentLevel: 25
+  CurrentLevel: 28
 --- !u!4 &694935369
 Transform:
   m_ObjectHideFlags: 0
@@ -6778,7 +6778,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3425082259358771783, guid: 98942fc966f54aa439ac53a25e794046, type: 3}
       propertyPath: distanceBetweenWagons
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3676540215726345986, guid: 98942fc966f54aa439ac53a25e794046, type: 3}
       propertyPath: m_Name

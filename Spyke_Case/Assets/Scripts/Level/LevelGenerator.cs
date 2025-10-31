@@ -7,7 +7,7 @@ public static class LevelGenerator
     // --- Constants and Structs ---
     private const int GRID_WIDTH = 7;
     private const int GRID_HEIGHT = 11;
-    private const int MAX_GENERATION_RETRIES = 1000;
+    private const int MAX_GENERATION_RETRIES = 100000;
 
     private class PlacedObject
     {
@@ -85,6 +85,37 @@ public static class LevelGenerator
         var visiting = new HashSet<PassengerNode>();
         var visited = new HashSet<PassengerNode>();
         foreach (var node in allNodes) { if (!visited.Contains(node)) { if (HasCycleDFS(node, visiting, visited)) return false; } }
+
+        // --- New Check for Head-on Collisions ---
+        for (int i = 0; i < allNodes.Count; i++)
+        {
+            for (int j = i + 1; j < allNodes.Count; j++)
+            {
+                var nodeA = allNodes[i];
+                var nodeB = allNodes[j];
+
+                // Check for head-on collision in the same column
+                if (nodeA.Position.x == nodeB.Position.x && nodeA.Direction.y != 0 && nodeA.Direction.y == -nodeB.Direction.y)
+                {
+                    if ((nodeA.Position.y > nodeB.Position.y && nodeA.Direction.y < 0) || (nodeB.Position.y > nodeA.Position.y && nodeB.Direction.y < 0))
+                    {
+                        Debug.LogWarning($"Level validation failed: Head-on collision detected in column {nodeA.Position.x} between node at {nodeA.Position} and node at {nodeB.Position}.");
+                        return false;
+                    }
+                }
+
+                // Check for head-on collision in the same row
+                if (nodeA.Position.y == nodeB.Position.y && nodeA.Direction.x != 0 && nodeA.Direction.x == -nodeB.Direction.x)
+                {
+                    if ((nodeA.Position.x > nodeB.Position.x && nodeA.Direction.x < 0) || (nodeB.Position.x > nodeA.Position.x && nodeB.Direction.x < 0))
+                    {
+                        Debug.LogWarning($"Level validation failed: Head-on collision detected in row {nodeA.Position.y} between node at {nodeA.Position} and node at {nodeB.Position}.");
+                        return false;
+                    }
+                }
+            }
+        }
+
         return true;
     }
 

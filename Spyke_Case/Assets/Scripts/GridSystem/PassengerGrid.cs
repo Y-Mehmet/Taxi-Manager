@@ -147,7 +147,7 @@ namespace GridSystem
                 var nc = GetCell(nx.x, nx.y);
                 if (nc == null) continue;
 
-                if (occupancy.ContainsKey(nx))
+                if (occupancy.TryGetValue(nx, out var occupant) && !occupant.fromConveyor)
                 {
                     if (nc.cellType == GridCellType.WaitingArea)
                     {
@@ -200,10 +200,11 @@ namespace GridSystem
                 Vector2Int nx = cur + d;
                 if (nx.x < 0 || nx.y < 0 || nx.x >= w || nx.y >= h) continue;
                 if (visited[nx.x, nx.y]) continue;
+
                 var nc = GetCell(nx.x, nx.y);
                 if (nc == null) continue;
 
-                if (occupancy.ContainsKey(nx))
+                if (occupancy.TryGetValue(nx, out var occupant) && !occupant.fromConveyor)
                 {
                     if (nc.cellType == GridCellType.WaitingArea)
                     {

@@ -458,6 +458,12 @@ public class PassengerGroup : MonoBehaviour
                 var occupant = PassengerGrid.Instance.GetOccupant(step);
                 if (occupant != null && occupant != this)
                 {
+                    // Per user request, ignore passengers that originated from the conveyor belt
+                    if (occupant.fromConveyor)
+                    {
+                        continue; // Treat the cell as empty and continue path execution
+                    }
+
                     if (ascendIndex >= 0 && i > ascendIndex)
                     {
                         var c = cell;

@@ -118,6 +118,11 @@ public class MetroWagon : MonoBehaviour
         currentCheckpointIndex = Mathf.Clamp(newIndex, 0, path.checkpoints.Count);
     }
 
+    public void SetWagonColorProperty(HyperCasualColor newColor)
+    {
+        wagonColor = newColor;
+    }
+
     public void SetColor(HyperCasualColor newColor)
     {
         wagonColor = newColor;

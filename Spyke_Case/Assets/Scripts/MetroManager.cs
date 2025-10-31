@@ -422,7 +422,7 @@ public class MetroManager : MonoBehaviour
 
         List<MetroWagon> wagonsToShuffle = masterWagonList.Where(w => w != null && w.gameObject.activeInHierarchy).ToList();
 
-        if (wagonsToShuffle.Count < 2) 
+        if (wagonsToShuffle.Count < 2)
         {
             Debug.LogWarning("[MetroManager] Not enough active wagons to shuffle.");
             isAdjusting = false;
@@ -431,27 +431,52 @@ public class MetroManager : MonoBehaviour
         }
 
         List<HyperCasualColor> originalColors = wagonsToShuffle.Select(w => w.wagonColor).ToList();
-
-        foreach (var wagon in wagonsToShuffle)
-        {
-            wagon.SetColor(HyperCasualColor.Grey);
-        }
-
-        yield return new WaitForSeconds(0.75f);
-
+        List<Vector3> originalPositions = wagonsToShuffle.Select(w => w.transform.position).ToList();
+        List<Renderer> wagonRenderers = wagonsToShuffle.Select(w => w.GetComponentInChildren<Renderer>()).ToList();
         List<HyperCasualColor> newColors = WagonManager.ShuffleColorGroups(originalColors);
 
+        Sequence shuffleSequence = DOTween.Sequence();
+        float animationDuration = 3f;
+        float halfDuration = animationDuration / 2f;
+
+        // Move up and fade to grey
         for (int i = 0; i < wagonsToShuffle.Count; i++)
         {
-            if (i < newColors.Count)
+            shuffleSequence.Join(wagonsToShuffle[i].transform.DOMoveY(originalPositions[i].y + 2f, halfDuration).SetEase(Ease.OutQuad));
+            if (wagonRenderers[i] != null)
             {
-                wagonsToShuffle[i].SetColor(newColors[i]);
-                yield return new WaitForSeconds(0.05f); 
+                shuffleSequence.Join(wagonRenderers[i].material.DOColor(Color.grey, halfDuration));
             }
         }
 
-        isAdjusting = false;
-        OnTrainAdjustmentStateChanged?.Invoke(false);
-        Debug.Log("[MetroManager] Wagon colors have been shuffled.");
+        // Set the new color property at the peak
+        shuffleSequence.AppendCallback(() => {
+            for (int i = 0; i < wagonsToShuffle.Count; i++)
+            {
+                if (i < newColors.Count)
+                {
+                    wagonsToShuffle[i].SetWagonColorProperty(newColors[i]);
+                }
+            }
+        });
+
+        // Move down and fade to new color
+        for (int i = 0; i < wagonsToShuffle.Count; i++)
+        {
+            shuffleSequence.Join(wagonsToShuffle[i].transform.DOMoveY(originalPositions[i].y, halfDuration).SetEase(Ease.InQuad));
+            if (wagonRenderers[i] != null && i < newColors.Count)
+            {
+                shuffleSequence.Join(wagonRenderers[i].material.DOColor(newColors[i].ToColor(), halfDuration));
+            }
+        }
+
+        shuffleSequence.OnComplete(() =>
+        {
+            isAdjusting = false;
+            OnTrainAdjustmentStateChanged?.Invoke(false);
+            Debug.Log("[MetroManager] Wagon colors have been shuffled.");
+        });
+
+        yield return shuffleSequence.WaitForCompletion();
     }
 }

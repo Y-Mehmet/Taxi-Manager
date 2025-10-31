@@ -564,8 +564,8 @@ public class PassengerGroup : MonoBehaviour
                 bool isJumpable = (occupiedCell.cellType == GridCellType.Stop || occupiedCell.cellType == GridCellType.Walkable);
                 if (isJumpable)
                 {
-                    Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is stationary on a jumpable tile. Waiting 1s.");
-                    yield return new WaitForSeconds(1f);
+                    Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is stationary on a jumpable tile. Waiting 0.5s.");
+                    yield return new WaitForSeconds(0.5f);
                     if (PassengerGrid.Instance.GetOccupant(step) == obstacle)
                     {
                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");

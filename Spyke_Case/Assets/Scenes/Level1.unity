@@ -4645,6 +4645,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CurrentLevel: 30
+  musicVolume: 0
+  soundFxVolume: 0
 --- !u!4 &1799355933
 Transform:
   m_ObjectHideFlags: 0

@@ -154,6 +154,7 @@ public class BoardingManager : MonoBehaviour
                     WagonManager.Instance.TriggerWagonRemovalEvent(availableWagon, availableWagon.transform);
 
                     // Animate the wagon moving to the passenger, then deactivate it.
+                     SoundManager.instance.PlaySfx(SoundType.Slurp);
                     Transform wagonTransform = availableWagon.transform;
                     wagonTransform.SetParent(null); // Unparent to move freely
                     Sequence sequence = DOTween.Sequence();

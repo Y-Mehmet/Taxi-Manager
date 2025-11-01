@@ -54,7 +54,8 @@ public class InputManager : MonoBehaviour
             if (ClickEffectManager.Instance != null)
             {
                 // Ekran koordinatlarını (pixel) gönderiyoruz.
-                ClickEffectManager.Instance.PlayEffect(screenPosition); 
+                ClickEffectManager.Instance.PlayEffect(screenPosition);
+                SoundManager.instance.PlaySfx(SoundType.btnClick);
             }
             // --- Tıklama Efekti Bitti ---
 

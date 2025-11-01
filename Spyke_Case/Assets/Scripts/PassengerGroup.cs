@@ -602,9 +602,11 @@ public class PassengerGroup : MonoBehaviour
                 }
                 Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by non-jumpable obstacle '{obstacle.name}'. Returning to origin.");
                 if(obstacle != null)
-                {
+                { 
+                    SoundManager.instance.PlaySfxSequentially(SoundType.Crush, SoundType.Corna);
                     Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
                     transformToShake.DOShakeRotation(0.5f, new Vector3(0, 45, 0), 10, 90, true);
+                    
                 }
                 if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                 if (fromConveyor) { yield return StartCoroutine(ReturnToConveyor()); }

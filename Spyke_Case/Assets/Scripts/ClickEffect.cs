@@ -10,21 +10,21 @@ public class ClickEffect : MonoBehaviour
     void Awake()
     {
         ps = GetComponent<ParticleSystem>();
-        Debug.LogWarning($"[{name}] AWAKE. ParticleSystem component is: {(ps == null ? "NULL" : "Assigned")}");
+      //  Debug.LogWarning($"[{name}] AWAKE. ParticleSystem component is: {(ps == null ? "NULL" : "Assigned")}");
         
         var main = ps.main; // 'main' modülünü burada alıyoruz
 
         // Loop ayarının kapalı olduğundan emin ol
         if (main.loop)
         {
-            Debug.LogWarning($"[{name}] Loop should be disabled for pooled one-shot effects.");
+            //Debug.LogWarning($"[{name}] Loop should be disabled for pooled one-shot effects.");
             main.loop = false;
         }
         
         // ParticleSystem'in "Play On Awake" (POA) ayarını kapatın. 
         if (main.playOnAwake)
         {
-            Debug.LogWarning($"[{name}] Disabling 'Play On Awake'.");
+           // Debug.LogWarning($"[{name}] Disabling 'Play On Awake'.");
             main.playOnAwake = false;
         }
 
@@ -42,7 +42,7 @@ public class ClickEffect : MonoBehaviour
         // UI Canvas'ta SetActive(false) yapıldığında simülasyonu duraklatabilir ve tekrar başladığında görünmez olabilir.
         if (main.cullingMode != ParticleSystemCullingMode.AlwaysSimulate)
         {
-            Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Culling Mode' ayarı '{main.cullingMode}'. 'AlwaysSimulate' olarak ayarlanması, havuzlanan UI efektlerinin görünmez olma sorununu çözebilir. Ayar 'AlwaysSimulate' olarak değiştiriliyor.");
+          //  Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Culling Mode' ayarı '{main.cullingMode}'. 'AlwaysSimulate' olarak ayarlanması, havuzlanan UI efektlerinin görünmez olma sorununu çözebilir. Ayar 'AlwaysSimulate' olarak değiştiriliyor.");
             // Culling mode'u koddan zorla (en güvenli yöntem)
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
         }
@@ -53,21 +53,19 @@ public class ClickEffect : MonoBehaviour
     /// </summary>
     public void Play()
     {
-        Debug.LogWarning($"[{name}] --- PLAY called ---");
         
-        // Önceki coroutine'leri durdur.
-        Debug.LogWarning($"[{name}] Stopping all coroutines.");
+      
         StopAllCoroutines(); 
         
-        // **KESİN TEMİZLİK:** Havuzdan çıkan efektin sıfırlandığından emin olmak için Play'den önce temizle.
-        Debug.LogWarning($"[{name}] Calling StopAndClear() before playing.");
+      
+      
         StopAndClear();
         
-        // Particle sistemini sıfırdan oynat
-        Debug.LogWarning($"[{name}] Calling ps.Play().");
+        
+      
         ps.Play(); 
         
-        Debug.LogWarning($"[{name}] Starting PlayAndReturnToPool coroutine.");
+       
         StartCoroutine(PlayAndReturnToPool());
     }
 
@@ -76,19 +74,19 @@ public class ClickEffect : MonoBehaviour
     /// </summary>
     public void PlayInstant()
     {
-        Debug.LogWarning($"[{name}] --- PLAY INSTANT (for pooling) called ---");
+       // Debug.LogWarning($"[{name}] --- PLAY INSTANT (for pooling) called ---");
         ps.Play();
     }
 
     private IEnumerator PlayAndReturnToPool()
     {
-        Debug.LogWarning($"[{name}] Coroutine: PlayAndReturnToPool started.");
+      //  Debug.LogWarning($"[{name}] Coroutine: PlayAndReturnToPool started.");
         
         // Particle sisteminin bitmesini bekler.
         // Süre, particle sisteminin şu anki (runtime) ayarlarından dinamik olarak hesaplanır.
         float currentTotalDuration = ps.main.duration + ps.main.startLifetime.constantMax;
         
-        Debug.LogWarning($"[{name}] Coroutine: Calculated duration: {currentTotalDuration} seconds.");
+        //Debug.LogWarning($"[{name}] Coroutine: Calculated duration: {currentTotalDuration} seconds.");
 
         if (currentTotalDuration <= 0)
         {
@@ -98,13 +96,13 @@ public class ClickEffect : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[{name}] Coroutine: Waiting for {currentTotalDuration} seconds.");
+        //    Debug.LogWarning($"[{name}] Coroutine: Waiting for {currentTotalDuration} seconds.");
             yield return new WaitForSeconds(currentTotalDuration);
-            Debug.LogWarning($"[{name}] Coroutine: Wait finished.");
+          //  Debug.LogWarning($"[{name}] Coroutine: Wait finished.");
         }
 
         // Efekti havuza iade et
-        Debug.LogWarning($"[{name}] Coroutine: Attempting to return to pool.");
+      //  Debug.LogWarning($"[{name}] Coroutine: Attempting to return to pool.");
         if (ClickEffectManager.Instance != null)
         {
             ClickEffectManager.Instance.ReturnToPool(this);
@@ -112,7 +110,7 @@ public class ClickEffect : MonoBehaviour
         else
         {
             // Fallback: Yönetici yoksa kendini yok et
-            Debug.LogWarning($"[{name}] Coroutine: ClickEffectManager.Instance is NULL. Destroying self.");
+         //   Debug.LogWarning($"[{name}] Coroutine: ClickEffectManager.Instance is NULL. Destroying self.");
             Destroy(gameObject);
         }
     }
@@ -123,7 +121,7 @@ public class ClickEffect : MonoBehaviour
     /// </summary>
     public void StopAndClear()
     {
-        Debug.LogWarning($"[{name}] StopAndClear() called.");
+      //  Debug.LogWarning($"[{name}] StopAndClear() called.");
         // StopEmittingAndClear: Yayılan parçacıkları durdurur ve sahnede kalan parçacıkları temizler.
         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }

@@ -54,6 +54,7 @@ public class SoundManager : MonoBehaviour
 
         bgmSource.volume = ResourceManager.Instance.musicVolume;
         sfxSource.volume = ResourceManager.Instance.soundFxVolume;
+        PlayBgm(SoundType.Bg);
     }
     private void InitializeSounds()
     {
@@ -176,7 +177,7 @@ public class SoundManager : MonoBehaviour
         {
             sfxSource.PlayOneShot(firstClip);
             // Birinci sesin bitmesini bekle
-            yield return new WaitForSeconds(firstClip.length);
+            yield return new WaitForSeconds(firstClip.length/2);
         }
         else
         {
@@ -203,6 +204,7 @@ public enum SoundType
     Corna,
     EarnCoin,
     BuyCoin,
+    Slurp,
 
 
 

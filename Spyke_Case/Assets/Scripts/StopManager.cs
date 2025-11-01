@@ -86,6 +86,13 @@ public class StopManager : MonoBehaviour
         {
             Debug.Log($"[StopManager] Activating next stop via ability: {nextStop.name}");
             nextStop.gameObject.SetActive(true);
+
+            if (GridSystem.PassengerGrid.Instance != null)
+            {
+                Vector2Int stopGridPos = GridSystem.PassengerGrid.Instance.WorldToGridPos(nextStop.transform.position);
+                GridSystem.PassengerGrid.Instance.AddStop(stopGridPos);
+            }
+
             RegisterStop(nextStop);
         }
         else
@@ -99,7 +106,6 @@ public class StopManager : MonoBehaviour
         if (newStop != null && !AllStops.Contains(newStop))
         {
             AllStops.Add(newStop);
-            AllStops = AllStops.OrderBy(s => s.name).ToList();
             Debug.Log($"[StopManager] A new stop '{newStop.name}' was registered. Total active stops: {AllStops.Count}");
         }
     }

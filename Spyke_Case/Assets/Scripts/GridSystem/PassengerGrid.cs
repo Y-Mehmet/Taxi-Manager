@@ -71,6 +71,27 @@ namespace GridSystem
             return transform.position + new Vector3(gridPos.x * gridData.cellSize, 0, gridPos.y * gridData.cellSize) + gridData.worldOffset;
         }
 
+        public void AddStop(Vector2Int stopGridPosition)
+        {
+            if (gridData != null && !gridData.stopSlots.Contains(stopGridPosition))
+            {
+                gridData.stopSlots.Add(stopGridPosition);
+                Debug.Log($"[PassengerGrid] Added new stop slot at {stopGridPosition}. Total stop slots: {gridData.stopSlots.Count}");
+            }
+        }
+
+        public Vector2Int WorldToGridPos(Vector3 worldPosition)
+        {
+            if (gridData == null) return Vector2Int.zero;
+
+            Vector3 relative = worldPosition - transform.position - gridData.worldOffset;
+            int gx = Mathf.RoundToInt(relative.x / gridData.cellSize);
+            int gy = Mathf.RoundToInt(relative.z / gridData.cellSize);
+            gx = Mathf.Clamp(gx, 0, gridData.width - 1);
+            gy = Mathf.Clamp(gy, 0, gridData.height - 1);
+            return new Vector2Int(gx, gy);
+        }
+
         public GridCell GetCell(int x, int y)
         {
             if (gridData == null || x < 0 || y < 0 || x >= gridData.width || y >= gridData.height)

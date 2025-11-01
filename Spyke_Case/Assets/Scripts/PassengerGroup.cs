@@ -270,13 +270,11 @@ public class PassengerGroup : MonoBehaviour
 
         var (stopWorldPos, stopIndex) = reservation.Value;
 
-        List<Vector2Int> path = FindPathToHighestWalkableCell(pathfindingStartPoint);
+        // Get the grid position of the reserved stop
+        Vector2Int reservedStopGridPos = PassengerGrid.Instance.gridData.stopSlots[stopIndex];
 
-        if (path == null)
-        {
-            Debug.LogWarning($"[PathPlan] No path to highest cell found. Trying fallback to nearest stop from {pathfindingStartPoint}.");
-            path = PassengerGrid.Instance.FindNearestStopPath(pathfindingStartPoint);
-        }
+        // Find path directly to the reserved stop
+        List<Vector2Int> path = PassengerGrid.Instance.FindPathToTarget(pathfindingStartPoint, reservedStopGridPos, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop, GridCellType.WaitingArea });
 
         if (path != null)
         {

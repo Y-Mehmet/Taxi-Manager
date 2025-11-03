@@ -9,6 +9,10 @@ public class AbilityManager : MonoBehaviour
     public static AbilityManager Instance { get; private set; }
 
     public event Action<AbilityType, int> OnAbilityCountChanged;
+    // Fired when Universal Pathfinding mode is entered/exited. Parameter = active (true=entered, false=exited)
+    public event Action<bool> OnUniversalPathfindingModeChanged;
+    // Fired when Universal Pathfinding ability is used on a specific passenger
+    public event Action<PassengerGroup> OnUniversalPathfindingUsed;
 
     private Dictionary<AbilityType, int> abilityInventory = new Dictionary<AbilityType, int>();
 
@@ -152,13 +156,17 @@ public class AbilityManager : MonoBehaviour
         CancelAbilityMode(); // Cancel any other active modes first
         IsUniversalPathfindingModeActive = true;
         InputManager.OnPassengerGroupTapped += OnPassengerSelectedForUniversalPathfinding;
+        OnUniversalPathfindingModeChanged?.Invoke(true);
         Debug.Log("[AbilityManager] Universal Pathfinding mode ACTIVE. Select a passenger.");
     }
 
     private void OnPassengerSelectedForUniversalPathfinding(PassengerGroup selectedPassenger)
     {
         Debug.Log($"Passenger '{selectedPassenger.name}' selected for Universal Pathfinding.");
+        // Deactivate the mode first so listeners know we're leaving the selection state
         CancelAbilityMode();
+        // Notify listeners that the ability was used on this passenger
+        OnUniversalPathfindingUsed?.Invoke(selectedPassenger);
         ConsumeAbility(AbilityType.UniversalPathfinding);
         selectedPassenger.TryUniversalMove();
     }
@@ -235,6 +243,7 @@ public class AbilityManager : MonoBehaviour
             IsUniversalPathfindingModeActive = false;
             InputManager.OnPassengerGroupTapped -= OnPassengerSelectedForUniversalPathfinding;
             Debug.Log("[AbilityManager] Universal Pathfinding mode CANCELED.");
+            OnUniversalPathfindingModeChanged?.Invoke(false);
         }
         if (IsCraneModeActive)
         {

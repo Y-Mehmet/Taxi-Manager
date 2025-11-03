@@ -205,6 +205,7 @@ public enum SoundType
     EarnCoin,
     BuyCoin,
     Slurp,
+    Siren,
 
 
 

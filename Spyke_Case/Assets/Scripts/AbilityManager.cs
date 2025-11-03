@@ -10,7 +10,7 @@ public class AbilityManager : MonoBehaviour
 
     public event Action<AbilityType, int> OnAbilityCountChanged;
     // Fired when Universal Pathfinding mode is entered/exited. Parameter = active (true=entered, false=exited)
-    public event Action<bool> OnUniversalPathfindingModeChanged;
+    public static event Action<bool> OnUniversalPathfindingModeChanged;
     // Fired when Universal Pathfinding ability is used on a specific passenger
     public event Action<PassengerGroup> OnUniversalPathfindingUsed;
 

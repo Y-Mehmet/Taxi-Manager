@@ -10,20 +10,63 @@ public class SirenBlinker : MonoBehaviour
     // Saniyede kaç kere yanıp söneceği (0.2 = hızlı)
     public float yanipSonmeHizi = 0.2f;
 
-    // Script başladığında çalışır
-    void Start()
+    private Coroutine blinkCoroutine;
+
+    private void OnEnable()
     {
-        // Başlangıçta kırmızı yansın, mavi sönsün
-        kirmiziLambaObjesi.SetActive(true);
+        // Başlangıçta lambaları kapat
+        kirmiziLambaObjesi.SetActive(false);
         maviLambaObjesi.SetActive(false);
 
-        // Yanıp sönme döngüsünü başlat
-        StartCoroutine(BlinkDongusu());
+        // Event'e abone ol
+        AbilityManager.OnUniversalPathfindingModeChanged += HandleUniversalPathfindingModeChanged;
+    }
+
+    private void OnDisable()
+    {
+        // Event'ten aboneliği kaldır
+        AbilityManager.OnUniversalPathfindingModeChanged -= HandleUniversalPathfindingModeChanged;
+        // Objeden çıkarken yanıp sönmeyi durdur
+        StopBlinking();
+    }
+
+    private void HandleUniversalPathfindingModeChanged(bool isActive)
+    {
+        if (isActive)
+        {
+            StartBlinking();
+        }
+        else
+        {
+            StopBlinking();
+        }
+    }
+
+    public void StartBlinking()
+    {
+        if (blinkCoroutine == null)
+        {
+            kirmiziLambaObjesi.SetActive(true);
+            maviLambaObjesi.SetActive(false);
+            blinkCoroutine = StartCoroutine(BlinkDongusu());
+        }
+    }
+
+    public void StopBlinking()
+    {
+        if (blinkCoroutine != null)
+        {
+            StopCoroutine(blinkCoroutine);
+            blinkCoroutine = null;
+            kirmiziLambaObjesi.SetActive(false);
+            maviLambaObjesi.SetActive(false);
+            SoundManager.Instance.PlaySfx(SoundType.Siren);
+                    }
     }
 
     IEnumerator BlinkDongusu()
     {
-        // Bu döngü oyun durana kadar devam eder
+        // Bu döngü durdurulana kadar devam eder
         while (true)
         {
             // Belirlenen süre kadar bekle

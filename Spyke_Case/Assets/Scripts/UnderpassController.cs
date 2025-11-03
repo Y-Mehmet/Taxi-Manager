@@ -15,6 +15,7 @@ public class UnderpassController : MonoBehaviour
     [Header("References")]
     [Tooltip("Prefab'in kendi altındaki sayaç text'i.")]
     public TMP_Text queueCounterText;
+    public GameObject objectToRotate;
 
     // Internal State
     private Queue<PassengerGroup> passengerQueue = new Queue<PassengerGroup>();
@@ -34,7 +35,27 @@ public class UnderpassController : MonoBehaviour
     {
         this.gridManager = gridManager;
         this.myGridPosition = gridPosition;
-
+        if (objectToRotate != null)
+        {
+            float yRotation = 0f;
+            if (startCellOffset.x == -1) // Left
+            {
+                yRotation = -90f;
+            }
+            else if (startCellOffset.x == 1) // Right
+            {
+                yRotation = 90f;
+            }
+            else if (startCellOffset.y == 1) // Up
+            {
+                yRotation = 0;
+            }
+            else if (startCellOffset.y == -1) // Down
+            {
+                yRotation = 180;
+            }
+            objectToRotate.transform.rotation = Quaternion.Euler(-25, yRotation, 90);
+        }
         int groupIndex = 0;
         foreach (var color in sequence)
         {

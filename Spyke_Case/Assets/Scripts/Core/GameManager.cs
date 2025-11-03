@@ -115,11 +115,11 @@ public class GameManager : MonoBehaviour
         if (CurrentState != GameState.Playing) return;
 
         bool noWagonsLeft = WagonManager.Instance.GetActiveWagons().Count == 0;
-        bool noPassengersAtStops = StopManager.Instance.GetOccupiedStops().Count == 0;
-        bool noUnderpassPassengers = UnderpassManager.Instance.AreAllQueuesEmpty();
+        //bool noPassengersAtStops = StopManager.Instance.GetOccupiedStops().Count == 0;
+        //bool noUnderpassPassengers = UnderpassManager.Instance.AreAllQueuesEmpty();
         // TODO: Add check for conveyor passengers if needed. For now, assume they are handled by other means.
 
-        if (noWagonsLeft && noPassengersAtStops && noUnderpassPassengers)
+        if (noWagonsLeft)
         {
             WinLevel();
         }

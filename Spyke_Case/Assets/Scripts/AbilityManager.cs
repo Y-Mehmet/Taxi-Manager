@@ -153,6 +153,12 @@ public class AbilityManager : MonoBehaviour
 
     private void EnterUniversalPathfindingMode()
     {
+        if (StopManager.Instance == null || !StopManager.Instance.HasAvailableStops())
+        {
+            Debug.LogWarning("[AbilityManager] Cannot activate Universal Pathfinding: No available stops.");
+            return;
+        }
+
         CancelAbilityMode(); // Cancel any other active modes first
         IsUniversalPathfindingModeActive = true;
         InputManager.OnPassengerGroupTapped += OnPassengerSelectedForUniversalPathfinding;

@@ -60,7 +60,7 @@ public class SirenBlinker : MonoBehaviour
             blinkCoroutine = null;
             kirmiziLambaObjesi.SetActive(false);
             maviLambaObjesi.SetActive(false);
-            SoundManager.Instance.PlaySfx(SoundType.Siren);
+            SoundManager.instance.PlaySfx(SoundType.Siren,4.4f);
                     }
     }
 

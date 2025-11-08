@@ -125,13 +125,14 @@ public class AbilityManager : MonoBehaviour
         }
 
         // Abilities that execute immediately
-        ConsumeAbility(type);
         switch (type)
         {
             case AbilityType.AddNewStop:
+                // This ability is not consumed from inventory. Its availability is limited by StopManager.
                 ExecuteAddNewStop();
                 break;
             case AbilityType.ShuffleWagonColors:
+                ConsumeAbility(type);
                 MetroManager.Instance.ShuffleWagonColors();
                 break;
         }
@@ -264,10 +265,23 @@ public class AbilityManager : MonoBehaviour
         if (StopManager.Instance != null)
         {
             StopManager.Instance.ActivateNextStop();
+
+            // Check if the max number of stops has been reached
+            if (StopManager.Instance.AllStops.Count >= StopManager.Instance.AllPossibleStops.Count)
+            {
+                Debug.Log("[AbilityManager] Max stops reached. Disabling AddNewStop ability.");
+                // Set count to 0 to signal UI to disable the button
+                if (abilityInventory.ContainsKey(AbilityType.AddNewStop))
+                {
+                    abilityInventory[AbilityType.AddNewStop] = 0;
+                    OnAbilityCountChanged?.Invoke(AbilityType.AddNewStop, 0);
+                }
+            }
         }
         else
         {
             Debug.LogError("StopManager instance not found! Cannot execute AddNewStop ability.");
+            // Refund the ability if it failed
             AddAbility(AbilityType.AddNewStop, 1);
         }
     }

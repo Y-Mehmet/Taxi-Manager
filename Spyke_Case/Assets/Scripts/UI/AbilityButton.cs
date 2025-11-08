@@ -18,7 +18,6 @@ public class AbilityButton : MonoBehaviour
     [SerializeField] private TextMeshProUGUI abilityNameText;  // Yeteneğin adını gösteren text
 
     private Button button;
-    private bool wasUsedThisLevel = false; // Flag for level-specific, single-use abilities
 
     private void Awake()
     {
@@ -67,7 +66,6 @@ public class AbilityButton : MonoBehaviour
     /// </summary>
     public void ResetState()
     {
-        wasUsedThisLevel = false;
         InitializeButtonState();
     }
 
@@ -94,13 +92,6 @@ public class AbilityButton : MonoBehaviour
         if (currentCount > 0)
         {
             AbilityManager.Instance.UseAbility(abilityType);
-
-            // If this is a single-use-per-level ability, set the flag and update UI
-            if (abilityType == AbilityType.AddNewStop)
-            {
-                wasUsedThisLevel = true;
-                UpdateButtonUI(0, ResourceManager.Instance.CurrentCoins); // Re-evaluate UI immediately
-            }
         }
         else
         {
@@ -131,15 +122,6 @@ public class AbilityButton : MonoBehaviour
         if (countText == null)
         {
             Debug.LogError($"[AbilityButton:{abilityType}] CountText reference is not set in the inspector!");
-            return;
-        }
-
-        // Special case for AddNewStop after it has been used this level
-        if (abilityType == AbilityType.AddNewStop && wasUsedThisLevel)
-        {
-            countText.text = "+";
-            countText.gameObject.SetActive(true);
-            button.interactable = false;
             return;
         }
 

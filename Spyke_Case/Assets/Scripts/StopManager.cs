@@ -49,13 +49,13 @@ public class StopManager : MonoBehaviour
 
         var sortedMasterList = AllPossibleStops.Where(s => s != null).OrderBy(s => s.name).ToList();
         
-        Debug.Log($"[StopManager] Found {sortedMasterList.Count} stops in master list. Will activate the first 3.");
+        Debug.Log($"[StopManager] Found {sortedMasterList.Count} stops in master list. Will activate the first 1.");
 
         for (int i = 0; i < sortedMasterList.Count; i++)
         {
             Stop stop = sortedMasterList[i];
             
-            if (i < 3)
+            if (i < 1)
             {
                 stop.gameObject.SetActive(true);
                 if (!AllStops.Contains(stop))

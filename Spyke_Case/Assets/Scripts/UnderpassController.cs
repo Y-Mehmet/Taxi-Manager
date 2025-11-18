@@ -231,6 +231,14 @@ public class UnderpassController : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (queueCounterText != null)
+        {
+            queueCounterText.transform.rotation = Quaternion.identity;
+        }
+    }
+
     private void LogQueueState(string context)
     {
         StringBuilder sb = new StringBuilder();

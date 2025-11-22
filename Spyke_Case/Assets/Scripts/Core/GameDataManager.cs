@@ -74,7 +74,7 @@ public class GameDataManager : MonoBehaviour
         // Bu yöneticilerin sahnede aktif ve erişilebilir olduğu varsayılır.
        ResourceManager.Instance?.SaveData(saveData);
        AbilityManager.Instance?.SaveData(saveData);
-       MetroManager.Instance?.SaveData(saveData);
+
         // Diğer yöneticiler için de benzer çağrılar eklenebilir.
 
         SaveSystem.Save(saveData);

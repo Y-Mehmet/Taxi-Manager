@@ -41,6 +41,12 @@ public class AbilityButton : MonoBehaviour
             ResourceManager.OnCoinsChanged += OnCoinsChanged;
         }
 
+        // Listen for stop changes to update availability
+        if (abilityType == AbilityType.AddNewStop)
+        {
+             StopManager.OnStopRegistered += OnStopRegistered;
+        }
+
         InitializeButtonState();
     }
 
@@ -53,6 +59,11 @@ public class AbilityButton : MonoBehaviour
         if (ResourceManager.Instance != null)
         {
             ResourceManager.OnCoinsChanged -= OnCoinsChanged;
+        }
+        
+        if (abilityType == AbilityType.AddNewStop)
+        {
+             StopManager.OnStopRegistered -= OnStopRegistered;
         }
     }
 
@@ -96,23 +107,17 @@ public class AbilityButton : MonoBehaviour
         }
         else
         {
-            // If we don't own the ability, first check if we have enough coins.
+            // If we don't own the ability, try to buy and use it immediately.
             if (ResourceManager.Instance.CurrentCoins < cost)
             {
                 Debug.LogWarning($"[AbilityButton] Not enough coins to buy {abilityType}. Required: {cost}, Have: {ResourceManager.Instance.CurrentCoins}");
                 return; // Exit if not enough coins
             }
 
-            // If we have enough coins, try to buy it.
-            if (AbilityManager.Instance.BuyAbility(abilityType, cost))
+            // Buy and execute immediately
+            if (AbilityManager.Instance.BuyAndUseAbility(abilityType, cost))
             {
-                // For a non-consumable "unlock" type ability like AddNewStop,
-                // it provides better user experience to trigger the first use immediately after purchase.
-                if (abilityType == AbilityType.AddNewStop)
-                {
-                    Debug.Log($"[AbilityButton] Successfully purchased {abilityType}. Using it for the first time immediately.");
-                    AbilityManager.Instance.UseAbility(abilityType);
-                }
+                 Debug.Log($"[AbilityButton] Successfully purchased and used {abilityType}.");
             }
         }
     }
@@ -135,11 +140,29 @@ public class AbilityButton : MonoBehaviour
         }
     }
 
+    private void OnStopRegistered()
+    {
+        if (AbilityManager.Instance == null || ResourceManager.Instance == null) return;
+        // Refresh UI to check availability
+        UpdateButtonUI(AbilityManager.Instance.GetAbilityCount(abilityType), ResourceManager.Instance.CurrentCoins);
+    }
+
     private void UpdateButtonUI(int abilityCount, int coinCount)
     {
         if (countText == null)
         {
             Debug.LogError($"[AbilityButton:{abilityType}] CountText reference is not set in the inspector!");
+            return;
+        }
+
+        // Check if ability is available (e.g., max stops not reached)
+        bool isAvailable = AbilityManager.Instance.IsAbilityAvailable(abilityType);
+
+        if (!isAvailable)
+        {
+            countText.text = "MAX";
+            countText.gameObject.SetActive(true);
+            button.interactable = false;
             return;
         }
 
@@ -152,8 +175,9 @@ public class AbilityButton : MonoBehaviour
         }
         else
         { 
-            // --- BUY MODE ---
-            countText.text = "+";
+            // --- BUY & USE MODE ---
+            // Show price instead of "+"
+            countText.text = cost.ToString(); 
             countText.gameObject.SetActive(true);
             button.interactable = coinCount >= cost;
         }

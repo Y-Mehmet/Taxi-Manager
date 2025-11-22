@@ -22,7 +22,7 @@ public class MetroManager : MonoBehaviour
     [Header("Bağlantılar")]
     public PassengerGrid passengerGrid;
 
-    private int currentLevelIndex = 0;
+
     private readonly List<MetroWagon> masterWagonList = new List<MetroWagon>();
     private List<MetroWagon> activeWagons = new List<MetroWagon>();
     
@@ -54,23 +54,10 @@ public class MetroManager : MonoBehaviour
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoval;
         }
 
-        if (GameDataManager.Instance != null)
-        {
-            GameDataManager.Instance.OnDataLoaded -= LoadData;
-        }
+
     }
 
-    public void LoadData(SaveGameData data)
-    {
-        if (data == null) return;
-        currentLevelIndex = data.levelIndex;
-    }
 
-    public void SaveData(SaveGameData data)
-    {
-        if (data == null) return;
-        data.levelIndex = this.currentLevelIndex;
-    }
 
     public static void StopMovement()
     {
@@ -180,11 +167,7 @@ public class MetroManager : MonoBehaviour
             originalWagonSpeeds[wagon] = wagon.speed;
         }
 
-        if (GameDataManager.Instance != null)
-        {
-            GameDataManager.Instance.OnDataLoaded += LoadData;
-            LoadData(GameDataManager.Instance.GetSaveData());
-        }
+
 
         ApplySpeedMultiplier();
         OnSpeedMultiplierChanged?.Invoke($"{currentSpeedMultiplier}x");

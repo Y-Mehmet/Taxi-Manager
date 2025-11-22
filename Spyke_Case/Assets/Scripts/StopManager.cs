@@ -11,6 +11,7 @@ public class StopManager : MonoBehaviour
     public List<Stop> AllPossibleStops = new List<Stop>();
 
     public static event Action<PassengerGroup, int> OnPassengerArrivedAtStop;
+    public static event Action OnStopRegistered;
 
     public List<Stop> AllStops { get; private set; } = new List<Stop>();
     private Dictionary<int, PassengerGroup> reservedStops = new Dictionary<int, PassengerGroup>();
@@ -107,6 +108,7 @@ public class StopManager : MonoBehaviour
         {
             AllStops.Add(newStop);
             Debug.Log($"[StopManager] A new stop '{newStop.name}' was registered. Total active stops: {AllStops.Count}");
+            OnStopRegistered?.Invoke();
         }
     }
 
@@ -166,6 +168,11 @@ public class StopManager : MonoBehaviour
                              $"Total: {AllStops.Count}, Occupied: {occupiedStops.Count}, Reserved: {reservedStops.Count}");
         }
         return availableCount > 0;
+    }
+
+    public bool HasInactiveStops()
+    {
+        return AllPossibleStops.Count > AllStops.Count;
     }
 
     public (Vector3 stopWorldPos, int stopIndex)? ReserveFirstFreeStop(PassengerGroup passengerGroup)

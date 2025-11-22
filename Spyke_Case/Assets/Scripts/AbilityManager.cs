@@ -73,6 +73,21 @@ public class AbilityManager : MonoBehaviour
         data.abilityShuffleWagonColorsCount = GetAbilityCount(AbilityType.ShuffleWagonColors);
     }
 
+    public bool BuyAndUseAbility(AbilityType type, int cost)
+    {
+        if (ResourceManager.Instance.SpendCoins(cost))
+        {
+            // Execute directly without adding to inventory
+            ExecuteAbility(type);
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"Not enough coins to buy and use {type}.");
+            return false;
+        }
+    }
+
     public bool BuyAbility(AbilityType type, int cost)
     {
         if (ResourceManager.Instance.SpendCoins(cost))
@@ -111,6 +126,12 @@ public class AbilityManager : MonoBehaviour
             return;
         }
 
+        ConsumeAbility(type);
+        ExecuteAbility(type);
+    }
+
+    private void ExecuteAbility(AbilityType type)
+    {
         // Abilities that enter a mode and wait for input
         switch (type)
         {
@@ -128,11 +149,9 @@ public class AbilityManager : MonoBehaviour
         switch (type)
         {
             case AbilityType.AddNewStop:
-                // This ability is not consumed from inventory. Its availability is limited by StopManager.
                 ExecuteAddNewStop();
                 break;
             case AbilityType.ShuffleWagonColors:
-                ConsumeAbility(type);
                 MetroManager.Instance.ShuffleWagonColors();
                 break;
         }
@@ -174,7 +193,7 @@ public class AbilityManager : MonoBehaviour
         CancelAbilityMode();
         // Notify listeners that the ability was used on this passenger
         OnUniversalPathfindingUsed?.Invoke(selectedPassenger);
-        ConsumeAbility(AbilityType.UniversalPathfinding);
+        // ConsumeAbility(AbilityType.UniversalPathfinding); // Consumed upfront now
         selectedPassenger.TryUniversalMove();
     }
 
@@ -234,7 +253,7 @@ public class AbilityManager : MonoBehaviour
 
             // Consume the ability and exit the mode
             CancelAbilityMode();
-            ConsumeAbility(AbilityType.RemoveWagons);
+            // ConsumeAbility(AbilityType.RemoveWagons); // Consumed upfront now
         }
         else
         {
@@ -293,5 +312,20 @@ public class AbilityManager : MonoBehaviour
             return abilityInventory[type];
         }
         return 0;
+    }
+
+    public bool IsAbilityAvailable(AbilityType type)
+    {
+        switch (type)
+        {
+            case AbilityType.AddNewStop:
+                if (StopManager.Instance != null)
+                {
+                    return StopManager.Instance.HasInactiveStops();
+                }
+                return false;
+            default:
+                return true;
+        }
     }
 }

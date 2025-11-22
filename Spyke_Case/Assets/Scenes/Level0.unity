@@ -757,6 +757,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 176323699476255330, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 186188096477736458, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -951,7 +955,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4515689188764567787, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -1000.00024
+      value: -1000.0001
       objectReference: {fileID: 0}
     - target: {fileID: 4670035527195543080, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_Camera

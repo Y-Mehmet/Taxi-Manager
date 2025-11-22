@@ -105,12 +105,12 @@ public class ResourceManager : MonoBehaviour
         {
             CurrentCoins -= amount;
             OnCoinsChanged?.Invoke(CurrentCoins);
-            Debug.Log($"{amount} coins spent. Remaining coins: {CurrentCoins}");
+            Debug.LogWarning($"<color=red>{amount} coins spent.</color> Remaining coins: {CurrentCoins}");
             return true;
         }
         else
         {
-            Debug.LogWarning($"Not enough coins to spend {amount}. Current coins: {CurrentCoins}");
+            Debug.LogWarning($"<color=red>Not enough coins to spend {amount}.</color> Current coins: {CurrentCoins}");
             return false;
         }
     }

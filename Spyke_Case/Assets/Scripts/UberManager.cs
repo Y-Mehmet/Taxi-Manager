@@ -101,6 +101,10 @@ public class UberManager : MonoBehaviour
             // Sayacı GÖREV BAŞINDA artır
             UberCount++;
             OnUberCountChanged?.Invoke(UberCount);
+            if (GameEconomy.Instance != null)
+            {
+                GameEconomy.Instance.SpendCoins(GameEconomy.Instance.uberPenalty);
+            }
             Debug.Log($"<color=magenta>UBER:</color> Mission started. Total count: {UberCount}");
 
             bool isLastMission = UberCount >= maxUberCount;

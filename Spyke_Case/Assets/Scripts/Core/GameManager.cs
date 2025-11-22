@@ -6,7 +6,6 @@ public class GameManager : MonoBehaviour
 
     public enum GameState { Playing, Won, Lost }
     public GameState CurrentState { get; private set; }
-    public int CurrentLevelEarnings { get; private set; }
 
     private void Awake()
     {
@@ -24,7 +23,6 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         CurrentState = GameState.Playing;
-        ResetLevelEarnings();
         UberManager.OnGameOver += HandleGameOver;
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoved;
         Debug.LogWarning("GameManager started.");
@@ -33,18 +31,10 @@ public class GameManager : MonoBehaviour
     private void OnDestroy()
     {
         UberManager.OnGameOver -= HandleGameOver;
-        WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoved;
-    }
-
-    public void AddLevelEarnings(int amount)
-    {
-        if (CurrentState != GameState.Playing) return;
-        CurrentLevelEarnings += amount;
-    }
-
-    private void ResetLevelEarnings()
-    {
-        CurrentLevelEarnings = 0;
+        if (WagonManager.Instance != null)
+        {
+            WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoved;
+        }
     }
 
     private void HandleWagonRemoved(MetroWagon wagon, Transform transform)
@@ -79,7 +69,7 @@ public class GameManager : MonoBehaviour
         // Add earnings to total and increment level
         if (ResourceManager.Instance != null)
         {
-            ResourceManager.Instance.AddCoins(CurrentLevelEarnings);
+            int finalCoins = GameEconomy.Instance != null ? GameEconomy.Instance.GetCurrentCoins() : 0;
             ResourceManager.Instance.SetLevelStarCount(ResourceManager.Instance.CurrentLevel, stars);
             ResourceManager.Instance.IncrementLevel();
         }
@@ -92,7 +82,8 @@ public class GameManager : MonoBehaviour
             LevelUpPanel levelUpPanel = panelInstanceModel.PanelInstance.GetComponent<LevelUpPanel>();
             if (levelUpPanel != null)
             {
-                levelUpPanel.Show(stars, CurrentLevelEarnings);
+                int finalCoins = GameEconomy.Instance != null ? GameEconomy.Instance.GetCurrentCoins() : 0;
+                levelUpPanel.Show(stars, finalCoins);
             }
         }
         Debug.Log("Loading next level...");
@@ -103,7 +94,6 @@ public class GameManager : MonoBehaviour
         if (CurrentState != GameState.Playing) return;
 
         CurrentState = GameState.Lost;
-        ResetLevelEarnings();
         Debug.LogError("GAME OVER! You ran out of ubers.");
 
         // TODO: Show game over screen

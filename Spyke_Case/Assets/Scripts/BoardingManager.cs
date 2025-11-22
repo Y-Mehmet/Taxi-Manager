@@ -165,9 +165,6 @@ public class BoardingManager : MonoBehaviour
                         Debug.Log($"<color=yellow>YÜK ALINDI:</color> {availableWagon.name} yükü animasyon sonunda kaldırıldı.");
                     });
 
-                    // Add earnings
-                    GameManager.Instance.AddLevelEarnings(20);
-
                     // İşçinin (PassengerGroup) kalan kapasitesini bir azalt.
                     passenger.GroupSize--;
                     Debug.Log($"<color=lightblue>İŞÇİ GÜNCELLENDİ:</color> {passenger.name} işçisinin kalan kapasitesi: {passenger.GroupSize}");
@@ -175,6 +172,12 @@ public class BoardingManager : MonoBehaviour
                     // Eğer işçinin kapasitesi dolduysa (yani 0'a ulaştıysa), işçiyi de oyundan kaldır.
                     if (passenger.GroupSize <= 0)
                     {
+                        // Grant the reward for completing the group
+                        if (GameEconomy.Instance != null)
+                        {
+                            GameEconomy.Instance.AddCoins(GameEconomy.Instance.successfulBoardingReward);
+                        }
+                        
                         // The stop is now free for other passengers.
                         StopManager.Instance.FreeStop(stopIndex);
                         

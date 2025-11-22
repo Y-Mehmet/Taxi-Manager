@@ -85,17 +85,35 @@ public class AbilityButton : MonoBehaviour
 
     private void HandleButtonClick()
     {
-        if (AbilityManager.Instance == null) return;
+        if (AbilityManager.Instance == null || ResourceManager.Instance == null) return;
 
         int currentCount = AbilityManager.Instance.GetAbilityCount(abilityType);
 
         if (currentCount > 0)
         {
+            // If we already own the ability, just use it.
             AbilityManager.Instance.UseAbility(abilityType);
         }
         else
         {
-            AbilityManager.Instance.BuyAbility(abilityType, cost);
+            // If we don't own the ability, first check if we have enough coins.
+            if (ResourceManager.Instance.CurrentCoins < cost)
+            {
+                Debug.LogWarning($"[AbilityButton] Not enough coins to buy {abilityType}. Required: {cost}, Have: {ResourceManager.Instance.CurrentCoins}");
+                return; // Exit if not enough coins
+            }
+
+            // If we have enough coins, try to buy it.
+            if (AbilityManager.Instance.BuyAbility(abilityType, cost))
+            {
+                // For a non-consumable "unlock" type ability like AddNewStop,
+                // it provides better user experience to trigger the first use immediately after purchase.
+                if (abilityType == AbilityType.AddNewStop)
+                {
+                    Debug.Log($"[AbilityButton] Successfully purchased {abilityType}. Using it for the first time immediately.");
+                    AbilityManager.Instance.UseAbility(abilityType);
+                }
+            }
         }
     }
 

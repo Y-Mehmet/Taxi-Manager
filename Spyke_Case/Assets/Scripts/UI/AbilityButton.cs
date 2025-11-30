@@ -114,12 +114,48 @@ public class AbilityButton : MonoBehaviour
                 return; // Exit if not enough coins
             }
 
-            // Buy and execute immediately
-            if (AbilityManager.Instance.BuyAndUseAbility(abilityType, cost))
+            // Convert UI position to world position for animation
+            Vector3 worldPosition = GetWorldPositionFromUI();
+            
+            Debug.Log($"[AbilityButton] Buying ability from position: {worldPosition}");
+            
+            // Buy and execute immediately with animation from button position
+            if (AbilityManager.Instance.BuyAndUseAbility(abilityType, cost, worldPosition))
             {
                  Debug.Log($"[AbilityButton] Successfully purchased and used {abilityType}.");
             }
         }
+    }
+
+    /// <summary>
+    /// UI pozisyonunu dünya pozisyonuna çevirir (animasyon için)
+    /// </summary>
+    private Vector3 GetWorldPositionFromUI()
+    {
+        RectTransform rectTransform = GetComponent<RectTransform>();
+        Canvas canvas = GetComponentInParent<Canvas>();
+        
+        if (canvas == null)
+        {
+            Debug.LogWarning("[AbilityButton] Canvas not found, using transform.position");
+            return transform.position;
+        }
+
+        // UI pozisyonunu dünya pozisyonuna çevir
+        Vector3 worldPosition;
+        if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+        {
+            // Overlay mode için ekran merkezinden offset hesapla
+            worldPosition = rectTransform.position;
+        }
+        else
+        {
+            // Camera mode için dünya pozisyonunu al
+            worldPosition = rectTransform.position;
+        }
+
+        Debug.Log($"[AbilityButton] UI Position: {rectTransform.position}, World Position: {worldPosition}");
+        return worldPosition;
     }
 
     private void OnAbilityCountChanged(AbilityType type, int newCount)
@@ -176,8 +212,8 @@ public class AbilityButton : MonoBehaviour
         else
         { 
             // --- BUY & USE MODE ---
-            // Show price instead of "+"
-            countText.text = cost.ToString(); 
+            // Show 0 when no abilities owned
+            countText.text = "0"; 
             countText.gameObject.SetActive(true);
             button.interactable = coinCount >= cost;
         }

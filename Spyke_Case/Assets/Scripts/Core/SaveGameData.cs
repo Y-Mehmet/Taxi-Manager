@@ -39,7 +39,7 @@ public class SaveGameData
     public SaveGameData()
     {
         // Başlangıç değerleri
-        coinCount = 100;
+        coinCount = 500;
         levelIndex = 0;
         levelStarsCount = new List<int>();
         unlockedWagonCount = 1;

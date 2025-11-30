@@ -20,21 +20,39 @@ public class GameEconomy : MonoBehaviour
         }
     }
 
-    public void AddCoins(int amount)
+    /// <summary>
+    /// Coin ekler ve animasyon gösterir (dünya pozisyonundan).
+    /// </summary>
+    public void AddCoins(int amount, Vector3? worldPosition = null)
     {
         if (ResourceManager.Instance != null)
         {
             ResourceManager.Instance.AddCoins(amount);
             Debug.Log($"+{amount} coins! (via GameEconomy)");
+
+            // Animasyon göster (dünya pozisyonundan)
+            if (CoinAnimationManager.Instance != null && worldPosition.HasValue)
+            {
+                CoinAnimationManager.Instance.ShowCoinGain(amount, worldPosition.Value);
+            }
         }
     }
 
-    public void SpendCoins(int amount)
+    /// <summary>
+    /// Coin harcatır ve animasyon gösterir (UI pozisyonundan).
+    /// </summary>
+    public void SpendCoins(int amount, Vector3? uiPosition = null)
     {
         if (ResourceManager.Instance != null)
         {
             ResourceManager.Instance.SpendCoins(amount);
             Debug.Log($"-{amount} coins! (via GameEconomy)");
+
+            // Animasyon göster (UI pozisyonundan)
+            if (CoinAnimationManager.Instance != null && uiPosition.HasValue)
+            {
+                CoinAnimationManager.Instance.ShowCoinSpend(amount, uiPosition.Value);
+            }
         }
     }
 

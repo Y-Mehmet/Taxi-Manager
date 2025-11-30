@@ -101,9 +101,11 @@ public class UberManager : MonoBehaviour
             // Sayacı GÖREV BAŞINDA artır
             UberCount++;
             OnUberCountChanged?.Invoke(UberCount);
-            if (GameEconomy.Instance != null)
+            
+            // Para kaybı animasyonunu uber pozisyonundan göster
+            if (GameEconomy.Instance != null && waitingPoint != null)
             {
-                GameEconomy.Instance.SpendCoins(GameEconomy.Instance.uberPenalty);
+                GameEconomy.Instance.SpendCoins(GameEconomy.Instance.uberPenalty, waitingPoint.position);
             }
             Debug.Log($"<color=magenta>UBER:</color> Mission started. Total count: {UberCount}");
 

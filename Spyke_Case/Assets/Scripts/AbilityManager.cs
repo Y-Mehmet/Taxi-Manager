@@ -73,18 +73,47 @@ public class AbilityManager : MonoBehaviour
         data.abilityShuffleWagonColorsCount = GetAbilityCount(AbilityType.ShuffleWagonColors);
     }
 
-    public bool BuyAndUseAbility(AbilityType type, int cost)
+    /// <summary>
+    /// Ability satın alır ve hemen kullanır, coin animasyonu gösterir.
+    /// </summary>
+    /// <param name="type">Ability tipi</param>
+    /// <param name="cost">Maliyet</param>
+    /// <param name="worldPosition">Animasyonun başlayacağı pozisyon (opsiyonel)</param>
+    public bool BuyAndUseAbility(AbilityType type, int cost, Vector3? worldPosition = null)
     {
-        if (ResourceManager.Instance.SpendCoins(cost))
+        // Show animation if position is provided
+        if (worldPosition.HasValue && GameEconomy.Instance != null)
         {
-            // Execute directly without adding to inventory
-            ExecuteAbility(type);
-            return true;
+            Debug.Log($"[AbilityManager] BuyAndUseAbility called with animation. Position: {worldPosition.Value}, Cost: {cost}");
+            
+            // Use GameEconomy's SpendCoins which includes animation
+            if (GameEconomy.Instance.GetCurrentCoins() >= cost)
+            {
+                GameEconomy.Instance.SpendCoins(cost, worldPosition.Value);
+                // Execute directly without adding to inventory
+                ExecuteAbility(type);
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning($"Not enough coins to buy and use {type}.");
+                return false;
+            }
         }
         else
         {
-            Debug.LogWarning($"Not enough coins to buy and use {type}.");
-            return false;
+            // Fallback to old behavior without animation
+            if (ResourceManager.Instance.SpendCoins(cost))
+            {
+                // Execute directly without adding to inventory
+                ExecuteAbility(type);
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning($"Not enough coins to buy and use {type}.");
+                return false;
+            }
         }
     }
 

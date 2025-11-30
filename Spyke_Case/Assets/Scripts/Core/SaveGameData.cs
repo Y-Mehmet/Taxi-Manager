@@ -30,6 +30,7 @@ public class SaveGameData
     public int offlineEarningsLevel;
     public float soundFxVolume;
     public float musicVolume;
+    public bool isTutorialShown;
 
     
     /// <summary>

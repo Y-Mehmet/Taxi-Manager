@@ -86,6 +86,13 @@ public class InputManager : MonoBehaviour
                 return;
             }
 
+            // Tutorial aktifse ve input bloklanmışsa, normal input işlemlerini engelle
+            if (TutorialManager.Instance != null && TutorialManager.Instance.IsInputBlocked())
+            {
+                // Tutorial kendi event'lerini yönetecek, burada normal input'u engelle
+                Debug.Log("[InputManager] Input blocked by tutorial.");
+                // Ancak raycast'i yine de yap ki tutorial event'i tetiklenebilsin
+            }
 
             // Yolcu Grubu Tespiti için Raycast
             Ray ray = Camera.main.ScreenPointToRay(screenPosition);
@@ -98,6 +105,7 @@ public class InputManager : MonoBehaviour
                     OnPassengerGroupTapped?.Invoke(tappedGroup);
                 }
             }
+
         }
     }
 

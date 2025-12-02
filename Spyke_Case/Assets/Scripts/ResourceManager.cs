@@ -16,6 +16,7 @@ public class ResourceManager : MonoBehaviour
     public int CurrentCoins { get; private set; }
     [SerializeField]
     public int CurrentLevel;
+    public int MaxOpenedLevel { get; private set; } // Highest level ever unlocked (never decreases)
     public List<int> LevelStars { get; private set; }
     public  int boardingStartIndex {get; private set; }
 
@@ -64,12 +65,15 @@ public class ResourceManager : MonoBehaviour
         if (data == null) return;
         
         CurrentCoins = data.coinCount;
-        CurrentLevel = data.levelIndex; // Hata düzeltildi: levelIndex kullanılıyor
+        CurrentLevel = data.levelIndex;
+        MaxOpenedLevel = data.maxOpenedLevel;
         LevelStars = data.levelStarsCount;
         soundFxVolume=data.soundFxVolume;
         musicVolume=data.musicVolume;
         
         OnCoinsChanged?.Invoke(CurrentCoins);
+        
+        Debug.Log($"[ResourceManager] Loaded: CurrentLevel={CurrentLevel}, MaxOpenedLevel={MaxOpenedLevel}");
     }
 
     /// <summary>
@@ -80,7 +84,8 @@ public class ResourceManager : MonoBehaviour
         if (data == null) return;
         
         data.coinCount = CurrentCoins;
-        data.levelIndex = CurrentLevel; // Hata düzeltildi: levelIndex kullanılıyor
+        data.levelIndex = CurrentLevel;
+        data.maxOpenedLevel = MaxOpenedLevel;
         data.levelStarsCount = LevelStars;
         data.soundFxVolume=soundFxVolume;
         data.musicVolume=musicVolume;
@@ -115,29 +120,47 @@ public class ResourceManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Increments the current level and updates MaxOpenedLevel if needed
+    /// </summary>
     public void IncrementLevel()
     {
         CurrentLevel++;
-        Debug.Log($"Level incremented to {CurrentLevel}");
+        
+        // Always update MaxOpenedLevel to the highest value
+        if (CurrentLevel > MaxOpenedLevel)
+        {
+            MaxOpenedLevel = CurrentLevel;
+            Debug.Log($"[ResourceManager] New max opened level: {MaxOpenedLevel}");
+        }
+        
+        Debug.Log($"[ResourceManager] Level incremented to {CurrentLevel}");
+        
         if (GameDataManager.Instance != null)
         {
             GameDataManager.Instance.SaveGame();
         }
     }
+
     public void SetLevelStarCount(int levelIndex, int stars)
     {
-        // Ensure the list is large enough
+        if (LevelStars == null)
+        {
+            LevelStars = new List<int>();
+        }
+
+        // Listeyi genişlet
         while (LevelStars.Count <= levelIndex)
         {
-            LevelStars.Add(0); // Add levels with 0 stars if they don't exist yet
+            LevelStars.Add(0);
         }
+
         LevelStars[levelIndex] = stars;
-        Debug.Log($"Level {levelIndex} star count set to {stars}");
+        Debug.Log($"Level {levelIndex} stars set to {stars}");
+
         if (GameDataManager.Instance != null)
         {
             GameDataManager.Instance.SaveGame();
         }
-    } 
-
-
+    }
 }

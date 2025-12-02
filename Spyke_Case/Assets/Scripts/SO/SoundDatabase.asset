@@ -23,7 +23,7 @@ MonoBehaviour:
     loop: 0
   - soundType: 6
     audioClip: {fileID: 8300000, guid: 8ee9566847d5af54ab1ad637bc7bc197, type: 3}
-    volume: 0.935
+    volume: 0.197
     loop: 0
   - soundType: 3
     audioClip: {fileID: 8300000, guid: 51c205584dc37ab4ea67deee0b4dfacf, type: 3}

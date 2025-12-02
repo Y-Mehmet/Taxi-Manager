@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// Level sonu fatura verilerini tutan sınıf
+/// Hesaplama Sırası: Gelir - Giderler - Joker Avantajları = Ara Toplam → Vergi → Net
 /// </summary>
 [System.Serializable]
 public class LevelInvoiceData
@@ -11,14 +12,14 @@ public class LevelInvoiceData
     public int completedPassengers = 0;  // Tamamlanan passenger sayısı
     public int passengerEarnings = 0;    // completedPassengers * 20
 
-    // Giderler (Expenses) - Temp Resource'tan kesilir
+    // Giderler (Expenses)
     public int crashCount = 0;           // Kaza sayısı
-    public int crashPenalty = 0;         // Calculated based on jokers
+    public int crashPenalty = 0;         // Joker'e göre hesaplanır
     
     public int uberPickupCount = 0;      // Uber yolcu alım sayısı
     public int uberPenalty = 0;          // uberPickupCount * 100
 
-    // Vergi
+    // Vergi (Tax) - Ara toplamdan hesaplanır
     public float taxRate = 0.10f;        // Default 10% tax
     public int taxAmount = 0;
 
@@ -33,16 +34,14 @@ public class LevelInvoiceData
 
     /// <summary>
     /// Toplam gideri hesapla (cezalar + vergi)
+    /// SIRA: 1. Gelir, 2. Giderler (crash, uber), 3. Joker avantajları, 4. Ara toplam, 5. Vergi
     /// </summary>
     public int CalculateTotalExpenses()
     {
-        // Get tax rate from JokerSystem
-        if (JokerSystem.Instance != null)
-        {
-            taxRate = JokerSystem.Instance.GetTaxRate();
-        }
+        // 1. Gelir hesapla
+        int income = CalculateTotalIncome();
 
-        // Calculate crash penalty based on active jokers
+        // 2. Giderler - Crash Penalty (joker'e göre)
         int baseCrashPenalty = crashCount * 500;
         if (JokerSystem.Instance != null)
         {
@@ -53,12 +52,28 @@ public class LevelInvoiceData
             crashPenalty = baseCrashPenalty;
         }
         
-        // Uber cezası
+        // 3. Giderler - Uber Penalty
         uberPenalty = uberPickupCount * 100;
 
-        // Vergi hesapla
-        int grossIncome = passengerEarnings;
-        taxAmount = Mathf.RoundToInt(grossIncome * taxRate);
+        // 4. Ara Toplam (Gelir - Giderler)
+        int subtotal = income - crashPenalty - uberPenalty;
+
+        // 5. Vergi hesapla (Ara toplamdan)
+        // Get tax rate from JokerSystem
+        if (JokerSystem.Instance != null)
+        {
+            taxRate = JokerSystem.Instance.GetTaxRate();
+        }
+
+        // Vergi sadece pozitif ara toplamdan alınır
+        if (subtotal > 0)
+        {
+            taxAmount = Mathf.RoundToInt(subtotal * taxRate);
+        }
+        else
+        {
+            taxAmount = 0; // Zarar varsa vergi yok
+        }
 
         return crashPenalty + uberPenalty + taxAmount;
     }
@@ -107,27 +122,31 @@ public class LevelInvoiceData
     {
         Debug.Log("========== LEVEL INVOICE ==========");
         Debug.Log($"<color=green>INCOME:</color>");
-        Debug.Log($"  Completed Passengers: {completedPassengers} x 20 = +{passengerEarnings} coins");
-        Debug.Log($"  Total Income: +{CalculateTotalIncome()} coins");
+        Debug.Log($"  Passenger Income: {completedPassengers} x 20 = +{passengerEarnings} coins");
         
         Debug.Log($"<color=red>EXPENSES:</color>");
         if (crashCount > 0)
         {
             int basePenalty = crashCount * 500;
             if (crashPenalty == 0)
-                Debug.Log($"  Crashes: {crashCount} x 500 = -{basePenalty} coins (COVERED BY INSURANCE)");
+                Debug.Log($"  Crash Penalty: {crashCount} x 500 = -{basePenalty} coins (COVERED BY INSURANCE)");
             else if (crashPenalty == 100 * crashCount)
-                Debug.Log($"  Crash Repair: {crashCount} x 100 = -{crashPenalty} coins (OWN REPAIR STATION)");
+                Debug.Log($"  Crash Penalty: {crashCount} x 100 = -{crashPenalty} coins (OWN REPAIR STATION)");
             else
                 Debug.Log($"  Crash Penalty: {crashCount} x 500 = -{crashPenalty} coins");
         }
         if (uberPickupCount > 0)
             Debug.Log($"  Uber Penalty: {uberPickupCount} x 100 = -{uberPenalty} coins");
+        
+        // Ara toplam
+        int subtotal = passengerEarnings - crashPenalty - uberPenalty;
+        Debug.Log($"<color=yellow>SUBTOTAL (before tax): {subtotal} coins</color>");
+        
+        // Vergi
         if (taxAmount > 0)
             Debug.Log($"  Tax ({taxRate * 100}%): -{taxAmount} coins");
         else
-            Debug.Log($"  Tax: 0 coins (Tax Joker Active)");
-        Debug.Log($"  Total Expenses: -{CalculateTotalExpenses()} coins");
+            Debug.Log($"  Tax: 0 coins (Tax Joker Active or No Profit)");
         
         Debug.Log($"<color=yellow>NET EARNINGS: {CalculateNetEarnings()} coins</color>");
         Debug.Log("===================================");

@@ -18,6 +18,7 @@ public class LevelButton : MonoBehaviour
 
     /// <summary>
     /// Bu butona tıklandığında çağrılır.
+    /// GetSiblingIndex kullanarak hangi level'ı yükleyeceğini belirler.
     /// </summary>
     public void LoadLevel()
     {
@@ -27,10 +28,20 @@ public class LevelButton : MonoBehaviour
         // Hiyerarşideki sırayı al (bu bizim level index'imiz olacak)
         int levelIndex = transform.GetSiblingIndex();
 
+        Debug.Log($"[LevelButton] Loading level {levelIndex} from button sibling index");
+
+        // ResourceManager'da CurrentLevel'ı geçici olarak değiştir
+        // Bu sayede GameDataManager'dan yüklenen CurrentLevel bypass edilir
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.CurrentLevel = levelIndex;
+            Debug.Log($"[LevelButton] Set ResourceManager.CurrentLevel to {levelIndex}");
+        }
+
         // SceneManager üzerinden ilgili seviyeyi yükle
         if (SceneManager.Instance != null)
         {
-            SceneManager.Instance.LoadSpecificLevel(0);
+            SceneManager.Instance.LoadSpecificLevel(levelIndex);
         }
         else
         {

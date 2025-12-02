@@ -211,7 +211,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5718071157672138591}
   m_LocalRotation: {x: 0.50130725, y: -0.50130725, z: -0.49868938, w: 0.49868938}
-  m_LocalPosition: {x: 0, y: 0, z: 0.219425}
+  m_LocalPosition: {x: 0, y: 0, z: 0.221}
   m_LocalScale: {x: 0.009999997, y: 0.0075758076, z: 0.009999911}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -220,7 +220,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 65, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.9824543, y: 0.039999723}
+  m_AnchoredPosition: {x: 1.281, y: 0.04}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &3858758520609990447
@@ -342,6 +342,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: 22a45a6811b874ea5b8a8ef9244a0f17, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d67faa685c7e74e418f45b9e7c740478, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

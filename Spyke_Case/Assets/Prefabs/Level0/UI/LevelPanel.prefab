@@ -66,6 +66,7 @@ MonoBehaviour:
   unlockedLevelPrefab: {fileID: 3120804316557502415, guid: d0c595bccbca87541800a68ead0c5e8e, type: 3}
   totalLevels: 100
   currentLevel: 51
+  maxOpenedLevel: 0
   levelItemHeight: 500
 --- !u!1 &6626854685179699864
 GameObject:
@@ -372,7 +373,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1083403282719399560, guid: 2d851d8f6d8d44b46a2029150a7f877d, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -2000
+      value: -1800
       objectReference: {fileID: 0}
     - target: {fileID: 1083403282719399560, guid: 2d851d8f6d8d44b46a2029150a7f877d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

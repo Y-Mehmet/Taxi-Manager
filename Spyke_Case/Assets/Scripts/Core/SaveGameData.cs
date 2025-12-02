@@ -18,7 +18,8 @@ public class SaveGameData
     public int abilityShuffleWagonColorsCount;
 
     // MetroManager
-    public int levelIndex;
+    public int levelIndex; // Current level being played
+    public int maxOpenedLevel; // Highest level ever unlocked (never decreases)
     public List<int> levelStarsCount;
 
 
@@ -48,6 +49,7 @@ public class SaveGameData
         // Başlangıç değerleri
         coinCount = 500;
         levelIndex = 0;
+        maxOpenedLevel = 0; // Start with only level 0 unlocked
         levelStarsCount = new List<int>();
         unlockedWagonCount = 1;
         activeStopCount = 1;

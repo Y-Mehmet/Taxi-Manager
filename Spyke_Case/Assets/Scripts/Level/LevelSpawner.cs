@@ -22,19 +22,23 @@ public class LevelSpawner : MonoBehaviour
     void Awake()
     {
         // --- LEVEL LOADING ---
-        int currentLevel = 0;
+        int currentLevel = 1; // Default to level 1
         if (ResourceManager.Instance != null)
         {
-            // ResourceManager'dan mevcut level'ı alıyoruz. Level'lar 1'den başladığı için 1 ekliyoruz.
+            // ResourceManager.CurrentLevel is 0-based (0, 1, 2, 3...)
+            // But level files are named Level_1, Level_2, Level_3...
+            // So we add 1 to convert from 0-based to 1-based
             currentLevel = ResourceManager.Instance.CurrentLevel + 1;
+            Debug.Log($"[LevelSpawner] ResourceManager.CurrentLevel = {ResourceManager.Instance.CurrentLevel}, Loading Level_{currentLevel}");
         }
         else
         {
             Debug.LogError("ResourceManager instance not found!");
-            // Hata durumunda varsayılan olarak 1. level'ı yüklüyoruz.
+            // Hata durumunda varsayılan olarak 1. level'ı yüklüyoruz
             currentLevel = 1;
         }
 
+        // Level dosyası: Resources/Levels/Level_1, Level_2, Level_3...
         string levelPath = "Levels/Level_" + currentLevel;
         levelToSpawn = Resources.Load<LevelSpawnSO>(levelPath);
         
@@ -49,6 +53,8 @@ public class LevelSpawner : MonoBehaviour
                 return;
             }
         }
+        
+        Debug.Log($"[LevelSpawner] Successfully loaded: {levelPath}");
         // --- END LEVEL LOADING ---
     }
 

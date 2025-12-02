@@ -99,15 +99,16 @@ public class GameManager : MonoBehaviour
 
         Debug.LogWarning($"<color=green>LEVEL WON!</color> You earned {stars} stars.");
 
-        // Process invoice and transfer earnings
+        // Print invoice (but DON'T transfer coins yet - wait for Continue/Retry button)
         if (CurrentInvoice != null)
         {
             CurrentInvoice.PrintInvoice();
             
-            if (GameEconomy.Instance != null)
-            {
-                GameEconomy.Instance.TransferTempToMain(CurrentInvoice);
-            }
+            // DON'T transfer coins here - let LevelUpPanel do it when player clicks Continue/Retry
+            // if (GameEconomy.Instance != null)
+            // {
+            //     GameEconomy.Instance.TransferTempToMain(CurrentInvoice);
+            // }
         }
 
         // Save stars (only if higher than previous)
@@ -134,7 +135,21 @@ public class GameManager : MonoBehaviour
                 Debug.Log($"[GameManager] Stars not saved. Previous: {previousStars}, Current: {stars}");
             }
             
-            ResourceManager.Instance.IncrementLevel();
+            // IMPORTANT: Only increment level if we're playing the CURRENT highest unlocked level
+            // This prevents re-locking levels when replaying old levels
+            int justCompletedLevel = currentLevel;
+            int highestUnlockedLevel = ResourceManager.Instance.MaxOpenedLevel;
+            
+            if (justCompletedLevel >= highestUnlockedLevel)
+            {
+                // We completed the highest unlocked level or beyond, unlock the next one
+                ResourceManager.Instance.IncrementLevel();
+                Debug.Log($"[GameManager] Level progression: {highestUnlockedLevel} -> {highestUnlockedLevel + 1}");
+            }
+            else
+            {
+                Debug.Log($"[GameManager] Replaying old level {justCompletedLevel}. Highest unlocked: {highestUnlockedLevel}. No progression.");
+            }
         }
 
         StartCoroutine(ShowLevelUpPanelRoutine(stars));

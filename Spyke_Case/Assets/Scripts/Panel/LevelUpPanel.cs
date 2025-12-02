@@ -65,19 +65,20 @@ public class LevelUpPanel : MonoBehaviour
 
     private void ShowInvoice(LevelInvoiceData invoice)
     {
-        if (invoicePanel != null)
-        {
-            invoicePanel.SetActive(true);
-        }
+        // DON'T auto-activate invoice panel - let it be controlled manually
+        // if (invoicePanel != null)
+        // {
+        //     invoicePanel.SetActive(true);
+        // }
 
-        // Income
+        // Income - Always show with label
         if (passengerIncomeText != null)
         {
             int income = invoice.CalculateTotalIncome();
-            passengerIncomeText.text = $"<color=green>+{income}</color> ({invoice.completedPassengers} x 20)";
+            passengerIncomeText.text = $"Passenger Income: <color=green>+{income}</color> ({invoice.completedPassengers} x 20)";
         }
 
-        // Crash Penalty
+        // Crash Penalty - Always show with label, even if 0
         if (crashPenaltyText != null)
         {
             if (invoice.crashCount > 0)
@@ -85,52 +86,54 @@ public class LevelUpPanel : MonoBehaviour
                 int basePenalty = invoice.crashCount * 500;
                 if (invoice.crashPenalty == 0)
                 {
-                    crashPenaltyText.text = $"<color=yellow>0</color> ({invoice.crashCount} x 500 - INSURED)";
+                    crashPenaltyText.text = $"Crash Penalty: <color=yellow>0</color> ({invoice.crashCount} x 500 - INSURED)";
                 }
                 else if (invoice.crashPenalty < basePenalty)
                 {
-                    crashPenaltyText.text = $"<color=yellow>-{invoice.crashPenalty}</color> ({invoice.crashCount} x {invoice.crashPenalty/invoice.crashCount} - OWN REPAIR)";
+                    crashPenaltyText.text = $"Crash Penalty: <color=yellow>-{invoice.crashPenalty}</color> ({invoice.crashCount} x {invoice.crashPenalty/invoice.crashCount} - OWN REPAIR)";
                 }
                 else
                 {
-                    crashPenaltyText.text = $"<color=red>-{invoice.crashPenalty}</color> ({invoice.crashCount} x 500)";
+                    crashPenaltyText.text = $"Crash Penalty: <color=red>-{invoice.crashPenalty}</color> ({invoice.crashCount} x 500)";
                 }
-                crashPenaltyText.gameObject.SetActive(true);
             }
             else
             {
-                crashPenaltyText.gameObject.SetActive(false);
+                // No crashes - show 0
+                crashPenaltyText.text = $"Crash Penalty: <color=green>0</color> (0 x 500)";
             }
+            crashPenaltyText.gameObject.SetActive(true);
         }
 
-        // Uber Penalty
+        // Uber Penalty - Always show with label, even if 0
         if (uberPenaltyText != null)
         {
             if (invoice.uberPickupCount > 0)
             {
-                uberPenaltyText.text = $"<color=red>-{invoice.uberPenalty}</color> ({invoice.uberPickupCount} x 100)";
-                uberPenaltyText.gameObject.SetActive(true);
+                uberPenaltyText.text = $"Uber Penalty: <color=red>-{invoice.uberPenalty}</color> ({invoice.uberPickupCount} x 100)";
             }
             else
             {
-                uberPenaltyText.gameObject.SetActive(false);
+                // No uber pickups - show 0
+                uberPenaltyText.text = $"Uber Penalty: <color=green>0</color> (0 x 100)";
             }
+            uberPenaltyText.gameObject.SetActive(true);
         }
 
-        // Tax
+        // Tax - Always show with label
         if (taxText != null)
         {
             if (invoice.taxAmount == 0 && invoice.passengerEarnings > 0)
             {
-                taxText.text = $"<color=yellow>0</color> (TAX JOKER ACTIVE)";
+                taxText.text = $"Tax: <color=yellow>0</color> (TAX JOKER ACTIVE)";
             }
             else if (invoice.taxAmount > 0)
             {
-                taxText.text = $"<color=red>-{invoice.taxAmount}</color> ({invoice.taxRate * 100}%)";
+                taxText.text = $"Tax: <color=red>-{invoice.taxAmount}</color> ({invoice.taxRate * 100}%)";
             }
             else
             {
-                taxText.text = "0";
+                taxText.text = "Tax: <color=green>0</color> (0%)";
             }
         }
 
@@ -171,13 +174,43 @@ public class LevelUpPanel : MonoBehaviour
 
     private void OnContinueButtonClicked()
     {
-        // As requested, reload the current scene. A manager script should handle loading the correct level data upon scene start.
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
-        Debug.Log("Continue button clicked. Reloading scene to start next level.");
+        // Transfer coins from temp to main BEFORE leaving
+        if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
+        {
+            if (GameEconomy.Instance != null)
+            {
+                GameEconomy.Instance.TransferTempToMain(GameManager.Instance.CurrentInvoice);
+                Debug.Log("[LevelUpPanel] Coins transferred to main account.");
+            }
+        }
+
+        // Load Main Scene (build index 0) - Level Select screen
+        if (SceneManager.Instance != null)
+        {
+            SceneManager.Instance.LoadMainMenu();
+            Debug.Log("[LevelUpPanel] Continue clicked. Loading Main Scene (Level Select).");
+        }
+        else
+        {
+            // Fallback: Load build index 0 directly
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+            Debug.Log("[LevelUpPanel] Continue clicked. Loading Main Scene (build index 0).");
+        }
     }
 
     private void OnRetryButtonClicked()
     {
+        // Transfer coins from temp to main BEFORE retrying
+        if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
+        {
+            if (GameEconomy.Instance != null)
+            {
+                GameEconomy.Instance.TransferTempToMain(GameManager.Instance.CurrentInvoice);
+                Debug.Log("[LevelUpPanel] Coins transferred to main account.");
+            }
+        }
+
+        // Reload current level (AllLevel scene with same level data)
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
         Debug.Log("Retrying current level...");
     }

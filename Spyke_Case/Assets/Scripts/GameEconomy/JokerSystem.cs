@@ -148,12 +148,55 @@ public class JokerSystem : MonoBehaviour
             activeRepairJoker = type;
         }
 
+        // SPEND STARS (deduct from levels, starting from highest)
+        if (!SpendStars(cost))
+        {
+            Debug.LogError($"[JokerSystem] Failed to spend stars for {type}");
+            return false;
+        }
+
         OnJokerCountChanged?.Invoke(type, jokerRemainingGames[type]);
+
+        // Recalculate total stars after spending
+        CalculateTotalStars();
 
         // Save data
         if (GameDataManager.Instance != null)
         {
             GameDataManager.Instance.SaveGame();
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Spend stars from levels (starting from highest level)
+    /// </summary>
+    private bool SpendStars(int amount)
+    {
+        if (ResourceManager.Instance == null) return false;
+
+        var levelStars = ResourceManager.Instance.LevelStars;
+        if (levelStars == null) return false;
+
+        int remaining = amount;
+
+        // Spend from highest level first (reverse order)
+        for (int i = levelStars.Count - 1; i >= 0 && remaining > 0; i--)
+        {
+            if (levelStars[i] > 0)
+            {
+                int toSpend = Mathf.Min(levelStars[i], remaining);
+                levelStars[i] -= toSpend;
+                remaining -= toSpend;
+                Debug.Log($"[JokerSystem] Spent {toSpend} stars from level {i}. Remaining: {levelStars[i]}");
+            }
+        }
+
+        if (remaining > 0)
+        {
+            Debug.LogError($"[JokerSystem] Could not spend all stars! Remaining: {remaining}");
+            return false;
         }
 
         return true;

@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Oyun içindeki sahne geçişlerini yöneten merkezi sistem.
-/// Sahneleri Build Settings'deki index'lerine göre yükler.
+/// Tüm level'lar aynı sahneden (AllLevel - Build Index 1) yüklenir.
 /// </summary>
 public class SceneManager : Singleton<SceneManager>
 {
@@ -11,30 +11,39 @@ public class SceneManager : Singleton<SceneManager>
     [Tooltip("Ana Menü sahnesinin Build Settings'deki index'i")]
     [SerializeField] private int mainMenuBuildIndex = 0;
 
-    [Tooltip("Seviye sahnelerinin başlangıç index'i. Örneğin, 0:MainMenu, 1:Level_1 ise bu değer 1 olmalı.")]
-    [SerializeField] private int levelSceneBuildIndexOffset = 1;
+    [Tooltip("Tüm levellerin yüklendiği sahne (AllLevel scene)")]
+    [SerializeField] private int allLevelSceneBuildIndex = 1;
 
     /// <summary>
     /// ResourceManager'dan alınan mevcut seviyeyi yükler.
+    /// Tüm level'lar aynı sahneden (AllLevel) yüklenir.
     /// </summary>
     public void LoadLevelSceene()
     {
-      
-        
-      
-        LoadSceneByIndex(1);
+        // Always load the AllLevel scene (build index 1)
+        // The actual level data is loaded based on ResourceManager.CurrentLevel
+        LoadSceneByIndex(allLevelSceneBuildIndex);
     }
 
     /// <summary>
-    /// Belirtilen index'e sahip seviyeyi yükler.
+    /// Belirtilen level index'i için AllLevel sahnesini yükler.
+    /// IMPORTANT: levelIndex scene build index DEĞİLDİR!
+    /// Tüm level'lar aynı sahneden (build index 1) yüklenir.
     /// </summary>
-    /// <param name="levelIndex">Yüklenecek seviyenin 0 tabanlı index'i.</param>
+    /// <param name="levelIndex">Yüklenecek level'ın index'i (0, 1, 2, 3...)</param>
     public void LoadSpecificLevel(int levelIndex)
     {
-        int sceneToLoadIndex = levelSceneBuildIndexOffset + levelIndex;
+        // Set the level index in ResourceManager BEFORE loading the scene
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.CurrentLevel = levelIndex;
+            Debug.Log($"[SceneManager] Set CurrentLevel to {levelIndex}");
+        }
 
-        Debug.Log($"Loading specific level. Build Index: {sceneToLoadIndex}");
-        LoadSceneByIndex(sceneToLoadIndex);
+        // Always load the same scene (AllLevel - build index 1)
+        // The level data will be loaded based on ResourceManager.CurrentLevel
+        Debug.Log($"[SceneManager] Loading AllLevel scene (build index {allLevelSceneBuildIndex}) for level {levelIndex}");
+        LoadSceneByIndex(allLevelSceneBuildIndex);
     }
 
     /// <summary>

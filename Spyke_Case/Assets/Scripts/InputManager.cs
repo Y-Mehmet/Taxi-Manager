@@ -153,6 +153,12 @@ public class InputManager : MonoBehaviour
         isInputDisabled = true;
     }
 
+    public void EnableInput()
+    {
+        Debug.Log("[InputManager] Input has been enabled.");
+        isInputDisabled = false;
+    }
+
     private void ToggleSpeed()
     {
         if (MetroManager.Instance != null)

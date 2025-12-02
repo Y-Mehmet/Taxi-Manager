@@ -173,7 +173,12 @@ public class TutorialManager : MonoBehaviour
     }
 
     private IEnumerator StartTutorialSequence()
+    {    // IMPORTANT: Disable ALL input at start
+    if (InputManager.Instance != null)
     {
+        InputManager.Instance.DisableInput();
+        Debug.Log("[TutorialManager] ALL INPUT DISABLED for 3 seconds.");
+    }
         // 1. Oyunun başlamasını ve vagonların ilerlemesini bekle (3 saniye)
         yield return new WaitForSeconds(3f);
 
@@ -225,7 +230,11 @@ public class TutorialManager : MonoBehaviour
         // Passenger'ı highlight et ve El animasyonunu başlat
         ShowHighlight(targetPassenger.transform);
         ShowHandAnimation(targetPassenger.transform);
-
+if (InputManager.Instance != null)
+{
+    InputManager.Instance.EnableInput();
+    Debug.Log("[TutorialManager] INPUT ENABLED - panel shown.");
+}
         // Input'u blokla
         isInputBlocked = true;
         InputManager.OnPassengerGroupTapped += OnTutorialPassengerTapped;

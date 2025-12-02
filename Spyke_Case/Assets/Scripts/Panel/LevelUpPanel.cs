@@ -26,7 +26,7 @@ public class LevelUpPanel : MonoBehaviour
     {
         if (earningsText != null)
         {
-            earningsText.text = $"EARNED: ${earnings}";
+            earningsText.text = $"{earnings}";
         }
 
         for (int i = 0; i < starImages.Count; i++)

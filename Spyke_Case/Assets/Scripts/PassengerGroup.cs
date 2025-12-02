@@ -209,6 +209,10 @@ public class PassengerGroup : MonoBehaviour
         if (StopManager.Instance != null && !StopManager.Instance.HasAvailableStops())
         {
             Debug.LogWarning($"Tüm duraklar dolu veya rezerve edilmiş. '{name}' için hareket başlatılamadı.");
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowFloatingText("All Stops Full", transform.position);
+            }
             return;
         }
 
@@ -249,6 +253,10 @@ public class PassengerGroup : MonoBehaviour
         if (StopManager.Instance == null || !StopManager.Instance.HasAvailableStops())
         {
             Debug.LogWarning($"[UniversalMove] Tüm duraklar dolu veya rezerve edilmiş. '{name}' için hareket başlatılamadı.");
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowFloatingText("All Stops Full", transform.position);
+            }
             return;
         }
 

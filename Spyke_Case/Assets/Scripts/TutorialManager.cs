@@ -219,7 +219,7 @@ public class TutorialManager : MonoBehaviour
 
         if (tutorialText != null)
         {
-            tutorialText.text = "Goal: Don't lose passengers to VIP cars!\nSend a car to the stop immediately!";
+            tutorialText.text = "Don't lose passengers to VIP cars!\nSend a car to the stop!";
         }
 
         // Passenger'ı highlight et ve El animasyonunu başlat

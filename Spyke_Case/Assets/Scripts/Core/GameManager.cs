@@ -74,6 +74,13 @@ public class GameManager : MonoBehaviour
             ResourceManager.Instance.IncrementLevel();
         }
 
+        StartCoroutine(ShowLevelUpPanelRoutine(stars));
+    }
+
+    private System.Collections.IEnumerator ShowLevelUpPanelRoutine(int stars)
+    {
+        yield return new WaitForSeconds(2f);
+
         // TODO: Load next level or show win screen
         PanelManager.Instance.ShowPanel(PanelID.LevelUpPanel);
         var panelInstanceModel = PanelManager.Instance.GetLastPanel();

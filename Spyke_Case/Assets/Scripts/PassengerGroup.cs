@@ -612,7 +612,16 @@ public class PassengerGroup : MonoBehaviour
                     SoundManager.instance.PlaySfxSequentially(SoundType.Crush, SoundType.Corna);
                     Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
                     transformToShake.DOShakeRotation(0.5f, new Vector3(0, 45, 0), 10, 90, true);
-                    
+                    if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
+                        {
+                            GameManager.Instance.CurrentInvoice.OnCrashOccurred();
+                            Debug.LogWarning($"<color=red>CRASH!</color> {name} collided with {obstacle.name}");
+                            
+                            if (UIManager.Instance != null)
+                            {
+                                UIManager.Instance.ShowFloatingText("-500", transform.position);
+                            }
+                        }
                 }
                 if (stopIndex != -1) StopManager.Instance.CancelReservation(stopIndex, this);
                 if (fromConveyor) { yield return StartCoroutine(ReturnToConveyor()); }

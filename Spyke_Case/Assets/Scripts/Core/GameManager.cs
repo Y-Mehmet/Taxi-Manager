@@ -7,6 +7,10 @@ public class GameManager : MonoBehaviour
     public enum GameState { Playing, Won, Lost }
     public GameState CurrentState { get; private set; }
 
+    // Level Invoice System
+    public LevelInvoiceData CurrentInvoice { get; private set; }
+
+
     private void Awake()
     {
         if (Instance == null)
@@ -25,8 +29,37 @@ public class GameManager : MonoBehaviour
         CurrentState = GameState.Playing;
         UberManager.OnGameOver += HandleGameOver;
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoved;
+        
+        // Initialize invoice for this level
+        InitializeInvoice();
+        
         Debug.LogWarning("GameManager started.");
     }
+
+    private void InitializeInvoice()
+    {
+        CurrentInvoice = new LevelInvoiceData();
+        
+        // Notify joker system that game started (decrements counters)
+        if (JokerSystem.Instance != null)
+        {
+            JokerSystem.Instance.OnGameStarted();
+            Debug.Log($"[GameManager] Invoice initialized with active jokers");
+        }
+        
+        // Reset ability usage tracker
+        if (AbilityUsageTracker.Instance != null)
+        {
+            AbilityUsageTracker.Instance.ResetUsageCounts();
+        }
+        
+        // Reset temp coins
+        if (GameEconomy.Instance != null)
+        {
+            GameEconomy.Instance.ResetTempCoins();
+        }
+    }
+
 
     private void OnDestroy()
     {
@@ -66,16 +99,47 @@ public class GameManager : MonoBehaviour
 
         Debug.LogWarning($"<color=green>LEVEL WON!</color> You earned {stars} stars.");
 
-        // Add earnings to total and increment level
+        // Process invoice and transfer earnings
+        if (CurrentInvoice != null)
+        {
+            CurrentInvoice.PrintInvoice();
+            
+            if (GameEconomy.Instance != null)
+            {
+                GameEconomy.Instance.TransferTempToMain(CurrentInvoice);
+            }
+        }
+
+        // Save stars (only if higher than previous)
         if (ResourceManager.Instance != null)
         {
-            int finalCoins = GameEconomy.Instance != null ? GameEconomy.Instance.GetCurrentCoins() : 0;
-            ResourceManager.Instance.SetLevelStarCount(ResourceManager.Instance.CurrentLevel, stars);
+            int currentLevel = ResourceManager.Instance.CurrentLevel;
+            
+            // Get previous star count for this level
+            int previousStars = 0;
+            if (ResourceManager.Instance.LevelStars != null && 
+                currentLevel < ResourceManager.Instance.LevelStars.Count)
+            {
+                previousStars = ResourceManager.Instance.LevelStars[currentLevel];
+            }
+            
+            // Only save if new stars are higher
+            if (stars > previousStars)
+            {
+                ResourceManager.Instance.SetLevelStarCount(currentLevel, stars);
+                Debug.Log($"[GameManager] New star record! {previousStars} -> {stars}");
+            }
+            else
+            {
+                Debug.Log($"[GameManager] Stars not saved. Previous: {previousStars}, Current: {stars}");
+            }
+            
             ResourceManager.Instance.IncrementLevel();
         }
 
         StartCoroutine(ShowLevelUpPanelRoutine(stars));
     }
+
 
     private System.Collections.IEnumerator ShowLevelUpPanelRoutine(int stars)
     {

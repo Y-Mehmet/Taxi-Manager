@@ -80,6 +80,14 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Harcama feedback'i gösterir (yeni ekonomi sistemi için alias)
+    /// </summary>
+    public void ShowSpendingFeedback(int amount, Vector3 position)
+    {
+        ShowCoinSpend(amount, position);
+    }
+
+    /// <summary>
     /// Genel feedback metodu (eski sistem ile uyumluluk için)
     /// </summary>
     public void ShowCoinFeedback(int amount, Vector3 position)

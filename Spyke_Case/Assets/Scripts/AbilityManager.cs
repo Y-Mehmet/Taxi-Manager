@@ -159,6 +159,14 @@ public class AbilityManager : MonoBehaviour
         ExecuteAbility(type);
     }
 
+    /// <summary>
+    /// Directly execute an ability without consuming from inventory (used by new economy system)
+    /// </summary>
+    public void ExecuteAbilityDirect(AbilityType type)
+    {
+        ExecuteAbility(type);
+    }
+
     private void ExecuteAbility(AbilityType type)
     {
         // Abilities that enter a mode and wait for input
@@ -185,6 +193,7 @@ public class AbilityManager : MonoBehaviour
                 break;
         }
     }
+
 
     private void ConsumeAbility(AbilityType type)
     {

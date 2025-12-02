@@ -32,6 +32,12 @@ public class SaveGameData
     public float musicVolume;
     public bool isTutorialShown;
 
+    // JokerSystem (Category-Based System)
+    public Dictionary<int, int> jokerRemainingGames; // JokerType (int) -> Remaining Games
+    public int activeTaxJoker; // Currently active tax joker (JokerType as int, 0 = None)
+    public int activeRepairJoker; // Currently active repair joker (JokerType as int, 0 = None)
+
+
     
     /// <summary>
     /// Yeni bir oyun başladığında veya hiç kayıt dosyası bulunmadığında
@@ -50,6 +56,10 @@ public class SaveGameData
         offlineEarningsLevel = 1;
         soundFxVolume=0.5f;
         musicVolume=0.5f;
-
+        
+        // Initialize joker data
+        jokerRemainingGames = new Dictionary<int, int>();
+        activeTaxJoker = 0; // JokerType.None
+        activeRepairJoker = 0; // JokerType.None
     }
 }

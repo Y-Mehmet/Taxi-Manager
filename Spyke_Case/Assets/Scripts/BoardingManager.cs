@@ -172,10 +172,22 @@ public class BoardingManager : MonoBehaviour
                     // Eğer işçinin kapasitesi dolduysa (yani 0'a ulaştıysa), işçiyi de oyundan kaldır.
                     if (passenger.GroupSize <= 0)
                     {
-                        // Grant the reward for completing the group with animation
+                        // Notify invoice that passenger completed
+                        if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
+                        {
+                            GameManager.Instance.CurrentInvoice.OnPassengerCompleted();
+                        }
+                        
+                        // Add to temp resource (20 coins per passenger)
                         if (GameEconomy.Instance != null)
                         {
-                            GameEconomy.Instance.AddCoins(GameEconomy.Instance.successfulBoardingReward, passenger.transform.position);
+                            GameEconomy.Instance.AddTempCoins(20);
+                            
+                            // Show coin animation
+                            if (CoinAnimationManager.Instance != null)
+                            {
+                                CoinAnimationManager.Instance.ShowCoinGain(20, passenger.transform.position);
+                            }
                         }
                         
                         // The stop is now free for other passengers.

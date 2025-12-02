@@ -20,6 +20,7 @@ public enum PanelID
     HomePanel,
     ShopPanel,
     InventoryPanel,
+    PerksPanel,
 
 
 }

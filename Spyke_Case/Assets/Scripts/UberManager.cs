@@ -102,11 +102,24 @@ public class UberManager : MonoBehaviour
             UberCount++;
             OnUberCountChanged?.Invoke(UberCount);
             
-            // Para kaybı animasyonunu uber pozisyonundan göster
-            if (GameEconomy.Instance != null && waitingPoint != null)
+            // Notify invoice about Uber pickup
+            if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
             {
-                GameEconomy.Instance.SpendCoins(GameEconomy.Instance.uberPenalty, waitingPoint.position);
+                GameManager.Instance.CurrentInvoice.OnUberPickup();
             }
+            
+            // Deduct from temp coins (penalty will be shown in invoice)
+            if (GameEconomy.Instance != null)
+            {
+                GameEconomy.Instance.DeductTempCoins(100);
+                
+                // Show penalty animation
+                if (CoinAnimationManager.Instance != null && waitingPoint != null)
+                {
+                    CoinAnimationManager.Instance.ShowSpendingFeedback(100, waitingPoint.position);
+                }
+            }
+            
             Debug.Log($"<color=magenta>UBER:</color> Mission started. Total count: {UberCount}");
 
             bool isLastMission = UberCount >= maxUberCount;

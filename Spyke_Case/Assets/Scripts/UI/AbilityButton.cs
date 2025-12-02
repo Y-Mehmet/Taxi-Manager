@@ -5,17 +5,17 @@ using TMPro;
 /// <summary>
 /// Yetenekleri dinamik olarak satın almak veya kullanmak için UI butonlarına eklenen script.
 /// Buton, sahip olunan yetenek sayısına göre "Satın Al" veya "Kullan" modları arasında geçiş yapar.
+/// Fiyat her kullanımda katlanır: 100, 200, 400, 800...
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class AbilityButton : MonoBehaviour
 {
     [Header("Yetenek Ayarları")]
     [SerializeField] private AbilityType abilityType; // Bu butonun kontrol ettiği yetenek
-    [SerializeField] private int cost = 100; // Yeteneğin maliyeti
 
     [Header("UI Referansları")]
-    [SerializeField] private TextMeshProUGUI countText; // Sahip olunan yetenek sayısını gösteren text
-    [SerializeField] private TextMeshProUGUI abilityNameText;  // Yeteneğin adını gösteren text
+    [SerializeField] private TextMeshProUGUI costText; // Maliyeti gösteren text (ability adı yerine)
+    [SerializeField] private TextMeshProUGUI abilityNameText;  // Yeteneğin adını gösteren text (opsiyonel)
 
     private Button button;
 
@@ -36,9 +36,10 @@ public class AbilityButton : MonoBehaviour
             Debug.LogError($"[AbilityButton:{abilityType}] AbilityManager.Instance is null. Cannot subscribe to events.");
         }
 
-        if (ResourceManager.Instance != null)
+        // Listen to main coins changes (from GameEconomy)
+        if (GameEconomy.Instance != null)
         {
-            ResourceManager.OnCoinsChanged += OnCoinsChanged;
+            GameEconomy.OnMainCoinsChanged += OnCoinsChanged;
         }
 
         // Listen for stop changes to update availability
@@ -56,9 +57,10 @@ public class AbilityButton : MonoBehaviour
         {
             AbilityManager.Instance.OnAbilityCountChanged -= OnAbilityCountChanged;
         }
-        if (ResourceManager.Instance != null)
+        
+        if (GameEconomy.Instance != null)
         {
-            ResourceManager.OnCoinsChanged -= OnCoinsChanged;
+            GameEconomy.OnMainCoinsChanged -= OnCoinsChanged;
         }
         
         if (abilityType == AbilityType.AddNewStop)
@@ -82,48 +84,55 @@ public class AbilityButton : MonoBehaviour
 
     private void InitializeButtonState()
     {
-        if (AbilityManager.Instance == null || ResourceManager.Instance == null) 
+        if (AbilityManager.Instance == null || GameEconomy.Instance == null) 
         {
             Debug.LogError($"[AbilityButton:{abilityType}] Cannot initialize, a manager is missing.");
             return;
         }
 
-        int currentAbilityCount = AbilityManager.Instance.GetAbilityCount(abilityType);
-        int currentCoins = ResourceManager.Instance.CurrentCoins;
-
-        UpdateButtonUI(currentAbilityCount, currentCoins);
+        int currentCoins = GameEconomy.Instance.GetMainCoins();
+        UpdateButtonUI(currentCoins);
     }
 
     private void HandleButtonClick()
     {
-        if (AbilityManager.Instance == null || ResourceManager.Instance == null) return;
+        if (AbilityManager.Instance == null || GameEconomy.Instance == null) return;
+        if (AbilityUsageTracker.Instance == null) return;
 
-        int currentCount = AbilityManager.Instance.GetAbilityCount(abilityType);
+        // Get current cost based on usage count
+        int currentCost = AbilityUsageTracker.Instance.GetAbilityCost(abilityType);
+        int currentCoins = GameEconomy.Instance.GetMainCoins();
 
-        if (currentCount > 0)
+        if (currentCoins < currentCost)
         {
-            // If we already own the ability, just use it.
-            AbilityManager.Instance.UseAbility(abilityType);
+            Debug.LogWarning($"[AbilityButton] Not enough coins to buy {abilityType}. Required: {currentCost}, Have: {currentCoins}");
+            return;
         }
-        else
+
+        // Convert UI position to world position for animation
+        Vector3 worldPosition = GetWorldPositionFromUI();
+        
+        Debug.Log($"[AbilityButton] Buying ability from position: {worldPosition}, Cost: {currentCost}");
+        
+        // Spend coins from main resource
+        if (GameEconomy.Instance.SpendMainCoins(currentCost))
         {
-            // If we don't own the ability, try to buy and use it immediately.
-            if (ResourceManager.Instance.CurrentCoins < cost)
+            // Show spending animation
+            if (CoinAnimationManager.Instance != null)
             {
-                Debug.LogWarning($"[AbilityButton] Not enough coins to buy {abilityType}. Required: {cost}, Have: {ResourceManager.Instance.CurrentCoins}");
-                return; // Exit if not enough coins
+                CoinAnimationManager.Instance.ShowSpendingFeedback(currentCost, worldPosition);
             }
 
-            // Convert UI position to world position for animation
-            Vector3 worldPosition = GetWorldPositionFromUI();
+            // Track usage (increments counter for next use)
+            AbilityUsageTracker.Instance.OnAbilityUsed(abilityType);
+
+            // Execute ability
+            AbilityManager.Instance.ExecuteAbilityDirect(abilityType);
+
+            Debug.Log($"[AbilityButton] Successfully purchased and used {abilityType}.");
             
-            Debug.Log($"[AbilityButton] Buying ability from position: {worldPosition}");
-            
-            // Buy and execute immediately with animation from button position
-            if (AbilityManager.Instance.BuyAndUseAbility(abilityType, cost, worldPosition))
-            {
-                 Debug.Log($"[AbilityButton] Successfully purchased and used {abilityType}.");
-            }
+            // Update UI immediately
+            UpdateButtonUI(GameEconomy.Instance.GetMainCoins());
         }
     }
 
@@ -161,33 +170,27 @@ public class AbilityButton : MonoBehaviour
     private void OnAbilityCountChanged(AbilityType type, int newCount)
     {
         if (type != this.abilityType) return;
-        if (ResourceManager.Instance == null) return;
+        if (GameEconomy.Instance == null) return;
 
-        UpdateButtonUI(newCount, ResourceManager.Instance.CurrentCoins);
+        UpdateButtonUI(GameEconomy.Instance.GetMainCoins());
     }
 
     private void OnCoinsChanged(int newCoins)
     {
-        if (AbilityManager.Instance == null) return;
-
-        if (AbilityManager.Instance.GetAbilityCount(abilityType) == 0)
-        {
-            UpdateButtonUI(0, newCoins);
-        }
+        UpdateButtonUI(newCoins);
     }
 
     private void OnStopRegistered()
     {
-        if (AbilityManager.Instance == null || ResourceManager.Instance == null) return;
-        // Refresh UI to check availability
-        UpdateButtonUI(AbilityManager.Instance.GetAbilityCount(abilityType), ResourceManager.Instance.CurrentCoins);
+        if (GameEconomy.Instance == null) return;
+        UpdateButtonUI(GameEconomy.Instance.GetMainCoins());
     }
 
-    private void UpdateButtonUI(int abilityCount, int coinCount)
+    private void UpdateButtonUI(int coinCount)
     {
-        if (countText == null)
+        if (costText == null)
         {
-            Debug.LogError($"[AbilityButton:{abilityType}] CountText reference is not set in the inspector!");
+            Debug.LogError($"[AbilityButton:{abilityType}] CostText reference is not set in the inspector!");
             return;
         }
 
@@ -196,26 +199,28 @@ public class AbilityButton : MonoBehaviour
 
         if (!isAvailable)
         {
-            countText.text = "MAX";
-            countText.gameObject.SetActive(true);
+            costText.text = "MAX";
+            costText.color = Color.white;
             button.interactable = false;
             return;
         }
 
-        if (abilityCount > 0)
+        // Get current cost based on usage count
+        int currentCost = AbilityUsageTracker.Instance.GetAbilityCost(abilityType);
+
+        // Display cost
+        costText.text = currentCost.ToString();
+
+        // Set color based on affordability
+        if (coinCount >= currentCost)
         {
-            // --- USE MODE ---
-            countText.text = abilityCount.ToString();
-            countText.gameObject.SetActive(true);
+            costText.color = Color.white; // Can afford - white
             button.interactable = true;
         }
         else
-        { 
-            // --- BUY & USE MODE ---
-            // Show 0 when no abilities owned
-            countText.text = "0"; 
-            countText.gameObject.SetActive(true);
-            button.interactable = coinCount >= cost;
+        {
+            costText.color = Color.red; // Cannot afford - red
+            button.interactable = false;
         }
     }
 }

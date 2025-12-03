@@ -258,6 +258,24 @@ if (InputManager.Instance != null)
         
         // Input bloğunu kaldır
         isInputBlocked = false;
+        
+        Debug.LogWarning("<color=green>[Tutorial] Step1_ClickFirstPassenger COMPLETED!</color>");
+        
+        // *** TUTORIAL TAMAMLANDI OLARAK İŞARETLE ***
+        // Step1 tamamlandığında tutorial'ı "gösterildi" olarak kaydet
+        // Böylece oyuncu bir daha tutorial görmez
+        tutorialCompleted = true;
+        
+        if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
+        {
+            GameDataManager.Instance.GetSaveData().isTutorialShown = true;
+            GameDataManager.Instance.SaveGame();
+            Debug.LogWarning("<color=yellow>[Tutorial] ✓ isTutorialShown = TRUE saved after Step1!</color>");
+        }
+        else
+        {
+            Debug.LogWarning("<color=red>[Tutorial] ✗ GameDataManager or SaveData is null! Could not save tutorial completion!</color>");
+        }
     }
 
     private IEnumerator Step2_WaitForBoardingAndSecondPassenger()
@@ -348,12 +366,20 @@ if (InputManager.Instance != null)
             
             // Vagonları başlat
             SetMetroMovementActive(true);
+            
+            // *** ÖNEMLİ: İkinci passenger'ın da boarding yapmasını bekle! ***
+            Debug.LogWarning($"[Tutorial] Waiting for second passenger ({targetPassenger.name}) to complete boarding...");
+            PassengerGroup secondPassenger = targetPassenger;
+            yield return new WaitUntil(() => secondPassenger == null || !secondPassenger.gameObject.activeInHierarchy || secondPassenger.GroupSize <= 0);
+            Debug.LogWarning("[Tutorial] Second passenger boarding completed!");
         }
         else
         {
             Debug.LogWarning("[Tutorial] Could not find second passenger!");
             SetMetroMovementActive(true);
         }
+        
+        Debug.LogWarning("<color=green>[Tutorial] Step2_WaitForBoardingAndSecondPassenger COMPLETED!</color>");
     }
 
     private void OnTutorialPassengerTapped(PassengerGroup tappedPassenger)
@@ -474,15 +500,27 @@ if (InputManager.Instance != null)
     private void CompleteTutorial()
     {
         currentStep = TutorialStep.TutorialComplete;
-        tutorialCompleted = true;
 
-        Debug.Log("[Tutorial] Tutorial completed!");
+        Debug.LogWarning("<color=yellow>[Tutorial] Tutorial completed!</color>");
 
+        // Tutorial zaten Step1'de kaydedildi, tekrar kaydetmeye gerek yok
         if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
         {
-            GameDataManager.Instance.GetSaveData().isTutorialShown = true;
-            GameDataManager.Instance.SaveGame();
-            Debug.Log("[Tutorial] Saved tutorial completion to GameDataManager.");
+            if (!GameDataManager.Instance.GetSaveData().isTutorialShown)
+            {
+                // Eğer bir şekilde Step1'de kaydedilmemişse burada kaydet
+                GameDataManager.Instance.GetSaveData().isTutorialShown = true;
+                GameDataManager.Instance.SaveGame();
+                Debug.LogWarning("[Tutorial] Saved tutorial completion to GameDataManager (fallback).");
+            }
+            else
+            {
+                Debug.LogWarning("[Tutorial] Tutorial already saved in Step1, skipping duplicate save.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[Tutorial] GameDataManager or SaveData is null!");
         }
 
         if (tutorialCanvas != null) tutorialCanvas.SetActive(false);

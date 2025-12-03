@@ -20,7 +20,7 @@ public class LevelInvoiceData
     public int uberPenalty = 0;          // uberPickupCount * 100
 
     // Vergi (Tax) - Ara toplamdan hesaplanır
-    public float taxRate = 0.10f;        // Default 10% tax
+    public float taxRate = 0.20f;        // Default 20% tax
     public int taxAmount = 0;
 
     /// <summary>

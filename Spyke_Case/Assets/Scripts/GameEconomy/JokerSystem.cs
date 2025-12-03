@@ -339,6 +339,7 @@ public class JokerSystem : MonoBehaviour
                type == JokerType.OwnRepairStation;
     }
 
+
     /// <summary>
     /// Calculate tax rate based on active tax joker
     /// </summary>
@@ -346,7 +347,7 @@ public class JokerSystem : MonoBehaviour
     {
         if (activeTaxJoker == JokerType.None)
         {
-            return 0.10f; // Default 10% tax
+            return 0.20f; // Default 20% tax
         }
 
         switch (activeTaxJoker)
@@ -357,15 +358,13 @@ public class JokerSystem : MonoBehaviour
             case JokerType.OffshoreAccounts:
                 return 0.05f; // 5% tax
             case JokerType.DoubleBookkeeping:
-                return 0.10f; // 10% tax
+                return 0.20f; // 20% tax
             default:
-                return 0.10f; // Default
+                return 0.20f; // Default
         }
     }
 
     /// <summary>
-    /// Calculate crash penalty based on active repair joker
-    /// </summary>
     public int GetCrashPenalty(int basePenalty)
     {
         if (activeRepairJoker == JokerType.None)

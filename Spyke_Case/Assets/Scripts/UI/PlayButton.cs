@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// "Play" butonuna eklenmek üzere tasarlanmış script.
-/// Tıklandığında SceneManager aracılığıyla mevcut seviyeyi yükler.
+/// Tıklandığında SceneManager aracılığıyla EN YÜKSEK AÇILAN SEVİYEYİ yükler.
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class PlayButton : MonoBehaviour
@@ -15,12 +15,21 @@ public class PlayButton : MonoBehaviour
     }
 
     /// <summary>
-    /// SceneManager'ı çağırarak mevcut seviyeyi yükler.
+    /// SceneManager'ı çağırarak EN YÜKSEK AÇILAN SEVİYEYİ yükler.
+    /// Play button her zaman oyuncunun ulaştığı en yüksek seviyeyi oynatır.
     /// </summary>
     public void LoadCurrentLevel()
     {
         if (SceneManager.Instance != null)
         {
+            // Play button her zaman en yüksek açılan seviyeyi oynatır
+            if (ResourceManager.Instance != null)
+            {
+                int maxLevel = ResourceManager.Instance.MaxOpenedLevel;
+                ResourceManager.Instance.CurrentLevel = maxLevel;
+                Debug.Log($"<color=cyan>[PlayButton] Loading HIGHEST unlocked level: {maxLevel}</color>");
+            }
+            
             SceneManager.Instance.LoadLevelSceene();
         }
         else

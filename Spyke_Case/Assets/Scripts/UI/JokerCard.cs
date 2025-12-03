@@ -46,7 +46,7 @@ public class JokerCard : MonoBehaviour
 
         if (costText != null)
         {
-            costText.text = $"{cost} ⭐";
+            costText.text = $"{cost}";
         }
 
         if (effectText != null)

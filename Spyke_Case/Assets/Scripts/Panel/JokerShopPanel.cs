@@ -49,9 +49,6 @@ public class JokerShopPanel : MonoBehaviour
     {
         if (JokerSystem.Instance == null) return;
 
-        // Calculate total stars
-        JokerSystem.Instance.CalculateTotalStars();
-
         // Update total stars display
         UpdateTotalStars(JokerSystem.Instance.GetTotalStars());
 
@@ -96,7 +93,7 @@ public class JokerShopPanel : MonoBehaviour
     {
         if (totalStarsText != null)
         {
-            totalStarsText.text = $"⭐ {totalStars}";
+            totalStarsText.text = $"{totalStars}";
         }
     }
 
@@ -119,13 +116,7 @@ public class JokerShopPanel : MonoBehaviour
 
     public void OnJokerPurchased()
     {
-        // Recalculate stars after purchase
-        if (JokerSystem.Instance != null)
-        {
-            JokerSystem.Instance.CalculateTotalStars();
-        }
-
-        // Update all cards
+        // Update all cards (stars are already updated by JokerSystem)
         UpdateAllCards();
     }
 

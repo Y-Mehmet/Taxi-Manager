@@ -16,15 +16,20 @@ public class LevelUpPanel : MonoBehaviour
     [SerializeField] private Sprite brightStar;
     [SerializeField] private Sprite greyStar;
 
-    [Header("Invoice UI")]
+    [Header("Invoice UI - Table Structure")]
     [SerializeField] private GameObject invoicePanel;
-    [SerializeField] private TextMeshProUGUI passengerIncomeText;
-    [SerializeField] private TextMeshProUGUI crashPenaltyText;
-    [SerializeField] private TextMeshProUGUI uberPenaltyText;
-    [SerializeField] private TextMeshProUGUI taxText;
-    [SerializeField] private TextMeshProUGUI netEarningsText;
-    [SerializeField] private TextMeshProUGUI insuranceStatusText;
-    [SerializeField] private TextMeshProUGUI taxExemptionStatusText;
+    [SerializeField] private Transform innerPanel; // Parent with 3 children: Column0(QTY), Column1(Description), Column2(Amount)
+    
+    // Table structure: 3 columns x 9 rows
+    // Row 0: Decorative line (---)
+    // Row 1: Headers (QTY, DESCRIPTION, AMOUNT)
+    // Row 2: Decorative line (---)
+    // Row 3: Passenger Income
+    // Row 4: Crash Penalty
+    // Row 5: Uber Penalty
+    // Row 6: Subtotal
+    // Row 7: Tax
+    // Row 8: Net Earnings
 
     private void Awake()
     {
@@ -65,110 +70,178 @@ public class LevelUpPanel : MonoBehaviour
 
     private void ShowInvoice(LevelInvoiceData invoice)
     {
-        // DON'T auto-activate invoice panel - let it be controlled manually
-        // if (invoicePanel != null)
-        // {
-        //     invoicePanel.SetActive(true);
-        // }
-
-        // Income - Always show with label
-        if (passengerIncomeText != null)
+        if (innerPanel == null)
         {
-            int income = invoice.CalculateTotalIncome();
-            passengerIncomeText.text = $"Passenger Income: <color=green>+{income}</color> ({invoice.completedPassengers} x 20)";
+            Debug.LogError("[LevelUpPanel] innerPanel is not assigned!");
+            return;
         }
 
-        // Crash Penalty - Always show with label, even if 0
-        if (crashPenaltyText != null)
+        // Get the 3 columns
+        if (innerPanel.childCount < 3)
         {
-            if (invoice.crashCount > 0)
+            Debug.LogError($"[LevelUpPanel] innerPanel should have 3 children (columns), but has {innerPanel.childCount}!");
+            return;
+        }
+
+        Transform qtyColumn = innerPanel.GetChild(0);      // Column 0: QTY
+        Transform descColumn = innerPanel.GetChild(1);     // Column 1: Description
+        Transform amountColumn = innerPanel.GetChild(2);   // Column 2: Amount
+
+        // Verify each column has 9 TextMeshPro children
+        if (qtyColumn.childCount < 9 || descColumn.childCount < 9 || amountColumn.childCount < 9)
+        {
+            Debug.LogError($"[LevelUpPanel] Each column should have 9 TextMeshPro children! QTY:{qtyColumn.childCount}, Desc:{descColumn.childCount}, Amount:{amountColumn.childCount}");
+            return;
+        }
+
+        // Calculate all values
+        int income = invoice.CalculateTotalIncome();
+        invoice.CalculateTotalExpenses(); // This updates crashPenalty, uberPenalty, taxAmount
+        int subtotal = income - invoice.crashPenalty - invoice.uberPenalty;
+        int netEarnings = invoice.CalculateNetEarnings();
+
+        // Row 0, 1, 2: Skip (decorative lines and headers - already set in Unity)
+        
+        // Row 3: Passenger Income
+        SetTableRow(qtyColumn, descColumn, amountColumn, 3,
+            invoice.completedPassengers.ToString(),
+            "Passenger Income",
+            $"+{income}");
+
+        // Row 4: Crash Penalty
+        string crashQty = invoice.crashCount > 0 ? invoice.crashCount.ToString() : "";
+        string crashDesc = "Crash Penalty";
+        string crashAmount = "";
+        
+        if (invoice.crashCount > 0)
+        {
+            int basePenalty = invoice.crashCount * 500;
+            
+            if (invoice.crashPenalty == 0)
             {
-                int basePenalty = invoice.crashCount * 500;
-                if (invoice.crashPenalty == 0)
-                {
-                    crashPenaltyText.text = $"Crash Penalty: <color=yellow>0</color> ({invoice.crashCount} x 500 - INSURED)";
-                }
-                else if (invoice.crashPenalty < basePenalty)
-                {
-                    crashPenaltyText.text = $"Crash Penalty: <color=yellow>-{invoice.crashPenalty}</color> ({invoice.crashCount} x {invoice.crashPenalty/invoice.crashCount} - OWN REPAIR)";
-                }
-                else
-                {
-                    crashPenaltyText.text = $"Crash Penalty: <color=red>-{invoice.crashPenalty}</color> ({invoice.crashCount} x 500)";
-                }
+                // Insurance active - free repair
+                crashDesc = "Crash Penalty <color=green>(P)</color>";
+                crashAmount = "0";
+            }
+            else if (invoice.crashPenalty < basePenalty)
+            {
+                // Own repair station - reduced cost
+                crashDesc = "Crash Penalty <color=green>(P)</color>";
+                crashAmount = $"-{invoice.crashPenalty}";
             }
             else
             {
-                // No crashes - show 0
-                crashPenaltyText.text = $"Crash Penalty: <color=green>0</color> (0 x 500)";
+                // No perk - full cost
+                crashDesc = "Crash Penalty";
+                crashAmount = $"-{invoice.crashPenalty}";
             }
-            crashPenaltyText.gameObject.SetActive(true);
         }
-
-        // Uber Penalty - Always show with label, even if 0
-        if (uberPenaltyText != null)
+        else
         {
-            if (invoice.uberPickupCount > 0)
+            crashAmount = "0";
+        }
+        
+        SetTableRow(qtyColumn, descColumn, amountColumn, 4, crashQty, crashDesc, crashAmount);
+
+        // Row 5: Uber Penalty
+        string uberQty = invoice.uberPickupCount > 0 ? invoice.uberPickupCount.ToString() : "";
+        string uberAmount = invoice.uberPickupCount > 0 ? $"-{invoice.uberPenalty}" : "0";
+        SetTableRow(qtyColumn, descColumn, amountColumn, 5,
+            uberQty,
+            "Uber Penalty",
+            uberAmount);
+
+        // Row 6: Subtotal
+        SetTableRow(qtyColumn, descColumn, amountColumn, 6,
+            "",
+            "Subtotal",
+            subtotal >= 0 ? $"+{subtotal}" : $"{subtotal}");
+
+        // Row 7: Tax
+        string taxDesc = "Tax";
+        string taxAmount = "";
+        
+        if (invoice.taxAmount == 0 && subtotal > 0)
+        {
+            // Tax joker active - 0% tax
+            taxDesc = "Tax (0%) <color=green>(P)</color>";
+            taxAmount = "0";
+        }
+        else if (invoice.taxAmount > 0)
+        {
+            int taxPercent = Mathf.RoundToInt(invoice.taxRate * 100);
+            
+            // Check if tax rate is reduced (less than 20%)
+            if (invoice.taxRate < 0.20f)
             {
-                uberPenaltyText.text = $"Uber Penalty: <color=red>-{invoice.uberPenalty}</color> ({invoice.uberPickupCount} x 100)";
+                taxDesc = $"Tax ({taxPercent}%) <color=green>(P)</color>";
             }
             else
             {
-                // No uber pickups - show 0
-                uberPenaltyText.text = $"Uber Penalty: <color=green>0</color> (0 x 100)";
+                taxDesc = $"Tax ({taxPercent}%)";
             }
-            uberPenaltyText.gameObject.SetActive(true);
+            
+            taxAmount = $"-{invoice.taxAmount}";
         }
-
-        // Tax - Always show with label
-        if (taxText != null)
+        else
         {
-            if (invoice.taxAmount == 0 && invoice.passengerEarnings > 0)
-            {
-                taxText.text = $"Tax: <color=yellow>0</color> (TAX JOKER ACTIVE)";
-            }
-            else if (invoice.taxAmount > 0)
-            {
-                taxText.text = $"Tax: <color=red>-{invoice.taxAmount}</color> ({invoice.taxRate * 100}%)";
-            }
-            else
-            {
-                taxText.text = "Tax: <color=green>0</color> (0%)";
-            }
+            taxDesc = "Tax (0%)";
+            taxAmount = "0";
         }
+        
+        SetTableRow(qtyColumn, descColumn, amountColumn, 7, "", taxDesc, taxAmount);
 
-        // Net Earnings
-        if (netEarningsText != null)
-        {
-            int net = invoice.CalculateNetEarnings();
-            string color = net >= 0 ? "green" : "red";
-            netEarningsText.text = $"<color={color}>{net:+#;-#;0}</color>";
-        }
 
-        // Joker Status (check active jokers from JokerSystem)
-        if (insuranceStatusText != null)
-        {
-            bool hasRepairJoker = JokerSystem.Instance != null && 
-                (JokerSystem.Instance.IsJokerActive(JokerType.CollisionInsurance) || 
-                 JokerSystem.Instance.IsJokerActive(JokerType.OwnRepairStation));
-            insuranceStatusText.gameObject.SetActive(hasRepairJoker);
-        }
+        // Row 8: Net Earnings
+        SetTableRow(qtyColumn, descColumn, amountColumn, 8,
+            "",
+            "NET EARNINGS",
+            netEarnings >= 0 ? $"+{netEarnings}" : $"{netEarnings}");
 
-        if (taxExemptionStatusText != null)
-        {
-            bool hasTaxJoker = JokerSystem.Instance != null && 
-                (JokerSystem.Instance.IsJokerActive(JokerType.Bribery) || 
-                 JokerSystem.Instance.IsJokerActive(JokerType.HighOperatingExpenses) ||
-                 JokerSystem.Instance.IsJokerActive(JokerType.OffshoreAccounts) ||
-                 JokerSystem.Instance.IsJokerActive(JokerType.DoubleBookkeeping));
-            taxExemptionStatusText.gameObject.SetActive(hasTaxJoker);
-        }
-
-        // Old earnings text (net earnings)
+        // Update old earnings text for compatibility
         if (earningsText != null)
         {
-            int net = invoice.CalculateNetEarnings();
-            earningsText.text = $"{net}";
+            earningsText.text = $"{netEarnings}";
+        }
+    }
+
+    /// <summary>
+    /// Helper method to set text for a specific row in the table
+    /// </summary>
+    private void SetTableRow(Transform qtyCol, Transform descCol, Transform amountCol, int rowIndex, 
+        string qtyText, string descText, string amountText)
+    {
+        // Set QTY column
+        TextMeshProUGUI qtyTMP = qtyCol.GetChild(rowIndex).GetComponent<TextMeshProUGUI>();
+        if (qtyTMP != null)
+        {
+            qtyTMP.text = qtyText;
+        }
+        else
+        {
+            Debug.LogWarning($"[LevelUpPanel] QTY column row {rowIndex} has no TextMeshProUGUI component!");
+        }
+
+        // Set Description column
+        TextMeshProUGUI descTMP = descCol.GetChild(rowIndex).GetComponent<TextMeshProUGUI>();
+        if (descTMP != null)
+        {
+            descTMP.text = descText;
+        }
+        else
+        {
+            Debug.LogWarning($"[LevelUpPanel] Description column row {rowIndex} has no TextMeshProUGUI component!");
+        }
+
+        // Set Amount column
+        TextMeshProUGUI amountTMP = amountCol.GetChild(rowIndex).GetComponent<TextMeshProUGUI>();
+        if (amountTMP != null)
+        {
+            amountTMP.text = amountText;
+        }
+        else
+        {
+            Debug.LogWarning($"[LevelUpPanel] Amount column row {rowIndex} has no TextMeshProUGUI component!");
         }
     }
 

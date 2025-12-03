@@ -109,6 +109,7 @@ public class GameEconomy : MonoBehaviour
 
     /// <summary>
     /// Level sonu: Temp coins'i fatura ile birlikte Main Resource'a aktar
+    /// Negatif kazanç durumunda main resource'tan düşer ama asla 0'ın altına inmez
     /// </summary>
     public void TransferTempToMain(LevelInvoiceData invoice)
     {
@@ -122,15 +123,46 @@ public class GameEconomy : MonoBehaviour
         
         if (netEarnings > 0)
         {
+            // Pozitif kazanç: Main resource'a ekle
             AddMainCoins(netEarnings);
+            Debug.Log($"[GameEconomy] Added {netEarnings} coins to main resource. New balance: {MainCoins}");
         }
         else if (netEarnings < 0)
         {
-            // Negatif kazanç durumunda main resource'tan düşebilir (opsiyonel)
-            Debug.LogWarning($"[GameEconomy] Net earnings are negative: {netEarnings}. Not deducting from main resource.");
+            // Negatif kazanç: Main resource'tan düş ama 0'ın altına inme
+            if (ResourceManager.Instance != null)
+            {
+                int currentCoins = ResourceManager.Instance.CurrentCoins;
+                int deductAmount = Mathf.Abs(netEarnings); // Pozitif değer yap
+                
+                if (currentCoins >= deductAmount)
+                {
+                    // Yeterli para var, tam olarak düş
+                    ResourceManager.Instance.SpendCoins(deductAmount);
+                    Debug.LogWarning($"[GameEconomy] Deducted {deductAmount} coins from main resource. New balance: {MainCoins}");
+                }
+                else if (currentCoins > 0)
+                {
+                    // Yeterli para yok, sadece mevcut parayı sıfırla
+                    ResourceManager.Instance.SpendCoins(currentCoins);
+                    Debug.LogWarning($"[GameEconomy] Insufficient coins! Deducted only {currentCoins} coins (wanted {deductAmount}). Balance set to 0.");
+                }
+                else
+                {
+                    // Zaten 0 para var
+                    Debug.LogWarning($"[GameEconomy] Net earnings are {netEarnings} but main resource is already 0. No deduction.");
+                }
+                
+                OnMainCoinsChanged?.Invoke(MainCoins);
+            }
+        }
+        else
+        {
+            // Net kazanç 0
+            Debug.Log("[GameEconomy] Net earnings are 0. No change to main resource.");
         }
 
-        Debug.Log($"[GameEconomy] Level completed. Net earnings: {netEarnings}. New main balance: {MainCoins}");
+        Debug.Log($"[GameEconomy] Level completed. Net earnings: {netEarnings}. Final main balance: {MainCoins}");
         
         // Temp coins sıfırla
         ResetTempCoins();

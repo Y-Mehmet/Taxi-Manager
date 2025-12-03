@@ -20,7 +20,8 @@ public class SaveGameData
     // MetroManager
     public int levelIndex; // Current level being played
     public int maxOpenedLevel; // Highest level ever unlocked (never decreases)
-    public List<int> levelStarsCount;
+    public List<int> levelStarsCount; // Stars earned per level (only highest count, never decreases)
+    public int totalStarsEarned; // Total stars earned (sum of levelStarsCount, decreases when spent on jokers)
 
 
     // Diğer potansiyel veriler
@@ -51,6 +52,7 @@ public class SaveGameData
         levelIndex = 0;
         maxOpenedLevel = 0; // Start with only level 0 unlocked
         levelStarsCount = new List<int>();
+        totalStarsEarned = 0; // No stars earned yet
         unlockedWagonCount = 1;
         activeStopCount = 1;
         passengerCapacityLevel = 1;

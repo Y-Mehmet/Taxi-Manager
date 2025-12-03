@@ -31,12 +31,10 @@ public class JokerSystem : MonoBehaviour
     // Remaining games for each joker
     private Dictionary<JokerType, int> jokerRemainingGames = new Dictionary<JokerType, int>();
 
-    // Total stars (calculated from ResourceManager)
-    private int totalStars = 0;
-
     // Events
     public static event Action<int> OnTotalStarsChanged;
     public static event Action<JokerType, int> OnJokerCountChanged;
+
 
     private void Awake()
     {
@@ -65,31 +63,49 @@ public class JokerSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Calculate total stars from ResourceManager
+    /// Get total stars available for spending (from SaveGameData.totalStarsEarned)
     /// </summary>
-    public void CalculateTotalStars()
+    public int GetTotalStars()
     {
-        if (ResourceManager.Instance == null) return;
-
-        int newTotal = 0;
-        var levelStars = ResourceManager.Instance.LevelStars;
-        
-        if (levelStars != null)
+        if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
         {
-            foreach (var stars in levelStars)
+            return GameDataManager.Instance.GetSaveData().totalStarsEarned;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Calculate and update totalStarsEarned based on levelStarsCount
+    /// This should only be called when a level is completed with new/better stars
+    /// </summary>
+    public void RecalculateTotalStarsEarned()
+    {
+        if (GameDataManager.Instance == null || GameDataManager.Instance.GetSaveData() == null) return;
+        
+        var data = GameDataManager.Instance.GetSaveData();
+        int newTotal = 0;
+        
+        if (data.levelStarsCount != null)
+        {
+            foreach (var stars in data.levelStarsCount)
             {
                 newTotal += stars;
             }
         }
-
-        if (newTotal != totalStars)
-        {
-            totalStars = newTotal;
-            OnTotalStarsChanged?.Invoke(totalStars);
-        }
+        
+        data.totalStarsEarned = newTotal;
+        OnTotalStarsChanged?.Invoke(newTotal);
+        
+        Debug.Log($"[JokerSystem] Recalculated totalStarsEarned: {newTotal}");
     }
 
-    public int GetTotalStars() => totalStars;
+    /// <summary>
+    /// Notify listeners that total stars have changed (called from external classes)
+    /// </summary>
+    public void NotifyStarsChanged(int totalStars)
+    {
+        OnTotalStarsChanged?.Invoke(totalStars);
+    }
 
     /// <summary>
     /// Buy a joker with stars
@@ -98,10 +114,11 @@ public class JokerSystem : MonoBehaviour
     public bool BuyJoker(JokerType type)
     {
         int cost = GetJokerCost(type);
+        int availableStars = GetTotalStars();
         
-        if (totalStars < cost)
+        if (availableStars < cost)
         {
-            Debug.LogWarning($"[JokerSystem] Not enough stars to buy {type}. Need: {cost}, Have: {totalStars}");
+            Debug.LogWarning($"[JokerSystem] Not enough stars to buy {type}. Need: {cost}, Have: {availableStars}");
             return false;
         }
 
@@ -148,7 +165,7 @@ public class JokerSystem : MonoBehaviour
             activeRepairJoker = type;
         }
 
-        // SPEND STARS (deduct from levels, starting from highest)
+        // SPEND STARS (deduct from totalStarsEarned, NOT from levelStarsCount)
         if (!SpendStars(cost))
         {
             Debug.LogError($"[JokerSystem] Failed to spend stars for {type}");
@@ -156,9 +173,6 @@ public class JokerSystem : MonoBehaviour
         }
 
         OnJokerCountChanged?.Invoke(type, jokerRemainingGames[type]);
-
-        // Recalculate total stars after spending
-        CalculateTotalStars();
 
         // Save data
         if (GameDataManager.Instance != null)
@@ -170,35 +184,26 @@ public class JokerSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Spend stars from levels (starting from highest level)
+    /// Spend stars from totalStarsEarned (NOT from levelStarsCount array)
     /// </summary>
     private bool SpendStars(int amount)
     {
-        if (ResourceManager.Instance == null) return false;
+        if (GameDataManager.Instance == null || GameDataManager.Instance.GetSaveData() == null) return false;
 
-        var levelStars = ResourceManager.Instance.LevelStars;
-        if (levelStars == null) return false;
-
-        int remaining = amount;
-
-        // Spend from highest level first (reverse order)
-        for (int i = levelStars.Count - 1; i >= 0 && remaining > 0; i--)
+        var data = GameDataManager.Instance.GetSaveData();
+        
+        if (data.totalStarsEarned < amount)
         {
-            if (levelStars[i] > 0)
-            {
-                int toSpend = Mathf.Min(levelStars[i], remaining);
-                levelStars[i] -= toSpend;
-                remaining -= toSpend;
-                Debug.Log($"[JokerSystem] Spent {toSpend} stars from level {i}. Remaining: {levelStars[i]}");
-            }
-        }
-
-        if (remaining > 0)
-        {
-            Debug.LogError($"[JokerSystem] Could not spend all stars! Remaining: {remaining}");
+            Debug.LogError($"[JokerSystem] Not enough stars! Have: {data.totalStarsEarned}, Need: {amount}");
             return false;
         }
 
+        // Deduct from totalStarsEarned (levelStarsCount array is NEVER modified)
+        data.totalStarsEarned -= amount;
+        OnTotalStarsChanged?.Invoke(data.totalStarsEarned);
+        
+        Debug.Log($"[JokerSystem] Spent {amount} stars. Remaining: {data.totalStarsEarned}");
+        
         return true;
     }
 
@@ -358,7 +363,7 @@ public class JokerSystem : MonoBehaviour
             case JokerType.OffshoreAccounts:
                 return 0.05f; // 5% tax
             case JokerType.DoubleBookkeeping:
-                return 0.20f; // 20% tax
+                return 0.10f; // 10% tax (reduced from 20%)
             default:
                 return 0.20f; // Default
         }
@@ -410,6 +415,15 @@ public class JokerSystem : MonoBehaviour
         activeTaxJoker = (JokerType)data.activeTaxJoker;
         activeRepairJoker = (JokerType)data.activeRepairJoker;
 
-        CalculateTotalStars();
+        // Recalculate totalStarsEarned if it's not set (backward compatibility)
+        if (data.totalStarsEarned == 0 && data.levelStarsCount != null && data.levelStarsCount.Count > 0)
+        {
+            RecalculateTotalStarsEarned();
+        }
+        else
+        {
+            // Trigger event with current value
+            OnTotalStarsChanged?.Invoke(data.totalStarsEarned);
+        }
     }
 }

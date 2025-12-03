@@ -155,12 +155,38 @@ public class ResourceManager : MonoBehaviour
             LevelStars.Add(0);
         }
 
-        LevelStars[levelIndex] = stars;
-        Debug.Log($"Level {levelIndex} stars set to {stars}");
-
-        if (GameDataManager.Instance != null)
+        // Sadece daha yüksek yıldız sayısı kaydedilir (asla azalmaz)
+        int previousStars = LevelStars[levelIndex];
+        
+        if (stars > previousStars)
         {
-            GameDataManager.Instance.SaveGame();
+            int starDifference = stars - previousStars;
+            LevelStars[levelIndex] = stars;
+            Debug.Log($"[ResourceManager] Level {levelIndex} stars improved: {previousStars} -> {stars} (+{starDifference})");
+            
+            // totalStarsEarned'e sadece FARKI ekle (tüm toplamı yeniden hesaplama!)
+            if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
+            {
+                var data = GameDataManager.Instance.GetSaveData();
+                data.totalStarsEarned += starDifference;
+                Debug.Log($"[ResourceManager] totalStarsEarned updated: +{starDifference} = {data.totalStarsEarned}");
+                
+                // Event'i tetikle
+                if (JokerSystem.Instance != null)
+                {
+                    JokerSystem.Instance.NotifyStarsChanged(data.totalStarsEarned);
+                }
+                
+                GameDataManager.Instance.SaveGame();
+            }
+        }
+        else if (stars == previousStars)
+        {
+            Debug.Log($"[ResourceManager] Level {levelIndex} completed with same stars: {stars}");
+        }
+        else
+        {
+            Debug.Log($"[ResourceManager] Level {levelIndex} completed with lower stars ({stars}), keeping previous best: {previousStars}");
         }
     }
 }

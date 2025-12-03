@@ -1,40 +1,65 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// "Play" butonuna eklenmek üzere tasarlanmış script.
-/// Tıklandığında SceneManager aracılığıyla EN YÜKSEK AÇILAN SEVİYEYİ yükler.
+/// Seçili level'i oynatır ve child TextMeshPro'da level numarasını gösterir.
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class PlayButton : MonoBehaviour
 {
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI levelText; // Child TextMeshPro to show selected level
+
     private void Awake()
     {
-        // Butonun OnClick olayına LoadCurrentLevel metodunu programatik olarak ekle.
-        GetComponent<Button>().onClick.AddListener(LoadCurrentLevel);
+        // Butonun OnClick olayına LoadSelectedLevel metodunu programatik olarak ekle.
+        GetComponent<Button>().onClick.AddListener(LoadSelectedLevel);
+    }
+
+    private void OnEnable()
+    {
+        // Subscribe to level selection events
+        LevelSelectionManager.OnLevelSelected += UpdateLevelText;
+        
+        // Update text immediately if manager exists
+        if (LevelSelectionManager.Instance != null)
+        {
+            UpdateLevelText(LevelSelectionManager.Instance.SelectedLevelIndex);
+        }
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from events
+        LevelSelectionManager.OnLevelSelected -= UpdateLevelText;
     }
 
     /// <summary>
-    /// SceneManager'ı çağırarak EN YÜKSEK AÇILAN SEVİYEYİ yükler.
-    /// Play button her zaman oyuncunun ulaştığı en yüksek seviyeyi oynatır.
+    /// Update level text when selection changes
     /// </summary>
-    public void LoadCurrentLevel()
+    private void UpdateLevelText(int levelIndex)
     {
-        if (SceneManager.Instance != null)
+        if (levelText != null)
         {
-            // Play button her zaman en yüksek açılan seviyeyi oynatır
-            if (ResourceManager.Instance != null)
-            {
-                int maxLevel = ResourceManager.Instance.MaxOpenedLevel;
-                ResourceManager.Instance.CurrentLevel = maxLevel;
-                Debug.Log($"<color=cyan>[PlayButton] Loading HIGHEST unlocked level: {maxLevel}</color>");
-            }
-            
-            SceneManager.Instance.LoadLevelSceene();
+            // Display as "Level 1", "Level 2", etc. (levelIndex is 0-based, so +1 for display)
+            levelText.text = $"Level {levelIndex + 1}";
+        }
+    }
+
+    /// <summary>
+    /// SceneManager'ı çağırarak SEÇİLİ SEVİYEYİ yükler.
+    /// </summary>
+    public void LoadSelectedLevel()
+    {
+        if (LevelSelectionManager.Instance != null)
+        {
+            LevelSelectionManager.Instance.PlaySelectedLevel();
         }
         else
         {
-            Debug.LogError("SceneManager not found in the scene!");
+            Debug.LogError("[PlayButton] LevelSelectionManager not found!");
         }
     }
 
@@ -44,7 +69,10 @@ public class PlayButton : MonoBehaviour
         Button button = GetComponent<Button>();
         if (button != null)
         {
-            button.onClick.RemoveListener(LoadCurrentLevel);
+            button.onClick.RemoveListener(LoadSelectedLevel);
         }
+        
+        // Unsubscribe from events
+        LevelSelectionManager.OnLevelSelected -= UpdateLevelText;
     }
 }

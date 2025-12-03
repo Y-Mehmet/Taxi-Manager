@@ -33,6 +33,7 @@ public class SaveGameData
     public float soundFxVolume;
     public float musicVolume;
     public bool isTutorialShown;
+    public bool isPushNotificationEnabled; // Push notification settings
 
     // JokerSystem (Category-Based System)
     public Dictionary<int, int> jokerRemainingGames; // JokerType (int) -> Remaining Games
@@ -60,6 +61,7 @@ public class SaveGameData
         offlineEarningsLevel = 1;
         soundFxVolume=0.5f;
         musicVolume=0.5f;
+        isPushNotificationEnabled = true; // Default: enabled
         
         // Initialize joker data
         jokerRemainingGames = new Dictionary<int, int>();

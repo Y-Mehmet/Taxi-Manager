@@ -8,6 +8,9 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button))]
 public class LevelButton : MonoBehaviour
 {
+    [Header("Star Display")]
+    [SerializeField] private Transform starPanel; // Panel with 3 child GameObjects (star containers)
+    
     private Button button;
 
     private void Awake()
@@ -16,9 +19,57 @@ public class LevelButton : MonoBehaviour
         button.onClick.AddListener(LoadLevel);
     }
 
+    private void OnEnable()
+    {
+        UpdateStarDisplay();
+    }
+
+    /// <summary>
+    /// Update star display based on saved stars for this level
+    /// </summary>
+    private void UpdateStarDisplay()
+    {
+        if (starPanel == null) return;
+        
+        // Get level index from sibling index
+        int levelIndex = transform.GetSiblingIndex();
+        
+        // Get stars for this level from save data
+        int stars = 0;
+        if (ResourceManager.Instance != null && ResourceManager.Instance.LevelStars != null)
+        {
+            if (levelIndex < ResourceManager.Instance.LevelStars.Count)
+            {
+                stars = ResourceManager.Instance.LevelStars[levelIndex];
+            }
+        }
+        
+        // Ensure star panel has 3 children
+        if (starPanel.childCount < 3)
+        {
+            return; // Silently skip if not configured
+        }
+        
+        // Update each star container
+        for (int i = 0; i < 3; i++)
+        {
+            Transform starContainer = starPanel.GetChild(i);
+            
+            // Each star container should have a child (the filled star)
+            if (starContainer.childCount > 0)
+            {
+                GameObject filledStar = starContainer.GetChild(0).gameObject;
+                
+                // Activate filled star if this level has enough stars
+                filledStar.SetActive(i < stars);
+            }
+        }
+    }
+
     /// <summary>
     /// Bu butona tıklandığında çağrılır.
-    /// GetSiblingIndex kullanarak hangi level'ı yükleyeceğini belirler.
+    /// Artık level'i yükleme, sadece SEÇ.
+    /// PlayButton seçili level'i yükleyecek.
     /// </summary>
     public void LoadLevel()
     {
@@ -28,24 +79,16 @@ public class LevelButton : MonoBehaviour
         // Hiyerarşideki sırayı al (bu bizim level index'imiz olacak)
         int levelIndex = transform.GetSiblingIndex();
 
-        Debug.Log($"[LevelButton] Loading level {levelIndex} from button sibling index");
+        Debug.Log($"[LevelButton] Level {levelIndex} selected (not loaded yet)");
 
-        // ResourceManager'da CurrentLevel'ı geçici olarak değiştir
-        // Bu sayede GameDataManager'dan yüklenen CurrentLevel bypass edilir
-        if (ResourceManager.Instance != null)
+        // LevelSelectionManager'a seçili level'i bildir
+        if (LevelSelectionManager.Instance != null)
         {
-            ResourceManager.Instance.CurrentLevel = levelIndex;
-            Debug.Log($"[LevelButton] Set ResourceManager.CurrentLevel to {levelIndex}");
-        }
-
-        // SceneManager üzerinden ilgili seviyeyi yükle
-        if (SceneManager.Instance != null)
-        {
-            SceneManager.Instance.LoadSpecificLevel(levelIndex);
+            LevelSelectionManager.Instance.SelectLevel(levelIndex);
         }
         else
         {
-            Debug.LogError("SceneManager not found in the scene!");
+            Debug.LogError("[LevelButton] LevelSelectionManager not found!");
         }
     }
 

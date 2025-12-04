@@ -117,10 +117,10 @@ public class AbilityButton : MonoBehaviour
         // Spend coins from main resource
         if (GameEconomy.Instance.SpendMainCoins(currentCost))
         {
-            // Show spending animation
+            // Show spending animation with shake effect (only for abilities)
             if (CoinAnimationManager.Instance != null)
             {
-                CoinAnimationManager.Instance.ShowSpendingFeedback(currentCost, worldPosition);
+                CoinAnimationManager.Instance.ShowCoinSpendWithShake(currentCost, worldPosition);
             }
 
             // Track usage (increments counter for next use)

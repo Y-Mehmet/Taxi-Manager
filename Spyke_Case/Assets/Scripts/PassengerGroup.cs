@@ -342,15 +342,42 @@ public class PassengerGroup : MonoBehaviour
         // Update the property so it holds the correct value
         this.groupColor = color;
 
-        foreach (Transform child in transform)
+        // Try to load a material from Resources/Materials folder matching the color name
+        string materialPath = $"Materials/{color.ToString()}";
+        Material colorMaterial = Resources.Load<Material>(materialPath);
+        
+        if (colorMaterial != null)
         {
-            if (directionIndicator != null && child == directionIndicator) continue;
-
-            var renderer = child.GetComponentInChildren<Renderer>();
-            if (renderer != null)
+            // Material found in Resources/Materials - use it
+            Debug.Log($"[PassengerGroup] Using custom material from Resources: {materialPath}");
+            
+            foreach (Transform child in transform)
             {
-                // Use the newly set property to change the material color
-                renderer.material.color = this.groupColor.ToColor();
+                if (directionIndicator != null && child == directionIndicator) continue;
+
+                var renderer = child.GetComponentInChildren<Renderer>();
+                if (renderer != null)
+                {
+                    // Assign the custom material
+                    renderer.material = colorMaterial;
+                }
+            }
+        }
+        else
+        {
+            // No custom material found - use old system (set color property)
+            Debug.Log($"[PassengerGroup] No custom material found for {color}, using color property");
+            
+            foreach (Transform child in transform)
+            {
+                if (directionIndicator != null && child == directionIndicator) continue;
+
+                var renderer = child.GetComponentInChildren<Renderer>();
+                if (renderer != null)
+                {
+                    // Use the newly set property to change the material color
+                    renderer.material.color = this.groupColor.ToColor();
+                }
             }
         }
     }

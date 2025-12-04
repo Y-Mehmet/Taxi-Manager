@@ -126,10 +126,26 @@ public class MetroWagon : MonoBehaviour
     public void SetColor(HyperCasualColor newColor)
     {
         wagonColor = newColor;
+        
+        // Try to load a material from Resources/Materials folder matching the color name
+        string materialPath = $"Materials/{newColor.ToString()}";
+        Material colorMaterial = Resources.Load<Material>(materialPath);
+        
         var renderer = GetComponentInChildren<Renderer>();
         if (renderer != null)
         {
-            renderer.material.color = newColor.ToColor();
+            if (colorMaterial != null)
+            {
+                // Material found in Resources/Materials - use it
+                Debug.Log($"[MetroWagon] Using custom material from Resources: {materialPath}");
+                renderer.material = colorMaterial;
+            }
+            else
+            {
+                // No custom material found - use old system (set color property)
+                Debug.Log($"[MetroWagon] No custom material found for {newColor}, using color property");
+                renderer.material.color = newColor.ToColor();
+            }
         }
     }
 

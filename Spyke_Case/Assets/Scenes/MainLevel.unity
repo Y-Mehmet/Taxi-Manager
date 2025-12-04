@@ -5945,7 +5945,7 @@ GameObject:
   - component: {fileID: 1692158350}
   - component: {fileID: 1692158349}
   m_Layer: 5
-  m_Name: Image
+  m_Name: grownpanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6529,7 +6529,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4515689188764567787, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -1000.0002
+      value: -1000.0001
       objectReference: {fileID: 0}
     - target: {fileID: 4590695888396312375, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_Enabled

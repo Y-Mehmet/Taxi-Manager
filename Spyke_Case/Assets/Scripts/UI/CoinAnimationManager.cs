@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using System.Collections;
+using DG.Tweening;
 
 /// <summary>
 /// Royal Match tarzı coin animasyonlarını yöneten manager.
@@ -17,6 +18,7 @@ public class CoinAnimationManager : MonoBehaviour
     [Header("Target UI")]
     [SerializeField] private RectTransform coinUITarget; // Coin text'in bulunduğu UI elementi
     [SerializeField] private CoinUIShakeEffect coinUIShakeEffect; // Coin UI shake efekti
+    [SerializeField] private RectTransform coinBagImage; // Coin bag image (bounce animasyonu için)
 
     [Header("Canvas")]
     [SerializeField] private Canvas canvas;
@@ -25,6 +27,11 @@ public class CoinAnimationManager : MonoBehaviour
     [SerializeField] private int coinsPerUnit = 5; // Her 20 coin için kaç sprite (örn: 20 coin = 5 sprite)
     [SerializeField] private int maxCoins = 10; // Maksimum coin sprite sayısı
     [SerializeField] private float spreadRadius = 50f; // Coin'lerin yayılma yarıçapı
+    
+    [Header("Coin Bag Animation")]
+    [SerializeField] private float bagBounceScale = 1.2f; // Coin bag büyüme oranı
+    [SerializeField] private float bagBounceDuration = 0.2f; // Bounce animasyon süresi
+    [SerializeField] private float bagShakeStrength = 10f; // Sallama gücü
 
     private void Awake()
     {
@@ -42,6 +49,17 @@ public class CoinAnimationManager : MonoBehaviour
         {
             canvas = GetComponentInParent<Canvas>();
         }
+    }
+    
+    private void OnEnable()
+    {
+        // Coin hedefe ulaştığında bag animasyonu oynat
+        CoinSpriteAnimation.OnCoinReachedTarget += PlayCoinBagBounce;
+    }
+    
+    private void OnDisable()
+    {
+        CoinSpriteAnimation.OnCoinReachedTarget -= PlayCoinBagBounce;
     }
 
     /// <summary>
@@ -256,5 +274,34 @@ public class CoinAnimationManager : MonoBehaviour
     public void SetCoinUITarget(RectTransform target)
     {
         coinUITarget = target;
+    }
+    
+    /// <summary>
+    /// Coin bag bounce animasyonu (coinler vardığında)
+    /// </summary>
+    private void PlayCoinBagBounce()
+    {
+        if (coinBagImage == null) return;
+        
+        // Coin sound effect çal
+        if (SoundManager.instance != null)
+        {
+            SoundManager.instance.PlaySfx(SoundType.EarnCoin, 0f, true);
+        }
+        
+        // Önceki animasyonu durdur
+        coinBagImage.DOKill();
+        
+        // Bounce + Shake animasyonu
+        DG.Tweening.Sequence bounceSequence = DOTween.Sequence();
+        
+        // 1. Büyü
+        bounceSequence.Append(coinBagImage.DOScale(bagBounceScale, bagBounceDuration * 0.5f).SetEase(Ease.OutQuad));
+        
+        // 2. Salla (shake)
+        bounceSequence.Join(coinBagImage.DOShakeRotation(bagBounceDuration, bagShakeStrength, 10, 90, false));
+        
+        // 3. Normal boyuta dön
+        bounceSequence.Append(coinBagImage.DOScale(1f, bagBounceDuration * 0.5f).SetEase(Ease.InOutQuad));
     }
 }

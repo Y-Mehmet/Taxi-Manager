@@ -2481,7 +2481,7 @@ GameObject:
   - component: {fileID: 765357557}
   - component: {fileID: 765357556}
   m_Layer: 5
-  m_Name: Image
+  m_Name: CoinBagImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4442,11 +4442,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: afda3bd7782563f48ba766e17535e672, type: 3}
       propertyPath: m_LocalScale.x
-      value: 20
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: afda3bd7782563f48ba766e17535e672, type: 3}
       propertyPath: m_LocalScale.z
-      value: 25
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: afda3bd7782563f48ba766e17535e672, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8857,6 +8857,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4699654721783090772}
     - target: {fileID: 7351827284288149794, guid: d5025e4759be42d4d88d29996f3cee18, type: 3}
+      propertyPath: coinBagImage
+      value: 
+      objectReference: {fileID: 765357555}
+    - target: {fileID: 7351827284288149794, guid: d5025e4759be42d4d88d29996f3cee18, type: 3}
       propertyPath: coinUITarget
       value: 
       objectReference: {fileID: 765357555}
@@ -9483,7 +9487,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 124300421043761302, guid: fe09901ea0bef8d4b8405cb7e3bd5634, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -24.2
+      value: -24.8
       objectReference: {fileID: 0}
     - target: {fileID: 124300421043761302, guid: fe09901ea0bef8d4b8405cb7e3bd5634, type: 3}
       propertyPath: m_LocalRotation.w

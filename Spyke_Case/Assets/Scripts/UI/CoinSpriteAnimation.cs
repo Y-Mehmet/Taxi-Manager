@@ -4,7 +4,7 @@ using DG.Tweening;
 using System.Collections;
 
 /// <summary>
-/// Royal Match tarzÄ± coin animasyonu - coin sprite'larÄ± uÃ§ar
+/// Royal Match tarzı coin animasyonu - coin sprite'ları uçar
 /// </summary>
 public class CoinSpriteAnimation : MonoBehaviour
 {
@@ -20,6 +20,9 @@ public class CoinSpriteAnimation : MonoBehaviour
     private RectTransform rectTransform;
     private Sequence animationSequence;
     
+    // Event: Coin hedefe ulaştığında tetiklenir (coin bag animasyonu için)
+    public static event System.Action OnCoinReachedTarget;
+    
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -29,21 +32,21 @@ public class CoinSpriteAnimation : MonoBehaviour
     }
     
     /// <summary>
-    /// Coin animasyonunu baÅŸlatÄ±r
+    /// Coin animasyonunu başlatır
     /// </summary>
-    /// <param name="startPosition">BaÅŸlangÄ±Ã§ pozisyonu (ekran koordinatÄ±)</param>
+    /// <param name="startPosition">Başlangıç pozisyonu (ekran koordinatı)</param>
     /// <param name="targetPosition">Hedef pozisyon (coin UI)</param>
-    /// <param name="delay">BaÅŸlama gecikmesi</param>
+    /// <param name="delay">Başlama gecikmesi</param>
     public void Initialize(Vector3 startPosition, Vector3 targetPosition, float delay = 0f)
     {
         // Pozisyonu ayarla
         rectTransform.position = startPosition;
         
-        // BaÅŸlangÄ±Ã§ deÄŸerleri
+        // Başlangıç değerleri
         transform.localScale = Vector3.zero;
         coinImage.color = Color.white;
         
-        // Animasyon sekansÄ±
+        // Animasyon sekansı
         animationSequence = DOTween.Sequence();
         
         // Gecikme ekle
@@ -52,23 +55,26 @@ public class CoinSpriteAnimation : MonoBehaviour
             animationSequence.AppendInterval(delay);
         }
         
-        // 1. Pop-up (bÃ¼yÃ¼me)
+        // 1. Pop-up (büyüme)
         animationSequence.Append(transform.DOScale(popScale, popDuration).SetEase(Ease.OutBack));
         
-        // 2. KÄ±sa bekleme (ekranda dur)
+        // 2. Kısa bekleme (ekranda dur)
         animationSequence.AppendInterval(0.1f);
         
-        // 3. Normal boyuta dÃ¶n
+        // 3. Normal boyuta dön
         animationSequence.Append(transform.DOScale(1f, popDuration * 0.5f).SetEase(Ease.InOutQuad));
         
-        // 4. Hedefe doÄŸru hareket et
+        // 4. Hedefe doğru hareket et
         animationSequence.Append(rectTransform.DOMove(targetPosition, moveDuration).SetEase(Ease.InQuad));
         
-        // 5. Hareket ederken kÃ¼Ã§Ã¼l
+        // 5. Hareket ederken küçül
         animationSequence.Join(transform.DOScale(0.3f, moveDuration).SetEase(Ease.InQuad));
         
-        // 6. Animasyon bitince pool'a geri dÃ¶n
+        // 6. Animasyon bitince pool'a geri dön
         animationSequence.OnComplete(() => {
+            // Trigger event for coin bag animation
+            OnCoinReachedTarget?.Invoke();
+            
             if (CoinObjectPool.Instance != null)
             {
                 CoinObjectPool.Instance.ReturnCoinSprite(gameObject);

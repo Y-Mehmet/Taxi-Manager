@@ -71,7 +71,7 @@ public class LevelSpawner : MonoBehaviour
         {
             if (conveyorBeltPrefab != null)
             {
-                Instantiate(conveyorBeltPrefab, new Vector3(1.99798131f,0.547583222f,-9.10000038f), Quaternion.identity);
+                Instantiate(conveyorBeltPrefab, new Vector3(1.99798131f, 0.01f, -9.10000038f), Quaternion.identity);
                 StartCoroutine(conveyorManager.Initialize(levelToSpawn.conveyorPassengers, passengerGroupPrefab));
             }
             else

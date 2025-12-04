@@ -11,6 +11,9 @@ public class LevelButton : MonoBehaviour
     [Header("Star Display")]
     [SerializeField] private Transform starPanel; // Panel with 3 child GameObjects (star containers)
     
+    [Header("Wheel Rotation")]
+    [SerializeField] private RotateZAxis wheelRotator; // Reference to the wheel's RotateZAxis component
+    
     private Button button;
 
     private void Awake()
@@ -22,6 +25,37 @@ public class LevelButton : MonoBehaviour
     private void OnEnable()
     {
         UpdateStarDisplay();
+        
+        // Subscribe to level selection events
+        LevelSelectionManager.OnLevelSelected += HandleLevelSelected;
+    }
+    
+    private void OnDisable()
+    {
+        // Unsubscribe from level selection events
+        LevelSelectionManager.OnLevelSelected -= HandleLevelSelected;
+    }
+    
+    /// <summary>
+    /// Handle level selection event - start/stop wheel rotation
+    /// </summary>
+    private void HandleLevelSelected(int selectedLevelIndex)
+    {
+        int myLevelIndex = transform.GetSiblingIndex();
+        
+        if (wheelRotator != null)
+        {
+            if (selectedLevelIndex == myLevelIndex)
+            {
+                // This is the selected level, start rotation
+                wheelRotator.StartRotation();
+            }
+            else
+            {
+                // This is not the selected level, stop rotation
+                wheelRotator.StopRotation();
+            }
+        }
     }
 
     /// <summary>

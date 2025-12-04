@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -51,7 +51,7 @@ public class StopSlotTextUpdater : MonoBehaviour
         if (passengerGroup != null && slotText != null)
         {
             // Log for debugging to see when updates happen and with what value.
-            Debug.LogWarning($"[StopSlotTextUpdater] UpdateSlotText received for {passengerGroup.name}. New capacity: {remainingCapacity}");
+//             Debug.LogWarning($"[StopSlotTextUpdater] UpdateSlotText received for {passengerGroup.name}. New capacity: {remainingCapacity}");
             
             if (remainingCapacity > 0)
             {
@@ -65,7 +65,7 @@ public class StopSlotTextUpdater : MonoBehaviour
         }
         else if (slotText != null)
         {
-            Debug.LogWarning("[StopSlotTextUpdater] UpdateSlotText called but passenger group is null. Clearing text.");
+//             Debug.LogWarning("[StopSlotTextUpdater] UpdateSlotText called but passenger group is null. Clearing text.");
             slotText.text = "";
         }
     }

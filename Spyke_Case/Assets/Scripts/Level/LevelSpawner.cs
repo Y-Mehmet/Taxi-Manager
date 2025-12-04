@@ -1,6 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-// Bu script, LevelSpawnSO'dan veriyi okur ve ilgili yöneticilere dağıtarak level'ı kurar.
+// Bu script, LevelSpawnSO'dan veriyi okur ve ilgili yÃ¶neticilere daÄŸÄ±tarak level'Ä± kurar.
 public class LevelSpawner : MonoBehaviour
 {
     [Header("Level Data")]
@@ -17,7 +17,7 @@ public class LevelSpawner : MonoBehaviour
     public PassengerGroup passengerGroupPrefab;
     public UnderpassController underpassControllerPrefab;
     public MetroWagon metroWagonPrefab;
-    public ConveyorBelt conveyorBeltPrefab; // Vagonların takip edeceği yol. Projende böyle bir bileşen olduğunu varsayıyorum.
+    public ConveyorBelt conveyorBeltPrefab; // VagonlarÄ±n takip edeceÄŸi yol. Projende bÃ¶yle bir bileÅŸen olduÄŸunu varsayÄ±yorum.
 
     void Awake()
     {
@@ -34,11 +34,11 @@ public class LevelSpawner : MonoBehaviour
         else
         {
             Debug.LogError("ResourceManager instance not found!");
-            // Hata durumunda varsayılan olarak 1. level'ı yüklüyoruz
+            // Hata durumunda varsayÄ±lan olarak 1. level'Ä± yÃ¼klÃ¼yoruz
             currentLevel = 1;
         }
 
-        // Level dosyası: Resources/Levels/Level_1, Level_2, Level_3...
+        // Level dosyasÄ±: Resources/Levels/Level_1, Level_2, Level_3...
         string levelPath = "Levels/Level_" + currentLevel;
         levelToSpawn = Resources.Load<LevelSpawnSO>(levelPath);
         
@@ -60,7 +60,7 @@ public class LevelSpawner : MonoBehaviour
 
     void Start()
     {
-        // İlgili yöneticileri SO'dan gelen veriyle başlat.
+        // Ä°lgili yÃ¶neticileri SO'dan gelen veriyle baÅŸlat.
         gridManager.Initialize(levelToSpawn.gridData);
         passengerSpawnManager.Initialize(levelToSpawn.initialPassengerGroups, passengerGroupPrefab, gridManager);
         underpassManager.Initialize(levelToSpawn.underpasses, underpassControllerPrefab, passengerGroupPrefab, gridManager);
@@ -80,6 +80,6 @@ public class LevelSpawner : MonoBehaviour
             }
         }
 
-        Debug.Log($"'{levelToSpawn.name}' için spawn süreci başladı.");
+        Debug.Log($"'{levelToSpawn.name}' iÃ§in spawn sÃ¼reci baÅŸladÄ±.");
     }
 }

@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using GridSystem.Data;
 
 public class GridVisualizer : MonoBehaviour
 {
-    [Header("Görsel Ayarlar")]
+    [Header("GÃ¶rsel Ayarlar")]
     public GameObject cellCubePrefab;
     public bool showGridLines = true;
     public Color gridLineColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);

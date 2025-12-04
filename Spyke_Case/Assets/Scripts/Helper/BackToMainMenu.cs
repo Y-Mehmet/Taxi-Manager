@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
  [RequireComponent(typeof(Button))]
@@ -15,11 +15,11 @@ public class BackToMainMenu : MonoBehaviour
     }
 
     /// <summary>
-    /// Bu butona tıklandığında çağrılır.
+    /// Bu butona tÄ±klandÄ±ÄŸÄ±nda Ã§aÄŸrÄ±lÄ±r.
     /// </summary>
     public void LoadLevel()
     {
-        // Butonun interactable değilse işlem yapma (zaten tıklanamaz ama garanti olsun)
+        // Butonun interactable deÄŸilse iÅŸlem yapma (zaten tÄ±klanamaz ama garanti olsun)
         if (!button.interactable) return;
         ResourceManager.Instance.SaveData(GameDataManager.Instance.GetSaveData());
 
@@ -29,7 +29,7 @@ public class BackToMainMenu : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Bellek sızıntısını önlemek için listener'ı kaldır
+        // Bellek sÄ±zÄ±ntÄ±sÄ±nÄ± Ã¶nlemek iÃ§in listener'Ä± kaldÄ±r
         if (button != null)
         {
             button.onClick.RemoveListener(LoadLevel);

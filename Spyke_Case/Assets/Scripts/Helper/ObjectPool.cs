@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -44,26 +44,26 @@ public class ObjectPool : Singleton<ObjectPool>
 
         if (instance != null)
         {
-            // Bulunan objeyi havuzdan ��kar, aktif et ve d�nd�r
+            // Bulunan objeyi havuzdan ï¿½ï¿½kar, aktif et ve dï¿½ndï¿½r
             _pooledObjects.Remove(instance);
             instance.SetActive(true);
             return instance;
         }
 
-        // Havuzda yoksa, prefab listesinden yeni bir tane olu�turmay� dene
+        // Havuzda yoksa, prefab listesinden yeni bir tane oluï¿½turmayï¿½ dene
         var prefab = PrefabsForPool.FirstOrDefault(o => o.name == objectName);
 
         if (prefab != null)
         {
-            // Yeni bir obje olu�tur ve d�nd�r
+            // Yeni bir obje oluï¿½tur ve dï¿½ndï¿½r
             var newInstace = Instantiate(prefab, Vector3.zero, Quaternion.identity, transform);
             newInstace.transform.localPosition = Vector3.zero;
             newInstace.name = objectName;
             return newInstace;
         }
 
-        // E�le�en bir prefab bulunamazsa uyar� ver
-        Debug.LogWarning($"{objectName} prefab not found in the prefab list.");
+        // Eï¿½leï¿½en bir prefab bulunamazsa uyarï¿½ ver
+//         Debug.LogWarning($"{objectName} prefab not found in the prefab list.");
         return null;
     }
 

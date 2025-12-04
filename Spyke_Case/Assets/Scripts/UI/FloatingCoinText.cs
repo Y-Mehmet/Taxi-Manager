@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using DG.Tweening;
 
 /// <summary>
 /// Ekranda beliren animasyonlu coin text feedback'i.
-/// Hem dünya pozisyonlarını hem UI pozisyonlarını destekler.
+/// Hem dÃ¼nya pozisyonlarÄ±nÄ± hem UI pozisyonlarÄ±nÄ± destekler.
 /// </summary>
 public class FloatingCoinText : MonoBehaviour
 {
@@ -14,11 +14,11 @@ public class FloatingCoinText : MonoBehaviour
 
     [Header("Animation Settings")]
     [SerializeField] private float popDuration = 0.3f;
-    [SerializeField] private float popScale = 2.4f; // 2 kat büyük
-    [SerializeField] private float displayDuration = 1f; // Ekranda durma süresi
-    [SerializeField] private float moveUpDistance = 100f; // Yukarı hareket mesafesi
-    [SerializeField] private float moveUpDuration = 0.8f; // Yukarı hareket süresi
-    [SerializeField] private float fadeDuration = 0.8f; // Fade out süresi
+    [SerializeField] private float popScale = 2.4f; // 2 kat bÃ¼yÃ¼k
+    [SerializeField] private float displayDuration = 1f; // Ekranda durma sÃ¼resi
+    [SerializeField] private float moveUpDistance = 100f; // YukarÄ± hareket mesafesi
+    [SerializeField] private float moveUpDuration = 0.8f; // YukarÄ± hareket sÃ¼resi
+    [SerializeField] private float fadeDuration = 0.8f; // Fade out sÃ¼resi
 
     private RectTransform rectTransform;
     private Sequence animationSequence;
@@ -35,27 +35,27 @@ public class FloatingCoinText : MonoBehaviour
     }
 
     /// <summary>
-    /// Animasyonu başlatır
+    /// Animasyonu baÅŸlatÄ±r
     /// </summary>
-    /// <param name="amount">Coin miktarı</param>
-    /// <param name="startPosition">Başlangıç pozisyonu</param>
+    /// <param name="amount">Coin miktarÄ±</param>
+    /// <param name="startPosition">BaÅŸlangÄ±Ã§ pozisyonu</param>
     /// <param name="targetUIPosition">Hedef UI pozisyonu</param>
-    /// <param name="isWorldPosition">Başlangıç pozisyonu dünya koordinatı mı?</param>
+    /// <param name="isWorldPosition">BaÅŸlangÄ±Ã§ pozisyonu dÃ¼nya koordinatÄ± mÄ±?</param>
     public void Initialize(int amount, Vector3 startPosition, RectTransform targetUIPosition, bool isWorldPosition = true)
     {
         // Text'i ayarla
         if (amount > 0)
         {
             coinText.text = $"+{amount}";
-            coinText.color = new Color(0.2f, 0.8f, 0.2f); // Yeşil
+            coinText.color = new Color(0.2f, 0.8f, 0.2f); // YeÅŸil
         }
         else
         {
             coinText.text = amount.ToString();
-            coinText.color = new Color(0.9f, 0.2f, 0.2f); // Kırmızı
+            coinText.color = new Color(0.9f, 0.2f, 0.2f); // KÄ±rmÄ±zÄ±
         }
 
-        // Canvas'ı al
+        // Canvas'Ä± al
         Canvas canvas = GetComponentInParent<Canvas>();
         if (canvas == null)
         {
@@ -63,10 +63,10 @@ public class FloatingCoinText : MonoBehaviour
             return;
         }
 
-        // Başlangıç pozisyonunu ayarla
+        // BaÅŸlangÄ±Ã§ pozisyonunu ayarla
         if (isWorldPosition)
         {
-            // Dünya pozisyonunu ekran pozisyonuna çevir
+            // DÃ¼nya pozisyonunu ekran pozisyonuna Ã§evir
             SetPositionFromWorld(startPosition, canvas);
         }
         else
@@ -75,25 +75,25 @@ public class FloatingCoinText : MonoBehaviour
             rectTransform.position = startPosition;
         }
 
-        // Başlangıç değerleri
+        // BaÅŸlangÄ±Ã§ deÄŸerleri
         transform.localScale = Vector3.zero;
         canvasGroup.alpha = 1f;
 
-        // Animasyon sekansı oluştur
+        // Animasyon sekansÄ± oluÅŸtur
         animationSequence = DOTween.Sequence();
 
-        // 1. Pop-up animasyonu (küçükten büyüğe)
+        // 1. Pop-up animasyonu (kÃ¼Ã§Ã¼kten bÃ¼yÃ¼ÄŸe)
         animationSequence.Append(transform.DOScale(popScale, popDuration).SetEase(Ease.OutBack));
         
         // 2. Ekranda dur (1 saniye)
         animationSequence.AppendInterval(displayDuration);
 
-        // 3. Yukarı doğru hareket et + Fade out (paralel)
+        // 3. YukarÄ± doÄŸru hareket et + Fade out (paralel)
         Vector3 targetPos = rectTransform.localPosition + new Vector3(0, moveUpDistance, 0);
         animationSequence.Append(rectTransform.DOLocalMove(targetPos, moveUpDuration).SetEase(Ease.OutQuad));
         animationSequence.Join(canvasGroup.DOFade(0f, fadeDuration).SetEase(Ease.InQuad));
 
-        // 4. Animasyon bitince pool'a geri dön
+        // 4. Animasyon bitince pool'a geri dÃ¶n
         animationSequence.OnComplete(() => {
             if (CoinObjectPool.Instance != null)
             {
@@ -107,13 +107,13 @@ public class FloatingCoinText : MonoBehaviour
     }
 
     /// <summary>
-    /// Dünya pozisyonunu UI pozisyonuna çevirir
+    /// DÃ¼nya pozisyonunu UI pozisyonuna Ã§evirir
     /// </summary>
     private void SetPositionFromWorld(Vector3 worldPosition, Canvas canvas)
     {
         if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
         {
-            // Overlay mode: Dünya pozisyonunu ekran pozisyonuna çevir
+            // Overlay mode: DÃ¼nya pozisyonunu ekran pozisyonuna Ã§evir
             Camera mainCamera = Camera.main;
             if (mainCamera != null)
             {
@@ -122,7 +122,7 @@ public class FloatingCoinText : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("[FloatingCoinText] Main camera not found!");
+//                 Debug.LogWarning("[FloatingCoinText] Main camera not found!");
                 rectTransform.position = worldPosition;
             }
         }

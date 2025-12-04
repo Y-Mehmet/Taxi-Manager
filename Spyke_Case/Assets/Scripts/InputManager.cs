@@ -1,6 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
-using UnityEngine.EventSystems; // UI kontrolü için eklendi
+using UnityEngine.EventSystems; // UI kontrolÃ¼ iÃ§in eklendi
 
 public class InputManager : MonoBehaviour
 {
@@ -31,7 +31,7 @@ public class InputManager : MonoBehaviour
 
     private void OnDisable()
     {
-        // Null kontrolü, oyun sonu/kapanışı senaryolarında önemlidir.
+        // Null kontrolÃ¼, oyun sonu/kapanÄ±ÅŸÄ± senaryolarÄ±nda Ã¶nemlidir.
         if (UberManager.Instance != null)
         {
              UberManager.OnGameOver -= DisableInput;
@@ -43,21 +43,21 @@ public class InputManager : MonoBehaviour
     {
         if (isInputDisabled) return;
 
-        // Tıklama/Dokunma tespitini tek bir yerden yapalım.
-        // Hem fare tıklaması hem de mobil dokunma için 'GetInputDown' adında yeni bir metot kullanacağız.
+        // TÄ±klama/Dokunma tespitini tek bir yerden yapalÄ±m.
+        // Hem fare tÄ±klamasÄ± hem de mobil dokunma iÃ§in 'GetInputDown' adÄ±nda yeni bir metot kullanacaÄŸÄ±z.
 
         if (GetInputDown(out Vector3 screenPosition))
         {
-            // --- Tıklama Efekti ---
-            // Her tıklamada/dokunmada ClickEffectManager'a ekran pozisyonunu göndererek efekti oynat.
-            // Bu efektin UI katmanında çalışması ClickEffectManager'ın iç implementasyonuna bağlıdır.
+            // --- TÄ±klama Efekti ---
+            // Her tÄ±klamada/dokunmada ClickEffectManager'a ekran pozisyonunu gÃ¶ndererek efekti oynat.
+            // Bu efektin UI katmanÄ±nda Ã§alÄ±ÅŸmasÄ± ClickEffectManager'Ä±n iÃ§ implementasyonuna baÄŸlÄ±dÄ±r.
             if (ClickEffectManager.Instance != null)
             {
-                // Ekran koordinatlarını (pixel) gönderiyoruz.
+                // Ekran koordinatlarÄ±nÄ± (pixel) gÃ¶nderiyoruz.
                 ClickEffectManager.Instance.PlayEffect(screenPosition);
                 SoundManager.instance.PlaySfx(SoundType.btnClick);
             }
-            // --- Tıklama Efekti Bitti ---
+            // --- TÄ±klama Efekti Bitti ---
 
 
             // --- One-time tap to start mechanic ---
@@ -78,23 +78,23 @@ public class InputManager : MonoBehaviour
 
             // Regular input processing starts after the first tap.
             
-            // UI element'lara dokunulup dokunulmadığını kontrol et. 
-            // UI'ya dokunulduysa oyun dünyasındaki objelere tıklamayı engelle (istenirse).
+            // UI element'lara dokunulup dokunulmadÄ±ÄŸÄ±nÄ± kontrol et. 
+            // UI'ya dokunulduysa oyun dÃ¼nyasÄ±ndaki objelere tÄ±klamayÄ± engelle (istenirse).
             if (EventSystem.current.IsPointerOverGameObject())
             {
-                // UI objesi üzerine tıklandı/dokunuldu. Raycast işlemini atla.
+                // UI objesi Ã¼zerine tÄ±klandÄ±/dokunuldu. Raycast iÅŸlemini atla.
                 return;
             }
 
-            // Tutorial aktifse ve input bloklanmışsa, normal input işlemlerini engelle
+            // Tutorial aktifse ve input bloklanmÄ±ÅŸsa, normal input iÅŸlemlerini engelle
             if (TutorialManager.Instance != null && TutorialManager.Instance.IsInputBlocked())
             {
-                // Tutorial kendi event'lerini yönetecek, burada normal input'u engelle
+                // Tutorial kendi event'lerini yÃ¶netecek, burada normal input'u engelle
                 Debug.Log("[InputManager] Input blocked by tutorial.");
                 // Ancak raycast'i yine de yap ki tutorial event'i tetiklenebilsin
             }
 
-            // Yolcu Grubu Tespiti için Raycast
+            // Yolcu Grubu Tespiti iÃ§in Raycast
             Ray ray = Camera.main.ScreenPointToRay(screenPosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
@@ -111,15 +111,15 @@ public class InputManager : MonoBehaviour
 
 
     /// <summary>
-    /// Hem mobil dokunmayı hem de fare tıklamasını tek bir metodla kontrol eder.
+    /// Hem mobil dokunmayÄ± hem de fare tÄ±klamasÄ±nÄ± tek bir metodla kontrol eder.
     /// </summary>
-    /// <param name="screenPosition">Dokunma/Tıklama'nın ekran pozisyonu (pixel).</param>
-    /// <returns>Tıklama/Dokunma olayı gerçekleştiyse true döner.</returns>
+    /// <param name="screenPosition">Dokunma/TÄ±klama'nÄ±n ekran pozisyonu (pixel).</param>
+    /// <returns>TÄ±klama/Dokunma olayÄ± gerÃ§ekleÅŸtiyse true dÃ¶ner.</returns>
     private bool GetInputDown(out Vector3 screenPosition)
     {
         screenPosition = Vector3.zero;
 
-        // Mobil Dokunma Kontrolü
+        // Mobil Dokunma KontrolÃ¼
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -130,7 +130,7 @@ public class InputManager : MonoBehaviour
             }
         }
 
-        // Editor/Fare Tıklaması Kontrolü (Mobil cihazlarda çalışmaz)
+        // Editor/Fare TÄ±klamasÄ± KontrolÃ¼ (Mobil cihazlarda Ã§alÄ±ÅŸmaz)
         #if UNITY_EDITOR || UNITY_STANDALONE
         if (Input.GetMouseButtonDown(0))
         {
@@ -143,7 +143,7 @@ public class InputManager : MonoBehaviour
     }
 
 
-    // Bu metot artık kullanılmıyor, GetInputDown ile birleştirildi.
+    // Bu metot artÄ±k kullanÄ±lmÄ±yor, GetInputDown ile birleÅŸtirildi.
     // private bool TryGetTouchPosition(out Vector3 position) {...}
 
 

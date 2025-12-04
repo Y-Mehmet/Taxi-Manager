@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 /// <summary>
 /// TextMeshPro component'ine eklenir.
-/// totalStarsEarned değerini otomatik olarak gösterir ve günceller.
+/// totalStarsEarned deÄŸerini otomatik olarak gÃ¶sterir ve gÃ¼nceller.
 /// </summary>
 [RequireComponent(typeof(TextMeshProUGUI))]
 public class StarCountText : MonoBehaviour

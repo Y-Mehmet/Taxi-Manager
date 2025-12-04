@@ -1,11 +1,11 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
-/// Sahnedeki bir durağı temsil eden component. 
-/// Durakla ilgili durumlar (dolu/boş/rezerve) artık StopManager'da yönetilmektedir.
+/// Sahnedeki bir duraÄŸÄ± temsil eden component. 
+/// Durakla ilgili durumlar (dolu/boÅŸ/rezerve) artÄ±k StopManager'da yÃ¶netilmektedir.
 /// </summary>
 public class Stop : MonoBehaviour
 {
-    // Bu script artık sadece bir "işaretleyici" component olarak görev yapar.
-    // Gelecekte durağa özel veriler (görsel efektler, renkler vb.) buraya eklenebilir.
+    // Bu script artÄ±k sadece bir "iÅŸaretleyici" component olarak gÃ¶rev yapar.
+    // Gelecekte duraÄŸa Ã¶zel veriler (gÃ¶rsel efektler, renkler vb.) buraya eklenebilir.
 }

@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// Oyuncunun kaynaklarını ve temel ilerlemesini yöneten merkezi sistem.
+/// Oyuncunun kaynaklarÄ±nÄ± ve temel ilerlemesini yÃ¶neten merkezi sistem.
 /// </summary>
 public class ResourceManager : MonoBehaviour
 {
@@ -12,7 +12,7 @@ public class ResourceManager : MonoBehaviour
     // Olaylar
     public static event Action<int> OnCoinsChanged;
 
-    // Genel Özellikler
+    // Genel Ã–zellikler
     public int CurrentCoins { get; private set; }
     [SerializeField]
     public int CurrentLevel;
@@ -39,18 +39,18 @@ public class ResourceManager : MonoBehaviour
 
     void Start()
     {
-        // Veri yöneticisine bağlan
+        // Veri yÃ¶neticisine baÄŸlan
         if (GameDataManager.Instance != null)
         {
             GameDataManager.Instance.OnDataLoaded += LoadData;
-            // Başlangıçta mevcut veriyi de yükle
+            // BaÅŸlangÄ±Ã§ta mevcut veriyi de yÃ¼kle
             LoadData(GameDataManager.Instance.GetSaveData());
         }
     }
 
     private void OnDestroy()
     {
-        // Olay aboneliğini kaldır
+        // Olay aboneliÄŸini kaldÄ±r
         if (GameDataManager.Instance != null)
         {
             GameDataManager.Instance.OnDataLoaded -= LoadData;
@@ -58,7 +58,7 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Kayıtlı veriden kaynakları ve ilerlemeyi yükler.
+    /// KayÄ±tlÄ± veriden kaynaklarÄ± ve ilerlemeyi yÃ¼kler.
     /// </summary>
     private void LoadData(SaveGameData data)
     {
@@ -77,7 +77,7 @@ public class ResourceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Mevcut durumu kaydetmek için veri nesnesini günceller.
+    /// Mevcut durumu kaydetmek iÃ§in veri nesnesini gÃ¼nceller.
     /// </summary>
     public void SaveData(SaveGameData data)
     {
@@ -91,7 +91,7 @@ public class ResourceManager : MonoBehaviour
         data.musicVolume=musicVolume;
     }
 
-    // --- Coin Metodları --- //
+    // --- Coin MetodlarÄ± --- //
 
     public void AddCoins(int amount)
     {
@@ -110,12 +110,12 @@ public class ResourceManager : MonoBehaviour
         {
             CurrentCoins -= amount;
             OnCoinsChanged?.Invoke(CurrentCoins);
-            Debug.LogWarning($"<color=red>{amount} coins spent.</color> Remaining coins: {CurrentCoins}");
+//             Debug.LogWarning($"<color=red>{amount} coins spent.</color> Remaining coins: {CurrentCoins}");
             return true;
         }
         else
         {
-            Debug.LogWarning($"<color=red>Not enough coins to spend {amount}.</color> Current coins: {CurrentCoins}");
+//             Debug.LogWarning($"<color=red>Not enough coins to spend {amount}.</color> Current coins: {CurrentCoins}");
             return false;
         }
     }
@@ -149,13 +149,13 @@ public class ResourceManager : MonoBehaviour
             LevelStars = new List<int>();
         }
 
-        // Listeyi genişlet
+        // Listeyi geniÅŸlet
         while (LevelStars.Count <= levelIndex)
         {
             LevelStars.Add(0);
         }
 
-        // Sadece daha yüksek yıldız sayısı kaydedilir (asla azalmaz)
+        // Sadece daha yÃ¼ksek yÄ±ldÄ±z sayÄ±sÄ± kaydedilir (asla azalmaz)
         int previousStars = LevelStars[levelIndex];
         
         if (stars > previousStars)
@@ -164,7 +164,7 @@ public class ResourceManager : MonoBehaviour
             LevelStars[levelIndex] = stars;
             Debug.Log($"[ResourceManager] Level {levelIndex} stars improved: {previousStars} -> {stars} (+{starDifference})");
             
-            // totalStarsEarned'e sadece FARKI ekle (tüm toplamı yeniden hesaplama!)
+            // totalStarsEarned'e sadece FARKI ekle (tÃ¼m toplamÄ± yeniden hesaplama!)
             if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
             {
                 var data = GameDataManager.Instance.GetSaveData();

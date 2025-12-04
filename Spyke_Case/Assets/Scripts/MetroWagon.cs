@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MetroWagon : MonoBehaviour
 {
     public float speed = 5f;
-    public float rotationSpeed = 2.0f; // Dönüş yumuşaklığı için hız
-    public bool isHead = false; // Bu vagonun lider olup olmadığını belirtir
+    public float rotationSpeed = 2.0f; // DÃ¶nÃ¼ÅŸ yumuÅŸaklÄ±ÄŸÄ± iÃ§in hÄ±z
+    public bool isHead = false; // Bu vagonun lider olup olmadÄ±ÄŸÄ±nÄ± belirtir
     public HyperCasualColor wagonColor { get; private set; }
     public int passengerCount { get; private set; } = 0;
     public int maxPassengerCount = 4; // Maksimum yolcu kapasitesi
@@ -26,50 +26,50 @@ public class MetroWagon : MonoBehaviour
     {
         if (!isInitialized) return;
 
-        // Eğer genel hareket durdurulduysa, hiçbir şey yapma.
+        // EÄŸer genel hareket durdurulduysa, hiÃ§bir ÅŸey yapma.
         if (MetroManager.IsMovementStopped || MetroManager.Instance.IsAdjusting())
         {
             return;
         }
 
-        // Her vagon doğrudan checkpoint'ler boyunca ilerler
+        // Her vagon doÄŸrudan checkpoint'ler boyunca ilerler
         if (path != null && path.checkpoints.Count > 0 && currentCheckpointIndex < path.checkpoints.Count)
         {
             var checkpoint = path.checkpoints[currentCheckpointIndex];
             if (!checkpoint)
             {
-                Debug.LogError($"HATA: '{path.name}' adlı yoldaki {currentCheckpointIndex}. checkpoint objesi null veya yok edilmiş. Lütfen MetroCheckpointPath objesini kontrol et.", this.gameObject);
-                MetroManager.StopMovement(); // Hatalı yolda hareketi durdur.
-                this.enabled = false; // Bu vagonun Update döngüsünü kapat.
+                Debug.LogError($"HATA: '{path.name}' adlÄ± yoldaki {currentCheckpointIndex}. checkpoint objesi null veya yok edilmiÅŸ. LÃ¼tfen MetroCheckpointPath objesini kontrol et.", this.gameObject);
+                MetroManager.StopMovement(); // HatalÄ± yolda hareketi durdur.
+                this.enabled = false; // Bu vagonun Update dÃ¶ngÃ¼sÃ¼nÃ¼ kapat.
                 return;
             }
 
             Vector3 target = checkpoint.position;
             MoveTowards(target);
 
-            // Hedefe yeterince yaklaştıysak bir sonraki checkpoint'e geç
+            // Hedefe yeterince yaklaÅŸtÄ±ysak bir sonraki checkpoint'e geÃ§
             if (Vector3.Distance(transform.position, target) < 0.1f)
             {
                 currentCheckpointIndex++;
             }
         }
         
-        // Yolu tamamlayan vagonları işle.
+        // Yolu tamamlayan vagonlarÄ± iÅŸle.
         if (currentCheckpointIndex >= path.checkpoints.Count)
         {
-            // Eğer bu vagon Head ise, tüm trenin hareketini durdur.
+            // EÄŸer bu vagon Head ise, tÃ¼m trenin hareketini durdur.
             if (isHead)
             {
                 MetroManager.StopMovement();
             }
 
-            // İster Head olsun ister olmasın, yolu bitiren her vagon Uber'e bildirilir.
+            // Ä°ster Head olsun ister olmasÄ±n, yolu bitiren her vagon Uber'e bildirilir.
             if (UberManager.Instance != null)
             {
                 UberManager.Instance.ProcessFinishedWagon(this);
             }
             
-            // Bu script'i devre dışı bırak ki tekrar tekrar çağrılmasın.
+            // Bu script'i devre dÄ±ÅŸÄ± bÄ±rak ki tekrar tekrar Ã§aÄŸrÄ±lmasÄ±n.
             this.enabled = false;
         }
     }
@@ -84,12 +84,12 @@ public class MetroWagon : MonoBehaviour
         passengerCount += count;
         Debug.Log($"<color={wagonColor.ToString().ToLower()}>{wagonColor} vagonuna</color> {count} yolcu bindi. Toplam: {passengerCount}", this.gameObject);
 
-        // Eğer vagon dolduysa, durumu WagonManager'a bildir.
+        // EÄŸer vagon dolduysa, durumu WagonManager'a bildir.
         if (IsFull)
         {
             WagonManager.Instance?.ReportWagonFilled(this);
         }
-        // Burada yolcuların vagonda görünmesi için görsel bir efekt veya animasyon tetiklenebilir.
+        // Burada yolcularÄ±n vagonda gÃ¶rÃ¼nmesi iÃ§in gÃ¶rsel bir efekt veya animasyon tetiklenebilir.
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class MetroWagon : MonoBehaviour
     }
 
     /// <summary>
-    /// Vagonun mevcut checkpoint hedefini günceller.
+    /// Vagonun mevcut checkpoint hedefini gÃ¼nceller.
     /// </summary>
     /// <param name="newIndex">Yeni checkpoint indeksi.</param>
     public void SetTargetCheckpoint(int newIndex)
@@ -135,10 +135,10 @@ public class MetroWagon : MonoBehaviour
 
     void MoveTowards(Vector3 target)
     {
-        // Pozisyonu hedefe doğru sabit hızla ilerlet
+        // Pozisyonu hedefe doÄŸru sabit hÄ±zla ilerlet
         transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
 
-        // Rotasyonu hedefe doğru yumuşak bir şekilde döndür
+        // Rotasyonu hedefe doÄŸru yumuÅŸak bir ÅŸekilde dÃ¶ndÃ¼r
         Vector3 direction = (target - transform.position).normalized;
         if (direction != Vector3.zero)
         {

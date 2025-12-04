@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
@@ -74,11 +74,11 @@ public class AbilityManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Ability satın alır ve hemen kullanır, coin animasyonu gösterir.
+    /// Ability satÄ±n alÄ±r ve hemen kullanÄ±r, coin animasyonu gÃ¶sterir.
     /// </summary>
     /// <param name="type">Ability tipi</param>
     /// <param name="cost">Maliyet</param>
-    /// <param name="worldPosition">Animasyonun başlayacağı pozisyon (opsiyonel)</param>
+    /// <param name="worldPosition">Animasyonun baÅŸlayacaÄŸÄ± pozisyon (opsiyonel)</param>
     public bool BuyAndUseAbility(AbilityType type, int cost, Vector3? worldPosition = null)
     {
         // Show animation if position is provided
@@ -96,7 +96,7 @@ public class AbilityManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Not enough coins to buy and use {type}.");
+//                 Debug.LogWarning($"Not enough coins to buy and use {type}.");
                 return false;
             }
         }
@@ -111,7 +111,7 @@ public class AbilityManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"Not enough coins to buy and use {type}.");
+//                 Debug.LogWarning($"Not enough coins to buy and use {type}.");
                 return false;
             }
         }
@@ -126,7 +126,7 @@ public class AbilityManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"Not enough coins to buy {type}.");
+//             Debug.LogWarning($"Not enough coins to buy {type}.");
             return false;
         }
     }
@@ -147,11 +147,11 @@ public class AbilityManager : MonoBehaviour
 
     public void UseAbility(AbilityType type)
     {
-        Debug.LogWarning($"<color=magenta>ability is active:</color>  [AbilityManager] UI button clicked for ability: {type}");
+//         Debug.LogWarning($"<color=magenta>ability is active:</color>  [AbilityManager] UI button clicked for ability: {type}");
 
         if (!abilityInventory.ContainsKey(type) || abilityInventory[type] <= 0)
         {
-            Debug.LogWarning($"You don't have the {type} ability.");
+//             Debug.LogWarning($"You don't have the {type} ability.");
             return;
         }
 
@@ -205,7 +205,7 @@ public class AbilityManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[AbilityManager] Tried to consume {type}, but none are in inventory.");
+//             Debug.LogWarning($"[AbilityManager] Tried to consume {type}, but none are in inventory.");
         }
     }
 
@@ -213,7 +213,7 @@ public class AbilityManager : MonoBehaviour
     {
         if (StopManager.Instance == null || !StopManager.Instance.HasAvailableStops())
         {
-            Debug.LogWarning("[AbilityManager] Cannot activate Universal Pathfinding: No available stops.");
+//             Debug.LogWarning("[AbilityManager] Cannot activate Universal Pathfinding: No available stops.");
             return;
         }
 
@@ -285,7 +285,7 @@ public class AbilityManager : MonoBehaviour
             // Fallback for any other passenger type
             if (!handled)
             {
-                Debug.LogWarning($"[AbilityManager] Passenger '{selectedPassenger.name}' has an unknown origin. Using generic ReturnToOrigin().");
+//                 Debug.LogWarning($"[AbilityManager] Passenger '{selectedPassenger.name}' has an unknown origin. Using generic ReturnToOrigin().");
                 selectedPassenger.ReturnToOrigin();
             }
 
@@ -295,7 +295,7 @@ public class AbilityManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[AbilityManager] Invalid target for Crane. '{selectedPassenger.name}' is not at a stop. Please select another.");
+//             Debug.LogWarning($"[AbilityManager] Invalid target for Crane. '{selectedPassenger.name}' is not at a stop. Please select another.");
             // Do not cancel mode, allow user to select another passenger.
         }
     }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Sahnedeki bir yolcuyu temsil eden component.
@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class Passenger : MonoBehaviour
 {
-    // Örneğin:
+    // Ã–rneÄŸin:
     // public Color passengerColor;
     // public Stop targetStop;
 }

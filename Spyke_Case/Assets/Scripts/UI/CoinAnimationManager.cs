@@ -1,30 +1,30 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using System.Collections;
 
 /// <summary>
-/// Royal Match tarzı coin animasyonlarını yöneten manager.
-/// Coin sprite'ları ve text feedback'i birlikte yönetir.
+/// Royal Match tarzÄ± coin animasyonlarÄ±nÄ± yÃ¶neten manager.
+/// Coin sprite'larÄ± ve text feedback'i birlikte yÃ¶netir.
 /// </summary>
 public class CoinAnimationManager : MonoBehaviour
 {
     public static CoinAnimationManager Instance { get; private set; }
 
     [Header("Prefabs")]
-    [SerializeField] private GameObject coinSpritePrefab; // Coin sprite prefab'ı
-    [SerializeField] private GameObject floatingTextPrefab; // Text prefab'ı
+    [SerializeField] private GameObject coinSpritePrefab; // Coin sprite prefab'Ä±
+    [SerializeField] private GameObject floatingTextPrefab; // Text prefab'Ä±
 
     [Header("Target UI")]
-    [SerializeField] private RectTransform coinUITarget; // Coin text'in bulunduğu UI elementi
+    [SerializeField] private RectTransform coinUITarget; // Coin text'in bulunduÄŸu UI elementi
     [SerializeField] private CoinUIShakeEffect coinUIShakeEffect; // Coin UI shake efekti
 
     [Header("Canvas")]
     [SerializeField] private Canvas canvas;
 
     [Header("Coin Animation Settings")]
-    [SerializeField] private int coinsPerUnit = 5; // Her 20 coin için kaç sprite (örn: 20 coin = 5 sprite)
-    [SerializeField] private int maxCoins = 10; // Maksimum coin sprite sayısı
-    [SerializeField] private float spreadRadius = 50f; // Coin'lerin yayılma yarıçapı
+    [SerializeField] private int coinsPerUnit = 5; // Her 20 coin iÃ§in kaÃ§ sprite (Ã¶rn: 20 coin = 5 sprite)
+    [SerializeField] private int maxCoins = 10; // Maksimum coin sprite sayÄ±sÄ±
+    [SerializeField] private float spreadRadius = 50f; // Coin'lerin yayÄ±lma yarÄ±Ã§apÄ±
 
     private void Awake()
     {
@@ -37,7 +37,7 @@ public class CoinAnimationManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        // Canvas'ı otomatik bul
+        // Canvas'Ä± otomatik bul
         if (canvas == null)
         {
             canvas = GetComponentInParent<Canvas>();
@@ -45,31 +45,31 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Coin kazanma animasyonu gösterir (dünya pozisyonundan)
+    /// Coin kazanma animasyonu gÃ¶sterir (dÃ¼nya pozisyonundan)
     /// </summary>
     public void ShowCoinGain(int amount, Vector3 worldPosition)
     {
         if (amount <= 0) return;
 
-        // Text feedback göster
+        // Text feedback gÃ¶ster
         ShowFloatingText(amount, worldPosition, true);
 
-        // Coin sprite'ları göster
+        // Coin sprite'larÄ± gÃ¶ster
         StartCoroutine(SpawnCoinSprites(amount, worldPosition, true));
     }
 
     /// <summary>
-    /// Coin harcama animasyonu gösterir (UI pozisyonundan)
-    /// Sadece text feedback gösterir, coin sprite animasyonu yok
+    /// Coin harcama animasyonu gÃ¶sterir (UI pozisyonundan)
+    /// Sadece text feedback gÃ¶sterir, coin sprite animasyonu yok
     /// </summary>
     public void ShowCoinSpend(int amount, Vector3 uiPosition)
     {
         if (amount <= 0) return;
 
-        // UI pozisyonunu dünya pozisyonuna çevir
+        // UI pozisyonunu dÃ¼nya pozisyonuna Ã§evir
         Vector3 worldPosition = ConvertUIToWorldPosition(uiPosition);
 
-        // Sadece text feedback göster (coin sprite yok)
+        // Sadece text feedback gÃ¶ster (coin sprite yok)
         ShowFloatingText(-amount, worldPosition, true);
         
         // Coin UI'da shake animasyonu oynat
@@ -80,7 +80,7 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Harcama feedback'i gösterir (yeni ekonomi sistemi için alias)
+    /// Harcama feedback'i gÃ¶sterir (yeni ekonomi sistemi iÃ§in alias)
     /// </summary>
     public void ShowSpendingFeedback(int amount, Vector3 position)
     {
@@ -88,7 +88,7 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Genel feedback metodu (eski sistem ile uyumluluk için)
+    /// Genel feedback metodu (eski sistem ile uyumluluk iÃ§in)
     /// </summary>
     public void ShowCoinFeedback(int amount, Vector3 position)
     {
@@ -103,13 +103,13 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Floating text oluşturur
+    /// Floating text oluÅŸturur
     /// </summary>
     private void ShowFloatingText(int amount, Vector3 position, bool isWorldPosition)
     {
         if (floatingTextPrefab == null) return;
 
-        // Pool'dan al veya yeni oluştur
+        // Pool'dan al veya yeni oluÅŸtur
         GameObject textObj;
         if (CoinObjectPool.Instance != null)
         {
@@ -129,25 +129,25 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Coin sprite'larını spawn eder
+    /// Coin sprite'larÄ±nÄ± spawn eder
     /// </summary>
     private IEnumerator SpawnCoinSprites(int amount, Vector3 position, bool isGain)
     {
         if (coinSpritePrefab == null || coinUITarget == null)
         {
-            Debug.LogWarning("[CoinAnimationManager] Coin sprite prefab or target not assigned!");
+//             Debug.LogWarning("[CoinAnimationManager] Coin sprite prefab or target not assigned!");
             yield break;
         }
 
-        // Kaç coin sprite oluşturulacak hesapla
+        // KaÃ§ coin sprite oluÅŸturulacak hesapla
         int coinCount = Mathf.Min(Mathf.CeilToInt(amount / (float)coinsPerUnit), maxCoins);
         
-        // Pozisyonu ekran koordinatına çevir
+        // Pozisyonu ekran koordinatÄ±na Ã§evir
         Vector3 screenPosition = GetScreenPosition(position, isGain);
 
         for (int i = 0; i < coinCount; i++)
         {
-            // Coin sprite'ı pool'dan al veya yeni oluştur
+            // Coin sprite'Ä± pool'dan al veya yeni oluÅŸtur
             GameObject coinObj;
             if (CoinObjectPool.Instance != null)
             {
@@ -162,11 +162,11 @@ public class CoinAnimationManager : MonoBehaviour
 
             if (coinAnim != null)
             {
-                // Random offset ekle (dağınık görünüm için)
+                // Random offset ekle (daÄŸÄ±nÄ±k gÃ¶rÃ¼nÃ¼m iÃ§in)
                 Vector3 randomOffset = Random.insideUnitCircle * spreadRadius;
                 Vector3 startPos = screenPosition + randomOffset;
 
-                // Animasyonu başlat
+                // Animasyonu baÅŸlat
                 Vector3 targetPos = isGain ? coinUITarget.position : screenPosition;
                 Vector3 sourcePos = isGain ? startPos : coinUITarget.position;
                 
@@ -178,7 +178,7 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Pozisyonu ekran koordinatına çevirir
+    /// Pozisyonu ekran koordinatÄ±na Ã§evirir
     /// </summary>
     private Vector3 GetScreenPosition(Vector3 position, bool isWorldPosition)
     {
@@ -188,15 +188,15 @@ public class CoinAnimationManager : MonoBehaviour
             return position;
         }
 
-        // Dünya pozisyonunu ekran pozisyonuna çevir
+        // DÃ¼nya pozisyonunu ekran pozisyonuna Ã§evir
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogWarning("[CoinAnimationManager] Main camera not found!");
+//             Debug.LogWarning("[CoinAnimationManager] Main camera not found!");
             return position;
         }
 
-        // Canvas render mode'a göre dönüşüm yap
+        // Canvas render mode'a gÃ¶re dÃ¶nÃ¼ÅŸÃ¼m yap
         if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
         {
             // Overlay mode: WorldToScreenPoint kullan
@@ -215,19 +215,19 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// UI pozisyonunu dünya pozisyonuna çevirir
+    /// UI pozisyonunu dÃ¼nya pozisyonuna Ã§evirir
     /// </summary>
     private Vector3 ConvertUIToWorldPosition(Vector3 uiPosition)
     {
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogWarning("[CoinAnimationManager] Main camera not found for UI to World conversion!");
+//             Debug.LogWarning("[CoinAnimationManager] Main camera not found for UI to World conversion!");
             return uiPosition;
         }
 
-        // UI pozisyonunu (ekran koordinatı) dünya pozisyonuna çevir
-        // Ekran derinliğini belirle (kameranın önünde bir mesafe)
+        // UI pozisyonunu (ekran koordinatÄ±) dÃ¼nya pozisyonuna Ã§evir
+        // Ekran derinliÄŸini belirle (kameranÄ±n Ã¶nÃ¼nde bir mesafe)
         float distanceFromCamera = 10f;
         
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(uiPosition.x, uiPosition.y, distanceFromCamera));
@@ -235,7 +235,7 @@ public class CoinAnimationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Coin UI target'ı runtime'da ayarlamak için
+    /// Coin UI target'Ä± runtime'da ayarlamak iÃ§in
     /// </summary>
     public void SetCoinUITarget(RectTransform target)
     {

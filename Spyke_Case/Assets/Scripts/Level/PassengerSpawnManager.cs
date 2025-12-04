@@ -1,7 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
-// LevelSpawnSO'daki basit yolcu gruplarını spawn eder.
+// LevelSpawnSO'daki basit yolcu gruplarÄ±nÄ± spawn eder.
 public class PassengerSpawnManager : MonoBehaviour
 {
     public void Initialize(List<PassengerSpawnData> spawnData, PassengerGroup prefab, GridManager gridManager)
@@ -22,7 +22,7 @@ public class PassengerSpawnManager : MonoBehaviour
 
         if (spawnData == null || spawnData.Count == 0)
         {
-            Debug.LogWarning("[PassengerSpawnManager] No passenger spawn data provided for this level.");
+//             Debug.LogWarning("[PassengerSpawnManager] No passenger spawn data provided for this level.");
             return;
         }
 
@@ -33,11 +33,11 @@ public class PassengerSpawnManager : MonoBehaviour
             Vector3 spawnPos = gridManager.GetWorldPosition(data.position);
             PassengerGroup newGroup = Instantiate(prefab, spawnPos, Quaternion.identity, transform);
             
-            // PassengerGroup scriptindeki değişkenlere göre ayarla
+            // PassengerGroup scriptindeki deÄŸiÅŸkenlere gÃ¶re ayarla
             newGroup.gridPos = data.position;
             newGroup.moveDirection = data.direction;
-            newGroup.groupColor = data.color; // Renk ataması
-            newGroup.useGridPosition = true; // Grid pozisyonunu kullanmasını sağla
+            newGroup.groupColor = data.color; // Renk atamasÄ±
+            newGroup.useGridPosition = true; // Grid pozisyonunu kullanmasÄ±nÄ± saÄŸla
 
             newGroup.name = $"PassengerGroup_{data.position.x}_{data.position.y}";
             Debug.Log($"[PassengerSpawnManager] Spawned passenger group at {data.position}");

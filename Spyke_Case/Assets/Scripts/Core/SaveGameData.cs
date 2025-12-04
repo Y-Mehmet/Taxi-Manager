@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 
 /// <summary>
-/// Oyundaki tüm kaydedilebilir verileri içeren ana veri yapısı.
+/// Oyundaki tÃ¼m kaydedilebilir verileri iÃ§eren ana veri yapÄ±sÄ±.
 /// </summary>
 [System.Serializable]
 public class SaveGameData
@@ -24,7 +24,7 @@ public class SaveGameData
     public int totalStarsEarned; // Total stars earned (sum of levelStarsCount, decreases when spent on jokers)
 
 
-    // Diğer potansiyel veriler
+    // DiÄŸer potansiyel veriler
     public int unlockedWagonCount;
     public int activeStopCount;
     public int passengerCapacityLevel;
@@ -43,12 +43,12 @@ public class SaveGameData
 
     
     /// <summary>
-    /// Yeni bir oyun başladığında veya hiç kayıt dosyası bulunmadığında
-    /// kullanılacak başlangıç verilerini oluşturur.
+    /// Yeni bir oyun baÅŸladÄ±ÄŸÄ±nda veya hiÃ§ kayÄ±t dosyasÄ± bulunmadÄ±ÄŸÄ±nda
+    /// kullanÄ±lacak baÅŸlangÄ±Ã§ verilerini oluÅŸturur.
     /// </summary>
     public SaveGameData()
     {
-        // Başlangıç değerleri
+        // BaÅŸlangÄ±Ã§ deÄŸerleri
         coinCount = 500;
         levelIndex = 0;
         maxOpenedLevel = 0; // Start with only level 0 unlocked

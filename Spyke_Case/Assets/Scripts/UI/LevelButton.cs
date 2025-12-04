@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Seviye seçim ekranındaki her bir butona eklenmek üzere tasarlanmış script.
-/// Butonun hiyerarşideki sırasını (sibling index) alarak ilgili seviyeyi yükler.
+/// Seviye seÃ§im ekranÄ±ndaki her bir butona eklenmek Ã¼zere tasarlanmÄ±ÅŸ script.
+/// Butonun hiyerarÅŸideki sÄ±rasÄ±nÄ± (sibling index) alarak ilgili seviyeyi yÃ¼kler.
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class LevelButton : MonoBehaviour
@@ -67,21 +67,21 @@ public class LevelButton : MonoBehaviour
     }
 
     /// <summary>
-    /// Bu butona tıklandığında çağrılır.
-    /// Artık level'i yükleme, sadece SEÇ.
-    /// PlayButton seçili level'i yükleyecek.
+    /// Bu butona tÄ±klandÄ±ÄŸÄ±nda Ã§aÄŸrÄ±lÄ±r.
+    /// ArtÄ±k level'i yÃ¼kleme, sadece SEÃ‡.
+    /// PlayButton seÃ§ili level'i yÃ¼kleyecek.
     /// </summary>
     public void LoadLevel()
     {
-        // Butonun interactable değilse işlem yapma (zaten tıklanamaz ama garanti olsun)
+        // Butonun interactable deÄŸilse iÅŸlem yapma (zaten tÄ±klanamaz ama garanti olsun)
         if (!button.interactable) return;
 
-        // Hiyerarşideki sırayı al (bu bizim level index'imiz olacak)
+        // HiyerarÅŸideki sÄ±rayÄ± al (bu bizim level index'imiz olacak)
         int levelIndex = transform.GetSiblingIndex();
 
         Debug.Log($"[LevelButton] Level {levelIndex} selected (not loaded yet)");
 
-        // LevelSelectionManager'a seçili level'i bildir
+        // LevelSelectionManager'a seÃ§ili level'i bildir
         if (LevelSelectionManager.Instance != null)
         {
             LevelSelectionManager.Instance.SelectLevel(levelIndex);
@@ -94,7 +94,7 @@ public class LevelButton : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Bellek sızıntısını önlemek için listener'ı kaldır
+        // Bellek sÄ±zÄ±ntÄ±sÄ±nÄ± Ã¶nlemek iÃ§in listener'Ä± kaldÄ±r
         if (button != null)
         {
             button.onClick.RemoveListener(LoadLevel);

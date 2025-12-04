@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System;
@@ -7,7 +7,7 @@ public class StopManager : MonoBehaviour
 {
     public static StopManager Instance { get; private set; }
 
-    [Tooltip("Sahnedeki tüm durak objelerini (aktif veya değil) buraya sürükleyin. İsimlerine göre sıralanacaklardır.")]
+    [Tooltip("Sahnedeki tÃ¼m durak objelerini (aktif veya deÄŸil) buraya sÃ¼rÃ¼kleyin. Ä°simlerine gÃ¶re sÄ±ralanacaklardÄ±r.")]
     public List<Stop> AllPossibleStops = new List<Stop>();
 
     public static event Action<PassengerGroup, int> OnPassengerArrivedAtStop;
@@ -98,7 +98,7 @@ public class StopManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[StopManager] Tried to activate next stop, but no more inactive stops are available.");
+//             Debug.LogWarning("[StopManager] Tried to activate next stop, but no more inactive stops are available.");
         }
     }
 
@@ -164,8 +164,8 @@ public class StopManager : MonoBehaviour
         int availableCount = AllStops.Count - (occupiedStops.Count + reservedStops.Count);
         if (availableCount <= 0)
         {
-            Debug.LogWarning($"[StopManager] HasAvailableStops check: All stops are full or reserved. " +
-                             $"Total: {AllStops.Count}, Occupied: {occupiedStops.Count}, Reserved: {reservedStops.Count}");
+//             Debug.LogWarning($"[StopManager] HasAvailableStops check: All stops are full or reserved. " +
+                          //   $"Total: {AllStops.Count}, Occupied: {occupiedStops.Count}, Reserved: {reservedStops.Count}");
         }
         return availableCount > 0;
     }
@@ -196,8 +196,8 @@ public class StopManager : MonoBehaviour
             }
         }
 
-        Debug.LogWarning($"[StopManager] {passengerGroup.name} tried to reserve a stop, but none are available. " +
-                         $"Final check - Occupied: {occupiedStops.Count}, Reserved: {reservedStops.Count}");
+//         Debug.LogWarning($"[StopManager] {passengerGroup.name} tried to reserve a stop, but none are available. " +
+                        // $"Final check - Occupied: {occupiedStops.Count}, Reserved: {reservedStops.Count}");
         return null;
     }
 
@@ -241,7 +241,7 @@ public class StopManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning($"[StopManager] Stop {stopIndex} has no StopSlotTextUpdater component in its children.");
+//                     Debug.LogWarning($"[StopManager] Stop {stopIndex} has no StopSlotTextUpdater component in its children.");
                 }
             }
             // --- END GEMINI-MODIFIED ---

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
         // Initialize invoice for this level
         InitializeInvoice();
         
-        Debug.LogWarning("GameManager started.");
+//         Debug.LogWarning("GameManager started.");
     }
 
     private void InitializeInvoice()
@@ -97,7 +97,7 @@ public class GameManager : MonoBehaviour
             stars = 1;
         }
 
-        Debug.LogWarning($"<color=green>LEVEL WON!</color> You earned {stars} stars.");
+//         Debug.LogWarning($"<color=green>LEVEL WON!</color> You earned {stars} stars.");
 
         // Print invoice (but DON'T transfer coins yet - wait for Continue/Retry button)
         if (CurrentInvoice != null)

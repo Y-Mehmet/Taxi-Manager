@@ -1,21 +1,21 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Yetenekleri dinamik olarak satın almak veya kullanmak için UI butonlarına eklenen script.
-/// Buton, sahip olunan yetenek sayısına göre "Satın Al" veya "Kullan" modları arasında geçiş yapar.
-/// Fiyat her kullanımda katlanır: 100, 200, 400, 800...
+/// Yetenekleri dinamik olarak satÄ±n almak veya kullanmak iÃ§in UI butonlarÄ±na eklenen script.
+/// Buton, sahip olunan yetenek sayÄ±sÄ±na gÃ¶re "SatÄ±n Al" veya "Kullan" modlarÄ± arasÄ±nda geÃ§iÅŸ yapar.
+/// Fiyat her kullanÄ±mda katlanÄ±r: 100, 200, 400, 800...
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class AbilityButton : MonoBehaviour
 {
-    [Header("Yetenek Ayarları")]
-    [SerializeField] private AbilityType abilityType; // Bu butonun kontrol ettiği yetenek
+    [Header("Yetenek AyarlarÄ±")]
+    [SerializeField] private AbilityType abilityType; // Bu butonun kontrol ettiÄŸi yetenek
 
-    [Header("UI Referansları")]
-    [SerializeField] private TextMeshProUGUI costText; // Maliyeti gösteren text (ability adı yerine)
-    [SerializeField] private TextMeshProUGUI abilityNameText;  // Yeteneğin adını gösteren text (opsiyonel)
+    [Header("UI ReferanslarÄ±")]
+    [SerializeField] private TextMeshProUGUI costText; // Maliyeti gÃ¶steren text (ability adÄ± yerine)
+    [SerializeField] private TextMeshProUGUI abilityNameText;  // YeteneÄŸin adÄ±nÄ± gÃ¶steren text (opsiyonel)
 
     private Button button;
 
@@ -105,7 +105,7 @@ public class AbilityButton : MonoBehaviour
 
         if (currentCoins < currentCost)
         {
-            Debug.LogWarning($"[AbilityButton] Not enough coins to buy {abilityType}. Required: {currentCost}, Have: {currentCoins}");
+//             Debug.LogWarning($"[AbilityButton] Not enough coins to buy {abilityType}. Required: {currentCost}, Have: {currentCoins}");
             return;
         }
 
@@ -137,7 +137,7 @@ public class AbilityButton : MonoBehaviour
     }
 
     /// <summary>
-    /// UI pozisyonunu dünya pozisyonuna çevirir (animasyon için)
+    /// UI pozisyonunu dÃ¼nya pozisyonuna Ã§evirir (animasyon iÃ§in)
     /// </summary>
     private Vector3 GetWorldPositionFromUI()
     {
@@ -146,20 +146,20 @@ public class AbilityButton : MonoBehaviour
         
         if (canvas == null)
         {
-            Debug.LogWarning("[AbilityButton] Canvas not found, using transform.position");
+//             Debug.LogWarning("[AbilityButton] Canvas not found, using transform.position");
             return transform.position;
         }
 
-        // UI pozisyonunu dünya pozisyonuna çevir
+        // UI pozisyonunu dÃ¼nya pozisyonuna Ã§evir
         Vector3 worldPosition;
         if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
         {
-            // Overlay mode için ekran merkezinden offset hesapla
+            // Overlay mode iÃ§in ekran merkezinden offset hesapla
             worldPosition = rectTransform.position;
         }
         else
         {
-            // Camera mode için dünya pozisyonunu al
+            // Camera mode iÃ§in dÃ¼nya pozisyonunu al
             worldPosition = rectTransform.position;
         }
 

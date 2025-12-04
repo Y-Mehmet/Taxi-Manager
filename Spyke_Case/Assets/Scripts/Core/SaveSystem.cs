@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.IO;
 
 /// <summary>
-/// Kaydetme ve yükleme işlemlerini dosya sistemi seviyesinde yöneten statik sınıf.
-/// SaveGameData nesnesini JSON formatına çevirip diske yazar ve okur.
+/// Kaydetme ve yÃ¼kleme iÅŸlemlerini dosya sistemi seviyesinde yÃ¶neten statik sÄ±nÄ±f.
+/// SaveGameData nesnesini JSON formatÄ±na Ã§evirip diske yazar ve okur.
 /// </summary>
 public static class SaveSystem
 {
@@ -29,9 +29,9 @@ public static class SaveSystem
     }
 
     /// <summary>
-    /// Kayıt dosyasını diskten okur ve SaveGameData nesnesine dönüştürür.
+    /// KayÄ±t dosyasÄ±nÄ± diskten okur ve SaveGameData nesnesine dÃ¶nÃ¼ÅŸtÃ¼rÃ¼r.
     /// </summary>
-    /// <returns>Yüklenen veri nesnesi. Dosya yoksa null döner.</returns>
+    /// <returns>YÃ¼klenen veri nesnesi. Dosya yoksa null dÃ¶ner.</returns>
     public static SaveGameData Load()
     {
         string path = Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);
@@ -52,7 +52,7 @@ public static class SaveSystem
         }
         else
         {
-            Debug.LogWarning("Save file not found. A new game will be started.");
+//             Debug.LogWarning("Save file not found. A new game will be started.");
             return null;
         }
     }

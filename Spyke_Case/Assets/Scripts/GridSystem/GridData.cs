@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 namespace GridSystem.Data
@@ -52,7 +52,7 @@ namespace GridSystem.Data
         public int gridWidth { get { return width; } set { width = value; } }
         public int gridHeight { get { return height; } set { height = value; } }
 
-        [Header("Grid Hücreleri")]
+        [Header("Grid HÃ¼creleri")]
         public List<GridCell> cells = new List<GridCell>();
 
         [Header("Grid Offset")]
@@ -61,7 +61,7 @@ namespace GridSystem.Data
     // Backwards-compatible name
     public Vector3 gridWorldOffset { get { return worldOffset; } set { worldOffset = value; } }
 
-        [Header("Yolcu Spawn Ayarları")]
+        [Header("Yolcu Spawn AyarlarÄ±")]
         public GameObject passengerGroupPrefab;
         public List<Vector2Int> autoSpawnPassengerPositions = new List<Vector2Int>();
 
@@ -72,7 +72,7 @@ namespace GridSystem.Data
         // Exposed so editor scripts can trigger validation programmatically
         public void OnValidate()
         {
-            // Grid boyutu değiştiğinde hücreleri güncelle
+            // Grid boyutu deÄŸiÅŸtiÄŸinde hÃ¼creleri gÃ¼ncelle
             if (cells.Count != width * height)
             {
                 ResizeGrid();
@@ -87,7 +87,7 @@ namespace GridSystem.Data
             {
                 for (int x = 0; x < width; x++)
                 {
-                    // Mevcut hücreyi koru veya yeni oluştur
+                    // Mevcut hÃ¼creyi koru veya yeni oluÅŸtur
                     int index = y * width + x;
                     if (index < cells.Count)
                     {

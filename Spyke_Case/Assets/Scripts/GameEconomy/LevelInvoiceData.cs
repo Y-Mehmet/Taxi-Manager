@@ -1,25 +1,25 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Level sonu fatura verilerini tutan sınıf
-/// Hesaplama Sırası: Gelir - Giderler - Joker Avantajları = Ara Toplam → Vergi → Net
+/// Level sonu fatura verilerini tutan sÄ±nÄ±f
+/// Hesaplama SÄ±rasÄ±: Gelir - Giderler - Joker AvantajlarÄ± = Ara Toplam â†’ Vergi â†’ Net
 /// </summary>
 [System.Serializable]
 public class LevelInvoiceData
 {
     // Gelirler (Income)
-    public int completedPassengers = 0;  // Tamamlanan passenger sayısı
+    public int completedPassengers = 0;  // Tamamlanan passenger sayÄ±sÄ±
     public int passengerEarnings = 0;    // completedPassengers * 20
 
     // Giderler (Expenses)
-    public int crashCount = 0;           // Kaza sayısı
-    public int crashPenalty = 0;         // Joker'e göre hesaplanır
+    public int crashCount = 0;           // Kaza sayÄ±sÄ±
+    public int crashPenalty = 0;         // Joker'e gÃ¶re hesaplanÄ±r
     
-    public int uberPickupCount = 0;      // Uber yolcu alım sayısı
+    public int uberPickupCount = 0;      // Uber yolcu alÄ±m sayÄ±sÄ±
     public int uberPenalty = 0;          // uberPickupCount * 100
 
-    // Vergi (Tax) - Ara toplamdan hesaplanır
+    // Vergi (Tax) - Ara toplamdan hesaplanÄ±r
     public float taxRate = 0.20f;        // Default 20% tax
     public int taxAmount = 0;
 
@@ -34,14 +34,14 @@ public class LevelInvoiceData
 
     /// <summary>
     /// Toplam gideri hesapla (cezalar + vergi)
-    /// SIRA: 1. Gelir, 2. Giderler (crash, uber), 3. Joker avantajları, 4. Ara toplam, 5. Vergi
+    /// SIRA: 1. Gelir, 2. Giderler (crash, uber), 3. Joker avantajlarÄ±, 4. Ara toplam, 5. Vergi
     /// </summary>
     public int CalculateTotalExpenses()
     {
         // 1. Gelir hesapla
         int income = CalculateTotalIncome();
 
-        // 2. Giderler - Crash Penalty (joker'e göre)
+        // 2. Giderler - Crash Penalty (joker'e gÃ¶re)
         int baseCrashPenalty = crashCount * 500;
         if (JokerSystem.Instance != null)
         {
@@ -65,7 +65,7 @@ public class LevelInvoiceData
             taxRate = JokerSystem.Instance.GetTaxRate();
         }
 
-        // Vergi sadece pozitif ara toplamdan alınır
+        // Vergi sadece pozitif ara toplamdan alÄ±nÄ±r
         if (subtotal > 0)
         {
             taxAmount = Mathf.RoundToInt(subtotal * taxRate);
@@ -79,7 +79,7 @@ public class LevelInvoiceData
     }
 
     /// <summary>
-    /// Net kazancı hesapla (gelir - gider)
+    /// Net kazancÄ± hesapla (gelir - gider)
     /// </summary>
     public int CalculateNetEarnings()
     {
@@ -89,7 +89,7 @@ public class LevelInvoiceData
     }
 
     /// <summary>
-    /// Passenger tamamlandığında çağrılır
+    /// Passenger tamamlandÄ±ÄŸÄ±nda Ã§aÄŸrÄ±lÄ±r
     /// </summary>
     public void OnPassengerCompleted()
     {
@@ -98,7 +98,7 @@ public class LevelInvoiceData
     }
 
     /// <summary>
-    /// Kaza olduğunda çağrılır
+    /// Kaza olduÄŸunda Ã§aÄŸrÄ±lÄ±r
     /// </summary>
     public void OnCrashOccurred()
     {
@@ -107,7 +107,7 @@ public class LevelInvoiceData
     }
 
     /// <summary>
-    /// Uber yolcu aldığında çağrılır
+    /// Uber yolcu aldÄ±ÄŸÄ±nda Ã§aÄŸrÄ±lÄ±r
     /// </summary>
     public void OnUberPickup()
     {
@@ -116,7 +116,7 @@ public class LevelInvoiceData
     }
 
     /// <summary>
-    /// Fatura detaylarını debug log'a yazdır
+    /// Fatura detaylarÄ±nÄ± debug log'a yazdÄ±r
     /// </summary>
     public void PrintInvoice()
     {

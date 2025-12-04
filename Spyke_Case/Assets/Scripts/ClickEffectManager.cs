@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,7 +8,7 @@ public class ClickEffectManager : MonoBehaviour
 
     [Header("Pool Settings")]
     [SerializeField] private ClickEffect clickEffectPrefab; // ClickEffect scriptini tutan prefab
-    [SerializeField] private Canvas mainCanvas;             // Efektlerin gösterileceği UI Canvas'ı
+    [SerializeField] private Canvas mainCanvas;             // Efektlerin gÃ¶sterileceÄŸi UI Canvas'Ä±
     [SerializeField] private int initialPoolSize = 10;
 
     private readonly Queue<ClickEffect> effectPool = new Queue<ClickEffect>();
@@ -19,8 +19,8 @@ public class ClickEffectManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            // Bu yöneticinin sahne geçişlerinde kalması isteniyorsa DontDestroyOnLoad(gameObject); kullanılabilir.
-            // Ancak genellikle sahneye özel yöneticiler için bu kaldırılır. Mevcut isteğe uyarak bıraktım.
+            // Bu yÃ¶neticinin sahne geÃ§iÅŸlerinde kalmasÄ± isteniyorsa DontDestroyOnLoad(gameObject); kullanÄ±labilir.
+            // Ancak genellikle sahneye Ã¶zel yÃ¶neticiler iÃ§in bu kaldÄ±rÄ±lÄ±r. Mevcut isteÄŸe uyarak bÄ±raktÄ±m.
             // DontDestroyOnLoad(gameObject); 
         }
         else
@@ -52,10 +52,10 @@ public class ClickEffectManager : MonoBehaviour
 
     private void CreateNewEffectForPool()
     {
-        // 1. Prefab'ı yarat
+        // 1. Prefab'Ä± yarat
         ClickEffect clickEffect = Instantiate(clickEffectPrefab, transform);
         
-        // 2. İsim ver
+        // 2. Ä°sim ver
         createdEffectCount++;
         clickEffect.gameObject.name = $"ClickEffect_{createdEffectCount}";
 
@@ -65,9 +65,9 @@ public class ClickEffectManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Havuzdan bir efekt alır, pozisyonunu ayarlar ve oynatır.
+    /// Havuzdan bir efekt alÄ±r, pozisyonunu ayarlar ve oynatÄ±r.
     /// </summary>
-    /// <param name="screenPosition">Tıklama/Dokunma'nın ekran pozisyonu (pixel).</param>
+    /// <param name="screenPosition">TÄ±klama/Dokunma'nÄ±n ekran pozisyonu (pixel).</param>
     public void PlayEffect(Vector2 screenPosition)
     {
         if (mainCanvas == null) return;
@@ -81,33 +81,33 @@ public class ClickEffectManager : MonoBehaviour
         }
         else
         {
-            // Havuz boşsa yeni bir tane oluştur
-            Debug.LogWarning("[ClickEffectManager] Pool is empty. Creating a new effect on the fly.");
+            // Havuz boÅŸsa yeni bir tane oluÅŸtur
+//             Debug.LogWarning("[ClickEffectManager] Pool is empty. Creating a new effect on the fly.");
             CreateNewEffectForPool();
-            effectToPlay = effectPool.Dequeue(); // Yeni oluşturulanı al
+            effectToPlay = effectPool.Dequeue(); // Yeni oluÅŸturulanÄ± al
         }
 
-        // 1. Canvas'ın çocuğu yap (görünürlük için)
+        // 1. Canvas'Ä±n Ã§ocuÄŸu yap (gÃ¶rÃ¼nÃ¼rlÃ¼k iÃ§in)
         effectToPlay.transform.SetParent(mainCanvas.transform, false);
 
-        // 2. Ekran pozisyonunu Canvas üzerindeki yerel pozisyona dönüştür
+        // 2. Ekran pozisyonunu Canvas Ã¼zerindeki yerel pozisyona dÃ¶nÃ¼ÅŸtÃ¼r
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             mainCanvas.GetComponent<RectTransform>(),
             screenPosition,
-            mainCanvas.worldCamera, // Screen Space - Camera kullanılıyorsa kamera bilgisi önemli
+            mainCanvas.worldCamera, // Screen Space - Camera kullanÄ±lÄ±yorsa kamera bilgisi Ã¶nemli
             out Vector2 localPosition
         );
         
-        // 3. Efekti doğru konuma yerleştir
+        // 3. Efekti doÄŸru konuma yerleÅŸtir
         effectToPlay.GetComponent<RectTransform>().anchoredPosition = localPosition;
 
-        // 4. GameObject'i aç ve oynat
+        // 4. GameObject'i aÃ§ ve oynat
         effectToPlay.gameObject.SetActive(true);
         effectToPlay.Play();
     }
 
     /// <summary>
-    /// Efekti sıfırlar, görünmez yapar ve havuza geri gönderir.
+    /// Efekti sÄ±fÄ±rlar, gÃ¶rÃ¼nmez yapar ve havuza geri gÃ¶nderir.
     /// </summary>
     /// <param name="effect">Havuzlanacak ClickEffect.</param>
     public void ReturnToPool(ClickEffect effect)
@@ -117,7 +117,7 @@ public class ClickEffectManager : MonoBehaviour
         // 1. Particle sistemini durdur/temizle
         effect.StopAndClear(); 
 
-        // 2. Yöneticinin altına geri al
+        // 2. YÃ¶neticinin altÄ±na geri al
         effect.transform.SetParent(transform, false);
 
         // 3. GameObject'i kapat

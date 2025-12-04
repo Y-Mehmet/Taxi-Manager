@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using System.Linq;
@@ -7,19 +7,19 @@ using DG.Tweening;
 
 public class MetroManager : MonoBehaviour
 {
-    [Header("Mid vagon renkleri (sıralı)")]
+    [Header("Mid vagon renkleri (sÄ±ralÄ±)")]
     public List<HyperCasualColor> midWagonColors = new List<HyperCasualColor> { HyperCasualColor.Blue, HyperCasualColor.Red, HyperCasualColor.Green, HyperCasualColor.Yellow, HyperCasualColor.Orange, HyperCasualColor.Purple, HyperCasualColor.Pink, HyperCasualColor.Cyan, HyperCasualColor.Lime, HyperCasualColor.White };
     [Header("Prefablar")]
     public GameObject headPrefab;
     public GameObject midPrefab;
     public GameObject endPrefab;
 
-    [Header("Vagon ayarları")]
+    [Header("Vagon ayarlarÄ±")]
     public int midCount = 10;
-    [Tooltip("Vagonlar arası mesafe (birim)")]
+    [Tooltip("Vagonlar arasÄ± mesafe (birim)")]
     public float wagonSpacing = 1.5f;
     public MetroCheckpointPath checkpointPath;
-    [Header("Bağlantılar")]
+    [Header("BaÄŸlantÄ±lar")]
     public PassengerGrid passengerGrid;
 
 
@@ -113,12 +113,12 @@ public class MetroManager : MonoBehaviour
     {
         if (checkpointPath == null || checkpointPath.checkpoints == null || checkpointPath.checkpoints.Count == 0)
         {
-            Debug.LogError("Checkpoint path atanmadı veya boş!");
+            Debug.LogError("Checkpoint path atanmadÄ± veya boÅŸ!");
             return;
         }
         if (passengerGrid == null)
         {
-            Debug.LogError("PassengerGrid referansı MetroManager'a atanmadı!");
+            Debug.LogError("PassengerGrid referansÄ± MetroManager'a atanmadÄ±!");
             return;
         }
 
@@ -134,12 +134,12 @@ public class MetroManager : MonoBehaviour
 
         if (checkpointPath == null)
         {
-            Debug.LogError("FATAL HATA: MetroManager'daki 'Checkpoint Path' alanı boş (None). Lütfen sahnedeki MetroManager objesine bir yol (MetroCheckpointPath) atayın.");
+            Debug.LogError("FATAL HATA: MetroManager'daki 'Checkpoint Path' alanÄ± boÅŸ (None). LÃ¼tfen sahnedeki MetroManager objesine bir yol (MetroCheckpointPath) atayÄ±n.");
             yield break;
         }
         if (checkpointPath.checkpoints.Any(c => c == null))
         {
-            Debug.LogError($"FATAL HATA: MetroManager'a atanan '{checkpointPath.name}' adlı yolun 'Checkpoints' listesinde boş (None) veya yok edilmiş elemanlar var. Lütfen '{checkpointPath.name}' objesini seçip listeyi kontrol edin ve boş elemanları silin veya düzeltin.");
+            Debug.LogError($"FATAL HATA: MetroManager'a atanan '{checkpointPath.name}' adlÄ± yolun 'Checkpoints' listesinde boÅŸ (None) veya yok edilmiÅŸ elemanlar var. LÃ¼tfen '{checkpointPath.name}' objesini seÃ§ip listeyi kontrol edin ve boÅŸ elemanlarÄ± silin veya dÃ¼zeltin.");
             yield break;
         }
 
@@ -149,11 +149,11 @@ public class MetroManager : MonoBehaviour
 
         if (activeWagons.Count == 0)
         {
-            Debug.LogWarning("MetroManager, WagonManager'dan hiç vagon alamadı. LevelSpawner'ın çalıştığından emin olun.");
+//             Debug.LogWarning("MetroManager, WagonManager'dan hiÃ§ vagon alamadÄ±. LevelSpawner'Ä±n Ã§alÄ±ÅŸtÄ±ÄŸÄ±ndan emin olun.");
             yield break;
         }
 
-        Debug.Log($"MetroManager, {activeWagons.Count} adet vagonu WagonManager'dan aldı.");
+        Debug.Log($"MetroManager, {activeWagons.Count} adet vagonu WagonManager'dan aldÄ±.");
         originalWagonSpeeds.Clear();
 
         for (int i = 0; i < activeWagons.Count; i++)
@@ -181,7 +181,7 @@ public class MetroManager : MonoBehaviour
             if (newHead != null)
             {
                 newHead.isHead = true;
-                Debug.LogWarning($"HEAD DEĞİŞTİ! Yeni head vagon: {newHead.name}");
+//                 Debug.LogWarning($"HEAD DEÄÄ°ÅTÄ°! Yeni head vagon: {newHead.name}");
                 StartMovement();
             }
             else
@@ -193,7 +193,7 @@ public class MetroManager : MonoBehaviour
 
         if (removedWagonTransform == null) return;
 
-        Debug.LogWarning($"MetroManager: OnWagonRemoved enqueued for transform '{removedWagonTransform.name}' at pos {removedWagonTransform.position}");
+//         Debug.LogWarning($"MetroManager: OnWagonRemoved enqueued for transform '{removedWagonTransform.name}' at pos {removedWagonTransform.position}");
         pendingRemovedTransforms.Add(removedWagonTransform);
 
         if (pendingRemovalCoroutine == null)
@@ -391,7 +391,7 @@ public class MetroManager : MonoBehaviour
     {
         if (isAdjusting) 
         {
-            Debug.LogWarning("[MetroManager] Cannot shuffle colors while another adjustment is in progress.");
+//             Debug.LogWarning("[MetroManager] Cannot shuffle colors while another adjustment is in progress.");
             return;
         }
         
@@ -407,7 +407,7 @@ public class MetroManager : MonoBehaviour
 
         if (wagonsToShuffle.Count < 2)
         {
-            Debug.LogWarning("[MetroManager] Not enough active wagons to shuffle.");
+//             Debug.LogWarning("[MetroManager] Not enough active wagons to shuffle.");
             isAdjusting = false;
             OnTrainAdjustmentStateChanged?.Invoke(false);
             yield break;

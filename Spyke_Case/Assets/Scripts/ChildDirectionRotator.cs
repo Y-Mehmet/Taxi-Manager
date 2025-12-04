@@ -1,13 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
-/// Bu script, parent'taki PassengerGroup'un moveDirection değişkenine göre
-/// kendi rotasyonunu günceller.
-/// Yönler:
-/// - (0, 1) -> Yukarı -> 0 derece (ileri)
-/// - (1, 0) -> Sağ -> 90 derece
+/// Bu script, parent'taki PassengerGroup'un moveDirection deÄŸiÅŸkenine gÃ¶re
+/// kendi rotasyonunu gÃ¼nceller.
+/// YÃ¶nler:
+/// - (0, 1) -> YukarÄ± -> 0 derece (ileri)
+/// - (1, 0) -> SaÄŸ -> 90 derece
 /// - (-1, 0) -> Sol -> -90 derece
-/// - (0, -1) -> Aşağı -> 180 derece
+/// - (0, -1) -> AÅŸaÄŸÄ± -> 180 derece
 /// </summary>
 public class ChildDirectionRotator : MonoBehaviour
 {
@@ -16,14 +16,14 @@ public class ChildDirectionRotator : MonoBehaviour
 
     void Start()
     {
-        // Script'in bağlı olduğu objenin parent'ından PassengerGroup component'ini bul ve al.
+        // Script'in baÄŸlÄ± olduÄŸu objenin parent'Ä±ndan PassengerGroup component'ini bul ve al.
         parentGroup = GetComponentInParent<PassengerGroup>();
 
-        // Eğer parent'ta PassengerGroup script'i bulunamazsa, hata mesajı göster ve script'i devre dışı bırak.
+        // EÄŸer parent'ta PassengerGroup script'i bulunamazsa, hata mesajÄ± gÃ¶ster ve script'i devre dÄ±ÅŸÄ± bÄ±rak.
         if (parentGroup == null)
         {
-            Debug.LogError("Bu objenin parent'ında 'PassengerGroup' script'i bulunamadı!", this);
-            this.enabled = false; // Hata tekrarını önlemek için script'i kapat.
+            Debug.LogError("Bu objenin parent'Ä±nda 'PassengerGroup' script'i bulunamadÄ±!", this);
+            this.enabled = false; // Hata tekrarÄ±nÄ± Ã¶nlemek iÃ§in script'i kapat.
         }
         else
         {
@@ -35,31 +35,31 @@ public class ChildDirectionRotator : MonoBehaviour
 
     private void UpdateRotationBasedOnParentDirection()
     {
-        // Parent'ın mevcut hareket yönünü al.
+        // Parent'Ä±n mevcut hareket yÃ¶nÃ¼nÃ¼ al.
         Vector2Int direction = parentGroup.moveDirection;
 
-        float targetYRotation = 0f; // Varsayılan rotasyon (yukarı yönü için)
+        float targetYRotation = 0f; // VarsayÄ±lan rotasyon (yukarÄ± yÃ¶nÃ¼ iÃ§in)
 
-        // Gelen yöne göre hedef Y rotasyonunu belirle.
-        if (direction == Vector2Int.up) // (0, 1) ise Yön: Yukarı
+        // Gelen yÃ¶ne gÃ¶re hedef Y rotasyonunu belirle.
+        if (direction == Vector2Int.up) // (0, 1) ise YÃ¶n: YukarÄ±
         {
             targetYRotation = 0f;
         }
-        else if (direction == Vector2Int.right) // (1, 0) ise Yön: Sağ
+        else if (direction == Vector2Int.right) // (1, 0) ise YÃ¶n: SaÄŸ
         {
             targetYRotation = 90f;
         }
-        else if (direction == Vector2Int.left) // (-1, 0) ise Yön: Sol
+        else if (direction == Vector2Int.left) // (-1, 0) ise YÃ¶n: Sol
         {
             targetYRotation = -90f;
         }
-        else if (direction == Vector2Int.down) // (0, -1) ise Yön: Aşağı
+        else if (direction == Vector2Int.down) // (0, -1) ise YÃ¶n: AÅŸaÄŸÄ±
         {
             targetYRotation = 180f;
         }
 
-        // Hesaplanmış olan hedef rotasyonu objeye uygula.
-        // Quaternion.Euler, derece cinsinden açıları bir Quaternion rotasyonuna çevirir.
+        // HesaplanmÄ±ÅŸ olan hedef rotasyonu objeye uygula.
+        // Quaternion.Euler, derece cinsinden aÃ§Ä±larÄ± bir Quaternion rotasyonuna Ã§evirir.
         transform.rotation = Quaternion.Euler(0, targetYRotation, 0);
     }
 }

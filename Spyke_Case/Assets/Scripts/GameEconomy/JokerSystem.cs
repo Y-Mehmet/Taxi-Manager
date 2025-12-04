@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 
@@ -118,7 +118,7 @@ public class JokerSystem : MonoBehaviour
         
         if (availableStars < cost)
         {
-            Debug.LogWarning($"[JokerSystem] Not enough stars to buy {type}. Need: {cost}, Have: {availableStars}");
+//             Debug.LogWarning($"[JokerSystem] Not enough stars to buy {type}. Need: {cost}, Have: {availableStars}");
             return false;
         }
 

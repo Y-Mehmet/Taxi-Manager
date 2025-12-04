@@ -1,19 +1,19 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-// LevelSpawner'dan aldığı veriyle vagonları oluşturur ve yönetir.
+// LevelSpawner'dan aldÄ±ÄŸÄ± veriyle vagonlarÄ± oluÅŸturur ve yÃ¶netir.
 public class WagonManager : MonoBehaviour
 {
     public static WagonManager Instance { get; private set; }
 
-    // Vagonların oyun içindeki güncel listesi.
+    // VagonlarÄ±n oyun iÃ§indeki gÃ¼ncel listesi.
     private List<MetroWagon> runtimeWagons = new List<MetroWagon>();
 
-    // Bir vagon kaldırıldığında tetiklenir. MetroManager bunu dinler.
+    // Bir vagon kaldÄ±rÄ±ldÄ±ÄŸÄ±nda tetiklenir. MetroManager bunu dinler.
     public event System.Action<MetroWagon, Transform> OnWagonRemoved;
 
-    [Header("Spawn Ayarları")]
+    [Header("Spawn AyarlarÄ±")]
     public Vector3 startSpawnPoint = new Vector3(-3f, 0, 11f);
     public float distanceBetweenWagons = 1f;
 
@@ -37,14 +37,14 @@ public class WagonManager : MonoBehaviour
             return;
         }
 
-        // Önceki level'dan kalan vagonları temizle
+        // Ã–nceki level'dan kalan vagonlarÄ± temizle
         foreach (var wagon in runtimeWagons)
         {
             if (wagon != null) Destroy(wagon.gameObject);
         }
         runtimeWagons.Clear();
 
-        // Vagonları başlangıç noktasına göre Z ekseninde sırala.
+        // VagonlarÄ± baÅŸlangÄ±Ã§ noktasÄ±na gÃ¶re Z ekseninde sÄ±rala.
         for (int i = 0; i < spawnData.Count; i++)
         {
             var data = spawnData[i];
@@ -53,14 +53,14 @@ public class WagonManager : MonoBehaviour
             
             MetroWagon newWagon = Instantiate(wagonPrefab, spawnPos, spawnRot, transform);
             
-            // HATA DÜZELTMESİ: Rengi doğrudan atamak yerine public SetColor metodunu kullan.
+            // HATA DÃœZELTMESÄ°: Rengi doÄŸrudan atamak yerine public SetColor metodunu kullan.
             newWagon.SetColor(data.color);
             
             runtimeWagons.Add(newWagon);
         }
     }
 
-    // MetroManager tarafından çağrılır.
+    // MetroManager tarafÄ±ndan Ã§aÄŸrÄ±lÄ±r.
     public void RegisterWagon(MetroWagon wagon)
     {
         if (!runtimeWagons.Contains(wagon))
@@ -69,7 +69,7 @@ public class WagonManager : MonoBehaviour
         }
     }
 
-    // UberManager tarafından çağrılır.
+    // UberManager tarafÄ±ndan Ã§aÄŸrÄ±lÄ±r.
     public void DeregisterWagon(MetroWagon wagon)
     {
         if (runtimeWagons.Contains(wagon))
@@ -78,39 +78,39 @@ public class WagonManager : MonoBehaviour
         }
     }
 
-    // UberManager tarafından çağrılır.
+    // UberManager tarafÄ±ndan Ã§aÄŸrÄ±lÄ±r.
     public void TriggerWagonRemovalEvent(MetroWagon wagon, Transform transform)
     {
         OnWagonRemoved?.Invoke(wagon, transform);
     }
 
-    // MetroWagon tarafından çağrılır.
+    // MetroWagon tarafÄ±ndan Ã§aÄŸrÄ±lÄ±r.
     public void ReportWagonFilled(MetroWagon wagon)
     {
-        // TODO: Bir vagon dolduğunda yapılacak oyun mantığını buraya ekle.
+        // TODO: Bir vagon dolduÄŸunda yapÄ±lacak oyun mantÄ±ÄŸÄ±nÄ± buraya ekle.
         Debug.Log($"Wagon {wagon.name} is full!", wagon.gameObject);
     }
 
-    // MetroManager tarafından istenir.
+    // MetroManager tarafÄ±ndan istenir.
     public List<MetroWagon> GetActiveWagons()
     {
-        // Null referansları temizleyerek güncel listeyi döndür.
+        // Null referanslarÄ± temizleyerek gÃ¼ncel listeyi dÃ¶ndÃ¼r.
         runtimeWagons.RemoveAll(item => item == null);
         return runtimeWagons;
     }
 
     public MetroWagon FindWagon(HyperCasualColor color, int requiredCapacity = 1, int minCheckpointIndex = -1)
     {
-        // Not: Bu metod artık sahnedeki değil, runtime'da oluşturulan vagonları kullanacak.
-        // Initialize metodu doldurulduğunda bu liste de dolu olacak.
+        // Not: Bu metod artÄ±k sahnedeki deÄŸil, runtime'da oluÅŸturulan vagonlarÄ± kullanacak.
+        // Initialize metodu doldurulduÄŸunda bu liste de dolu olacak.
         foreach (var wagon in runtimeWagons)
         {
             if (wagon == null || wagon.IsFull) continue;
 
-            // Bölge kontrolü (opsiyonel)
+            // BÃ¶lge kontrolÃ¼ (opsiyonel)
             if (minCheckpointIndex != -1 && wagon.GetCurrentCheckpointIndex() < minCheckpointIndex) continue;
 
-            // Renk ve kapasite kontrolü
+            // Renk ve kapasite kontrolÃ¼
             if (wagon.wagonColor == color && (wagon.maxPassengerCount - wagon.passengerCount) >= requiredCapacity)
             {
                 return wagon;
@@ -119,7 +119,7 @@ public class WagonManager : MonoBehaviour
         return null;
     }
 
-    // MetroManager tarafından renk karıştırma için kullanılır.
+    // MetroManager tarafÄ±ndan renk karÄ±ÅŸtÄ±rma iÃ§in kullanÄ±lÄ±r.
     public static List<HyperCasualColor> ShuffleColorGroups(List<HyperCasualColor> originalColors)
     {
         if (originalColors == null || originalColors.Count < 2) return originalColors;
@@ -127,7 +127,7 @@ public class WagonManager : MonoBehaviour
         List<HyperCasualColor> newColors = new List<HyperCasualColor>(originalColors);
         System.Random rng = new System.Random();
 
-        // Fisher-Yates shuffle algoritması
+        // Fisher-Yates shuffle algoritmasÄ±
         int n = newColors.Count;
         while (n > 1)
         {
@@ -138,8 +138,8 @@ public class WagonManager : MonoBehaviour
             newColors[n] = value;
         }
 
-        // İsteğe bağlı: Hiçbir rengin kendi orijinal yerinde kalmamasını sağla (derangement)
-        // Basit bir shuffle şimdilik yeterlidir.
+        // Ä°steÄŸe baÄŸlÄ±: HiÃ§bir rengin kendi orijinal yerinde kalmamasÄ±nÄ± saÄŸla (derangement)
+        // Basit bir shuffle ÅŸimdilik yeterlidir.
 
         return newColors;
     }

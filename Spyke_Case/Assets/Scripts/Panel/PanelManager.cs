@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -27,7 +27,7 @@ public class PanelManager : Singleton<PanelManager>
     // Function to show a panel (updated to use enum)
     public void ShowPanel(PanelID panelID, PanelShowBehavior behavior = PanelShowBehavior.SHOW_PREVISE)
     {
-       // Debug.LogWarning("panel�d " + panelID.ToString());
+       // Debug.LogWarning("panelï¿½d " + panelID.ToString());
 
       bool isActive = false;
         if (_objectPool == null)
@@ -76,33 +76,33 @@ public class PanelManager : Singleton<PanelManager>
             }
             else
             {
-                Debug.LogWarning($"Panel not found: {panelID}");
+//                 Debug.LogWarning($"Panel not found: {panelID}");
             }
         }
     }
     public void HidePanelWithPanelID(PanelID panelID, PanelShowBehavior panelShowBehavior=PanelShowBehavior.HIDE_PREVISE)
     {
-        //Debug.LogWarning("panel�d hide last panel whit id  " + panelID.ToString());
-        // Gizlenecek paneli listede bul. FirstOrDefault, bulamazsa null d�ner.
+        //Debug.LogWarning("panelï¿½d hide last panel whit id  " + panelID.ToString());
+        // Gizlenecek paneli listede bul. FirstOrDefault, bulamazsa null dï¿½ner.
         PanelInstanceModel panelToHide = _listInstance.FirstOrDefault(p => p.PanelID == panelID);
 
-        // Panel listede bulunamad�ysa uyar� ver ve i�lemi sonland�r.
+        // Panel listede bulunamadï¿½ysa uyarï¿½ ver ve iï¿½lemi sonlandï¿½r.
         if (panelToHide == null)
         {
-            // Debug.LogWarning($"Gizlenmeye �al���lan panel aktif listede bulunamad�: {panelID}");
+            // Debug.LogWarning($"Gizlenmeye ï¿½alï¿½ï¿½ï¿½lan panel aktif listede bulunamadï¿½: {panelID}");
             return;
         }
 
-        // Gizlenecek panelin, listenin en sonundaki panel olup olmad���n� kontrol et.
+        // Gizlenecek panelin, listenin en sonundaki panel olup olmadï¿½ï¿½ï¿½nï¿½ kontrol et.
         bool wasLastPanel = GetLastPanel() == panelToHide;
 
-        // PaneliGameObject'ini ObjectPool'a geri g�nder.
+        // PaneliGameObject'ini ObjectPool'a geri gï¿½nder.
         _objectPool.PoolObject(panelToHide.PanelInstance);
-        // Paneli aktif panel listesinden kald�r.
+        // Paneli aktif panel listesinden kaldï¿½r.
         _listInstance.Remove(panelToHide);
 
-        // E�er gizlenen panel son panel idiyse ve hala listede ba�ka paneller varsa,
-        // yeni son paneli (bir �ncekini) aktif et.
+        // Eï¿½er gizlenen panel son panel idiyse ve hala listede baï¿½ka paneller varsa,
+        // yeni son paneli (bir ï¿½ncekini) aktif et.
         if (wasLastPanel && AnyPanelIsShowing()&& panelShowBehavior==PanelShowBehavior.SHOW_PREVISE)
         {
             var newLastPanel = GetLastPanel();
@@ -119,7 +119,7 @@ public class PanelManager : Singleton<PanelManager>
         if (AnyPanelIsShowing())
         {
             var lastPanel = GetLastPanel();
-           // Debug.LogWarning("panel�d hide last panel " + lastPanel.ToString());
+           // Debug.LogWarning("panelï¿½d hide last panel " + lastPanel.ToString());
             _listInstance.Remove(lastPanel);
             _objectPool.PoolObject(lastPanel.PanelInstance);
 

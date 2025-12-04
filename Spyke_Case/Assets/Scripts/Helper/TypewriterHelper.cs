@@ -1,22 +1,22 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
-using TMPro; // TextMeshPro kullanmak için bu satýr gerekli
-// Eðer eski UI Text kullanýyorsanýz -> using UnityEngine.UI;
+using TMPro; // TextMeshPro kullanmak iÃ§in bu satÄ±r gerekli
+// EÄŸer eski UI Text kullanÄ±yorsanÄ±z -> using UnityEngine.UI;
 
 public class TypewriterHelper : MonoBehaviour
 {
     public static TypewriterHelper Instance { get; private set; }
     private void Awake()
     {
-        // Singleton deseni ile bu sýnýfýn tek örneðini oluþtur
+        // Singleton deseni ile bu sÄ±nÄ±fÄ±n tek Ã¶rneÄŸini oluÅŸtur
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Bu nesneyi sahneler arasýnda taþýmak için
+            DontDestroyOnLoad(gameObject); // Bu nesneyi sahneler arasÄ±nda taÅŸÄ±mak iÃ§in
         }
         else
         {
-            Destroy(gameObject); // Eðer zaten bir örnek varsa, bu yeni örneði yok et
+            Destroy(gameObject); // EÄŸer zaten bir Ã¶rnek varsa, bu yeni Ã¶rneÄŸi yok et
         }
     }
     private Coroutine typingCoroutine;
@@ -24,44 +24,44 @@ public class TypewriterHelper : MonoBehaviour
     
     public Coroutine Run(string textToType, TextMeshProUGUI textLabel, float typingSpeed = 0.05f)
     {
-        // Eðer zaten çalýþan bir yazma iþlemi varsa, onu durdur.
+        // EÄŸer zaten Ã§alÄ±ÅŸan bir yazma iÅŸlemi varsa, onu durdur.
         if (typingCoroutine != null)
         {
             StopCoroutine(typingCoroutine);
         }
 
-        // Yeni yazma iþlemini baþlat ve referansýný sakla.
+        // Yeni yazma iÅŸlemini baÅŸlat ve referansÄ±nÄ± sakla.
         typingCoroutine = StartCoroutine(TypeText(textToType, textLabel, typingSpeed));
         return typingCoroutine;
     }
 
     private IEnumerator TypeText(string textToType, TextMeshProUGUI textLabel, float typingSpeed)
     {
-        // Metin kutusunu temizleyerek baþla
+        // Metin kutusunu temizleyerek baÅŸla
         textLabel.text = "";
 
-        // Her harf için döngüye gir
+        // Her harf iÃ§in dÃ¶ngÃ¼ye gir
         foreach (char letter in textToType)
         {
             textLabel.text += letter; // Bir sonraki harfi ekle
-            yield return new WaitForSeconds(typingSpeed); // Belirtilen süre kadar bekle
+            yield return new WaitForSeconds(typingSpeed); // Belirtilen sÃ¼re kadar bekle
         }
 
-        // Yazma iþlemi bittiðinde coroutine referansýný temizle
+        // Yazma iÅŸlemi bittiÄŸinde coroutine referansÄ±nÄ± temizle
         typingCoroutine = null;
     }
     public void CompleteTyping(string textToType, TextMeshProUGUI textLabel)
     {
-        // Eðer bir yazma iþlemi varsa ve henüz bitmediyse
+        // EÄŸer bir yazma iÅŸlemi varsa ve henÃ¼z bitmediyse
         if (typingCoroutine != null)
         {
             // Coroutine'i hemen durdur
             StopCoroutine(typingCoroutine);
 
-            // Metin kutusuna tüm metni anýnda yaz
+            // Metin kutusuna tÃ¼m metni anÄ±nda yaz
             textLabel.text = textToType;
 
-            // Coroutine referansýný temizle
+            // Coroutine referansÄ±nÄ± temizle
             typingCoroutine = null;
         }
     }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,17 +6,17 @@ using TMPro;
 
 public class LevelSelectManager : MonoBehaviour
 {
-    [Header("UI Element Referansları")]
+    [Header("UI Element ReferanslarÄ±")]
     public RectTransform WhelePanel; // Bu panele dokunulmayacak
-    public RectTransform panel;      // Y Pozisyonu 3400 yapılacak olan panel
+    public RectTransform panel;      // Y Pozisyonu 3400 yapÄ±lacak olan panel
 
-    [Header("Level Prefab'ları")]
+    [Header("Level Prefab'larÄ±")]
     public GameObject darkLevelPrefab;
     public GameObject currentLevelPrefab;
     public GameObject lightLevelPrefab;
     public GameObject unlockedLevelPrefab;
 
-    [Header("Level Veri Ayarları")]
+    [Header("Level Veri AyarlarÄ±")]
     public int totalLevels = 100;
     public int currentLevel = 0; // Currently playing level
     public int maxOpenedLevel = 0; // Highest level ever unlocked
@@ -27,7 +27,7 @@ public class LevelSelectManager : MonoBehaviour
 
     void Start()
     {
-        // Kayıtlı seviyeyi ResourceManager'dan al
+        // KayÄ±tlÄ± seviyeyi ResourceManager'dan al
         if (ResourceManager.Instance != null)
         {
             currentLevel = ResourceManager.Instance.CurrentLevel;
@@ -72,25 +72,25 @@ public class LevelSelectManager : MonoBehaviour
             generatedLevelItems.Add(levelItemGO);
             TMP_Text levelText = levelItemGO.GetComponentInChildren<TMP_Text>();
 
-            // 2. Eğer TextMeshPro bileşeni bulunduysa işlemleri yap.
+            // 2. EÄŸer TextMeshPro bileÅŸeni bulunduysa iÅŸlemleri yap.
             if (levelText != null)
             {
-                // 3. Bu level, "unlocked" prefabı mı diye kontrol et.
-                // Bu koşul, hangi prefab'ın "unlocked" olduğunu belirleyen koşul ile aynı.
+                // 3. Bu level, "unlocked" prefabÄ± mÄ± diye kontrol et.
+                // Bu koÅŸul, hangi prefab'Ä±n "unlocked" olduÄŸunu belirleyen koÅŸul ile aynÄ±.
                 if (i == maxOpenedLevel + 9 && i < totalLevels)
                 {
-                    // Evet, bu en sondaki özel level. Metnini "Unlocked" yap.
+                    // Evet, bu en sondaki Ã¶zel level. Metnini "Unlocked" yap.
                     levelText.text = "Unlocked";
                 }
                 else
                 {
-                    // Hayır, bu normal bir level. Metnini (index + 1) olarak ayarla.
+                    // HayÄ±r, bu normal bir level. Metnini (index + 1) olarak ayarla.
                     levelText.text = (i + 1).ToString();
                 }
             }
             else
             {
-                Debug.LogWarning("Level item prefab does not have a TextMeshProUGUI component in its children.");
+//                 Debug.LogWarning("Level item prefab does not have a TextMeshProUGUI component in its children.");
             }
 
             Text levelNumberText = levelItemGO.GetComponentInChildren<Text>();
@@ -116,17 +116,17 @@ public class LevelSelectManager : MonoBehaviour
         adjustmentCoroutine = StartCoroutine(AdjustPositionCoroutine());
     }
 
-    // --- SADECE 'panel' OBJESİNİN Y POZİSYONUNU DEĞİŞTİREN FONKSİYON ---
+    // --- SADECE 'panel' OBJESÄ°NÄ°N Y POZÄ°SYONUNU DEÄÄ°ÅTÄ°REN FONKSÄ°YON ---
     private IEnumerator AdjustPositionCoroutine()
     {
-        // UI elemanları oluşturulduktan sonra işlem yapmak için bekle.
+        // UI elemanlarÄ± oluÅŸturulduktan sonra iÅŸlem yapmak iÃ§in bekle.
         yield return new WaitForEndOfFrame();
 
-        // İsteğiniz üzerine, 'panel' objesinin Y pozisyonunu doğrudan 3400 yapıyoruz.
+        // Ä°steÄŸiniz Ã¼zerine, 'panel' objesinin Y pozisyonunu doÄŸrudan 3400 yapÄ±yoruz.
         // 'WhelePanel'e dokunulmuyor.
         float finalY = 4075f;
         panel.anchoredPosition = new Vector2(panel.anchoredPosition.x, finalY);
         
-        Debug.Log("AYARLAMA TAMAMLANDI - 'panel' objesinin Y pozisyonu doğrudan " + finalY + " olarak ayarlandı.");
+        Debug.Log("AYARLAMA TAMAMLANDI - 'panel' objesinin Y pozisyonu doÄŸrudan " + finalY + " olarak ayarlandÄ±.");
     }
 }

@@ -1,4 +1,4 @@
-
+﻿
 using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -9,11 +9,11 @@ using System.Text;
 public class UnderpassController : MonoBehaviour
 {
     [Header("Configuration")]
-    [Tooltip("Bu objenin grid pozisyonuna göre aktif yolcunun duracağı hücrenin ofseti.")]
+    [Tooltip("Bu objenin grid pozisyonuna gÃ¶re aktif yolcunun duracaÄŸÄ± hÃ¼crenin ofseti.")]
     public Vector2Int startCellOffset = new Vector2Int(-1, 0);
 
     [Header("References")]
-    [Tooltip("Prefab'in kendi altındaki sayaç text'i.")]
+    [Tooltip("Prefab'in kendi altÄ±ndaki sayaÃ§ text'i.")]
     public TMP_Text queueCounterText;
     public GameObject objectToRotate;
 
@@ -27,7 +27,7 @@ public class UnderpassController : MonoBehaviour
     {
         if (queueCounterText == null)
         {
-            Debug.LogError("Kuyruk Sayacı Text'i (Queue Counter Text) atanmamış!", gameObject);
+            Debug.LogError("Kuyruk SayacÄ± Text'i (Queue Counter Text) atanmamÄ±ÅŸ!", gameObject);
         }
     }
 
@@ -133,7 +133,7 @@ public class UnderpassController : MonoBehaviour
         // Defensive check: Prevent adding a duplicate if it was never properly dequeued.
         if (passengerQueue.Contains(returnedPassenger))
         {
-            Debug.LogWarning($"[UnderpassController] Tried to re-add {returnedPassenger.name} which was already in the queue. Aborting recall to prevent duplicates.");
+//             Debug.LogWarning($"[UnderpassController] Tried to re-add {returnedPassenger.name} which was already in the queue. Aborting recall to prevent duplicates.");
             return;
         }
 

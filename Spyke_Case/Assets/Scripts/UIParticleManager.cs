@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class UIParticleManager : MonoBehaviour
@@ -71,7 +71,7 @@ public class UIParticleManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[UIParticleManager] Pool is empty. Creating a new particle on the fly.");
+//             Debug.LogWarning("[UIParticleManager] Pool is empty. Creating a new particle on the fly.");
             CreateNewParticleForPool();
             particleToPlay = particlePool.Dequeue();
         }
@@ -96,7 +96,7 @@ public class UIParticleManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[UIParticleManager] UIParticle_{particleToPlay.name} does not have a ParticleSystem component. It will not despawn automatically.");
+//             Debug.LogWarning($"[UIParticleManager] UIParticle_{particleToPlay.name} does not have a ParticleSystem component. It will not despawn automatically.");
             // If no ParticleSystem, despawn after a default duration
             StartCoroutine(DespawnAfterDuration(particleToPlay, 2f)); 
         }

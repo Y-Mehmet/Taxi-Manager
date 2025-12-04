@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 // This file contains the data structures for defining a generated level before it becomes a ScriptableObject.

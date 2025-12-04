@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// "Play" butonuna eklenmek üzere tasarlanmış script.
-/// Seçili level'i oynatır ve child TextMeshPro'da level numarasını gösterir.
+/// "Play" butonuna eklenmek Ã¼zere tasarlanmÄ±ÅŸ script.
+/// SeÃ§ili level'i oynatÄ±r ve child TextMeshPro'da level numarasÄ±nÄ± gÃ¶sterir.
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class PlayButton : MonoBehaviour
@@ -14,7 +14,7 @@ public class PlayButton : MonoBehaviour
 
     private void Awake()
     {
-        // Butonun OnClick olayına LoadSelectedLevel metodunu programatik olarak ekle.
+        // Butonun OnClick olayÄ±na LoadSelectedLevel metodunu programatik olarak ekle.
         GetComponent<Button>().onClick.AddListener(LoadSelectedLevel);
     }
 
@@ -49,7 +49,7 @@ public class PlayButton : MonoBehaviour
     }
 
     /// <summary>
-    /// SceneManager'ı çağırarak SEÇİLİ SEVİYEYİ yükler.
+    /// SceneManager'Ä± Ã§aÄŸÄ±rarak SEÃ‡Ä°LÄ° SEVÄ°YEYÄ° yÃ¼kler.
     /// </summary>
     public void LoadSelectedLevel()
     {
@@ -65,7 +65,7 @@ public class PlayButton : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Bellek sızıntısını önlemek için listener'ı kaldır
+        // Bellek sÄ±zÄ±ntÄ±sÄ±nÄ± Ã¶nlemek iÃ§in listener'Ä± kaldÄ±r
         Button button = GetComponent<Button>();
         if (button != null)
         {

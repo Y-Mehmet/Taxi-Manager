@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using GridSystem.Data;
 
@@ -20,14 +20,14 @@ namespace GridSystem
             }
         }
 
-        [Header("Grid Ayarları")]
+        [Header("Grid AyarlarÄ±")]
         public GridData gridData;
         public GameObject cellCubePrefab;
 
-        [Header("Grid Görünüm")]
-        [Tooltip("Grid çizgilerinin görünürlüğü")]
+        [Header("Grid GÃ¶rÃ¼nÃ¼m")]
+        [Tooltip("Grid Ã§izgilerinin gÃ¶rÃ¼nÃ¼rlÃ¼ÄŸÃ¼")]
         public bool showGridLines = true;
-        [Tooltip("Grid çizgilerinin rengi")]
+        [Tooltip("Grid Ã§izgilerinin rengi")]
         public Color gridLineColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
         [Header("Yolcu Sistemi")]
@@ -53,7 +53,7 @@ namespace GridSystem
 
         private void InitializeGrid()
         {
-            // Grid başlatma işlemleri
+            // Grid baÅŸlatma iÅŸlemleri
             isInitialized = true;
             // Clear occupancy/reservations when grid initializes
             occupancy.Clear();
@@ -148,7 +148,7 @@ namespace GridSystem
             {
                 if (!occupancy.ContainsKey(cur))
                 {
-                    Debug.LogWarning($"[Pathfinder] Path found to unoccupied stop at {cur}.");
+//                     Debug.LogWarning($"[Pathfinder] Path found to unoccupied stop at {cur}.");
                     List<Vector2Int> path = new List<Vector2Int>();
                     Vector2Int p = cur;
                     while (p != from) { path.Add(p); p = parent[p.x, p.y]; }

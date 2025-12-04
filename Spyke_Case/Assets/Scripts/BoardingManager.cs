@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -54,6 +54,7 @@ public class BoardingManager : MonoBehaviour
         StopManager.OnStopRegistered += HandleStopRegistered;
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoved;
         MetroManager.OnTrainAdjustmentStateChanged += HandleTrainAdjustmentStateChanged;
+        MetroManager.OnSpeedMultiplierChanged += HandleSpeedChanged;
     }
 
     void OnDestroy()
@@ -66,6 +67,7 @@ public class BoardingManager : MonoBehaviour
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoved;
         }
         MetroManager.OnTrainAdjustmentStateChanged -= HandleTrainAdjustmentStateChanged;
+        MetroManager.OnSpeedMultiplierChanged -= HandleSpeedChanged;
     }
 
     private static void HandleTrainAdjustmentStateChanged(bool isAdjusting)
@@ -127,6 +129,14 @@ public class BoardingManager : MonoBehaviour
     {
         Debug.Log($"<color=lightblue>Yeni Durak Eklendi:</color> Eşleştirme kontrolü tetiklendi.");
         TryBoardPassengers();
+    }
+    
+    private void HandleSpeedChanged(string newSpeedText)
+    {
+        Debug.Log($"<color=yellow>Hız Değişti: {newSpeedText}</color> Eşleştirme kontrolü tetiklendi.");
+        // Clear the list to force a re-check
+        availableWagonColors.Clear();
+        CheckAvailableWagons();
     }
     
     private void HandleWagonRemoved(MetroWagon removedWagon, Transform removedWagonTransform)

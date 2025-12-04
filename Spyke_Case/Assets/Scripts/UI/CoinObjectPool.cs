@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Coin animasyonları için object pooling sistemi.
-/// Coin sprite ve text prefab'larını pool'da tutar, performans için.
+/// Coin animasyonlarÄ± iÃ§in object pooling sistemi.
+/// Coin sprite ve text prefab'larÄ±nÄ± pool'da tutar, performans iÃ§in.
 /// </summary>
 public class CoinObjectPool : MonoBehaviour
 {
@@ -34,14 +34,14 @@ public class CoinObjectPool : MonoBehaviour
             return;
         }
 
-        // Pool container oluştur
+        // Pool container oluÅŸtur
         if (poolContainer == null)
         {
             poolContainer = new GameObject("CoinObjectPool_Container").transform;
             poolContainer.SetParent(transform);
         }
 
-        // Pool'ları başlat
+        // Pool'larÄ± baÅŸlat
         InitializePools();
     }
 
@@ -83,7 +83,7 @@ public class CoinObjectPool : MonoBehaviour
     }
 
     /// <summary>
-    /// Pool'dan coin sprite alır
+    /// Pool'dan coin sprite alÄ±r
     /// </summary>
     public GameObject GetCoinSprite(Transform parent)
     {
@@ -109,7 +109,7 @@ public class CoinObjectPool : MonoBehaviour
     }
 
     /// <summary>
-    /// Pool'dan floating text alır
+    /// Pool'dan floating text alÄ±r
     /// </summary>
     public GameObject GetFloatingText(Transform parent)
     {
@@ -135,7 +135,7 @@ public class CoinObjectPool : MonoBehaviour
     }
 
     /// <summary>
-    /// Coin sprite'ı pool'a geri döndürür
+    /// Coin sprite'Ä± pool'a geri dÃ¶ndÃ¼rÃ¼r
     /// </summary>
     public void ReturnCoinSprite(GameObject obj)
     {
@@ -148,7 +148,7 @@ public class CoinObjectPool : MonoBehaviour
     }
 
     /// <summary>
-    /// Floating text'i pool'a geri döndürür
+    /// Floating text'i pool'a geri dÃ¶ndÃ¼rÃ¼r
     /// </summary>
     public void ReturnFloatingText(GameObject obj)
     {
@@ -161,17 +161,17 @@ public class CoinObjectPool : MonoBehaviour
     }
 
     /// <summary>
-    /// Tüm aktif objeleri pool'a geri döndürür
+    /// TÃ¼m aktif objeleri pool'a geri dÃ¶ndÃ¼rÃ¼r
     /// </summary>
     public void ReturnAllToPool()
     {
-        // Coin sprite'ları geri döndür
+        // Coin sprite'larÄ± geri dÃ¶ndÃ¼r
         for (int i = activeCoinSprites.Count - 1; i >= 0; i--)
         {
             ReturnCoinSprite(activeCoinSprites[i]);
         }
 
-        // Floating text'leri geri döndür
+        // Floating text'leri geri dÃ¶ndÃ¼r
         for (int i = activeFloatingTexts.Count - 1; i >= 0; i--)
         {
             ReturnFloatingText(activeFloatingTexts[i]);
@@ -179,7 +179,7 @@ public class CoinObjectPool : MonoBehaviour
     }
 
     /// <summary>
-    /// Pool istatistiklerini döndürür
+    /// Pool istatistiklerini dÃ¶ndÃ¼rÃ¼r
     /// </summary>
     public string GetPoolStats()
     {

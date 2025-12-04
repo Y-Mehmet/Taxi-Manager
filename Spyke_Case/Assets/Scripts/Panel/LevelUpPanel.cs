@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
@@ -219,7 +219,7 @@ public class LevelUpPanel : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[LevelUpPanel] QTY column row {rowIndex} has no TextMeshProUGUI component!");
+//             Debug.LogWarning($"[LevelUpPanel] QTY column row {rowIndex} has no TextMeshProUGUI component!");
         }
 
         // Set Description column
@@ -230,7 +230,7 @@ public class LevelUpPanel : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[LevelUpPanel] Description column row {rowIndex} has no TextMeshProUGUI component!");
+//             Debug.LogWarning($"[LevelUpPanel] Description column row {rowIndex} has no TextMeshProUGUI component!");
         }
 
         // Set Amount column
@@ -241,7 +241,7 @@ public class LevelUpPanel : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[LevelUpPanel] Amount column row {rowIndex} has no TextMeshProUGUI component!");
+//             Debug.LogWarning($"[LevelUpPanel] Amount column row {rowIndex} has no TextMeshProUGUI component!");
         }
     }
 

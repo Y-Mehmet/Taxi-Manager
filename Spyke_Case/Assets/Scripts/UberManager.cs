@@ -1,29 +1,29 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 
 /// <summary>
-/// Yolculuğunu tamamlayan vagonları, sıralı bir havuz sistemiyle yönetir.
-/// Her vagon için bir Uber gönderir ve Uber'ler arasında döngüsel bir animasyon mantığı uygular.
+/// YolculuÄŸunu tamamlayan vagonlarÄ±, sÄ±ralÄ± bir havuz sistemiyle yÃ¶netir.
+/// Her vagon iÃ§in bir Uber gÃ¶nderir ve Uber'ler arasÄ±nda dÃ¶ngÃ¼sel bir animasyon mantÄ±ÄŸÄ± uygular.
 /// </summary>
 public class UberManager : MonoBehaviour
 {
     public static UberManager Instance { get; private set; }
 
     [Header("Uber Pool Settings")]
-    [Tooltip("Sahneye spawn edilecek Uber arabası prefabı.")]
+    [Tooltip("Sahneye spawn edilecek Uber arabasÄ± prefabÄ±.")]
     public GameObject uberPrefab;
-    [Tooltip("Havuzdaki toplam Uber sayısı. Bu sistem 3 için tasarlanmıştır.")]
+    [Tooltip("Havuzdaki toplam Uber sayÄ±sÄ±. Bu sistem 3 iÃ§in tasarlanmÄ±ÅŸtÄ±r.")]
     public int poolSize = 3;
-    [Tooltip("Uber'lerin oyun başında duracağı park noktaları (Sırayla atanmalı: 1, 2, 3).")]
+    [Tooltip("Uber'lerin oyun baÅŸÄ±nda duracaÄŸÄ± park noktalarÄ± (SÄ±rayla atanmalÄ±: 1, 2, 3).")]
     public List<Transform> parkingSpots;
-    [Tooltip("Sıradaki Uber'in gelip bekleyeceği nokta.")]
+    [Tooltip("SÄ±radaki Uber'in gelip bekleyeceÄŸi nokta.")]
     public Transform waitingPoint;
 
     [Header("Gameplay")]
-    [Tooltip("Bu sayıya ulaşıldığında oyun biter.")]
+    [Tooltip("Bu sayÄ±ya ulaÅŸÄ±ldÄ±ÄŸÄ±nda oyun biter.")]
     public int maxUberCount = 10;
     public int UberCount { get; private set; } = 1;
 
@@ -54,14 +54,14 @@ public class UberManager : MonoBehaviour
             return;
         }
 
-        // Uber havuzunu oluştur ve park noktalarına yerleştir.
+        // Uber havuzunu oluÅŸtur ve park noktalarÄ±na yerleÅŸtir.
         for (int i = 0; i < poolSize; i++)
         {
             GameObject uber = Instantiate(uberPrefab, parkingSpots[i].position, parkingSpots[i].rotation, this.transform);
             uberPool.AddLast(uber);
         }
 
-        // Başlangıç durumu: 1. ve 2. aktif, 3. pasif.
+        // BaÅŸlangÄ±Ã§ durumu: 1. ve 2. aktif, 3. pasif.
         var first = uberPool.First;
         var second = first.Next;
         var third = second.Next;
@@ -70,7 +70,7 @@ public class UberManager : MonoBehaviour
         second.Value.SetActive(true);
         third.Value.SetActive(false);
 
-        // İlk Uber'i bekleme noktasına taşı.
+        // Ä°lk Uber'i bekleme noktasÄ±na taÅŸÄ±.
         first.Value.transform.DOMove(waitingPoint.position, 1.5f).SetEase(Ease.OutQuad);
     }
 
@@ -98,7 +98,7 @@ public class UberManager : MonoBehaviour
             MetroWagon wagonToCollect = wagonQueue.Dequeue();
             if (wagonToCollect == null) continue;
 
-            // Sayacı GÖREV BAŞINDA artır
+            // SayacÄ± GÃ–REV BAÅINDA artÄ±r
             UberCount++;
             OnUberCountChanged?.Invoke(UberCount);
             
@@ -124,11 +124,11 @@ public class UberManager : MonoBehaviour
 
             bool isLastMission = UberCount >= maxUberCount;
 
-            // Görevdeki Uber'i ve sıradakini (varsa) al
+            // GÃ¶revdeki Uber'i ve sÄ±radakini (varsa) al
             GameObject uber1_mission = uberPool.First.Value;
             GameObject uber2_waiting = isLastMission ? null : uberPool.First.Next.Value;
 
-            // Trenin kendini ayarlaması için vagonun kaldırıldığını bildir
+            // Trenin kendini ayarlamasÄ± iÃ§in vagonun kaldÄ±rÄ±ldÄ±ÄŸÄ±nÄ± bildir
             if (WagonManager.Instance != null)
             {
                 WagonManager.Instance.DeregisterWagon(wagonToCollect);
@@ -155,7 +155,7 @@ public class UberManager : MonoBehaviour
             // Wait for the animation to complete before continuing the Uber sequence
             yield return collectSequence.WaitForCompletion();
 
-            // Animasyonları oluştur
+            // AnimasyonlarÄ± oluÅŸtur
             Sequence sequence = DOTween.Sequence();
             Vector3 uber1_startPos = uber1_mission.transform.position;
             Vector3 targetPos1 = new Vector3(uber1_startPos.x, uber1_startPos.y, uber1_startPos.z + targetZOffset);
@@ -163,12 +163,12 @@ public class UberManager : MonoBehaviour
 
             if (uber2_waiting != null)
             {
-                // NORMAL GÖREV: Sıradaki Uber'i bekleme noktasına getir.
+                // NORMAL GÃ–REV: SÄ±radaki Uber'i bekleme noktasÄ±na getir.
                 sequence.Join(uber2_waiting.transform.DOMove(waitingPoint.position, animationDuration).SetEase(Ease.InOutSine));
             }
             else
             {
-                // SON GÖREV: Diğer tüm Uber'leri deaktif et.
+                // SON GÃ–REV: DiÄŸer tÃ¼m Uber'leri deaktif et.
                 if(uberPool.First.Next != null) uberPool.First.Next.Value.SetActive(false);
                 if(uberPool.Last != null) uberPool.Last.Value.SetActive(false);
             }
@@ -176,20 +176,20 @@ public class UberManager : MonoBehaviour
             // Animasyonun bitmesini bekle
             yield return sequence.WaitForCompletion();
 
-            // --- Animasyon Sonrası Mantık ---
-            uber1_mission.SetActive(false); // Görevdeki Uber her zaman pasif olur
+            // --- Animasyon SonrasÄ± MantÄ±k ---
+            uber1_mission.SetActive(false); // GÃ¶revdeki Uber her zaman pasif olur
 
             if (isLastMission)
             {
-                // SON GÖREV TAMAMLANDI: Oyunu bitir.
+                // SON GÃ–REV TAMAMLANDI: Oyunu bitir.
                 OnGameOver?.Invoke();
                 Debug.LogError("GAME OVER: Last Uber has completed its mission!");
                 isSequenceRunning = false;
-                yield break; // Coroutine'i tamamen sonlandır.
+                yield break; // Coroutine'i tamamen sonlandÄ±r.
             }
             else
             {
-                // NORMAL GÖREV: Uber havuzunu bir sonraki tura hazırla.
+                // NORMAL GÃ–REV: Uber havuzunu bir sonraki tura hazÄ±rla.
                 uberPool.RemoveFirst();
                 uberPool.AddLast(uber1_mission);
                 uber1_mission.transform.position = parkingSpots[parkingSpots.Count - 1].position;

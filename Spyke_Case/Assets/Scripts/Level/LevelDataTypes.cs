@@ -1,8 +1,8 @@
-
+﻿
 using UnityEngine;
 using System.Collections.Generic;
 
-// Bu dosya, LevelSpawnSO içinde kullanılacak olan veri yapılarını barındırır.
+// Bu dosya, LevelSpawnSO iÃ§inde kullanÄ±lacak olan veri yapÄ±larÄ±nÄ± barÄ±ndÄ±rÄ±r.
 
 [System.Serializable]
 public struct PassengerSpawnData
@@ -15,11 +15,11 @@ public struct PassengerSpawnData
 [System.Serializable]
 public struct UnderpassSpawnData
 {
-    [Tooltip("Alt geçit prefabının yerleştirileceği grid hücresi.")]
+    [Tooltip("Alt geÃ§it prefabÄ±nÄ±n yerleÅŸtirileceÄŸi grid hÃ¼cresi.")]
     public Vector2Int position;
-    [Tooltip("Aktif yolcunun alt geçide göre duracağı yön. Örn: (-1, 0) -> sol tarafı.")]
+    [Tooltip("Aktif yolcunun alt geÃ§ide gÃ¶re duracaÄŸÄ± yÃ¶n. Ã–rn: (-1, 0) -> sol tarafÄ±.")]
     public Vector2Int direction;
-    [Tooltip("Bu alt geçidin kullanacağı yolcu renk sırası.")]
+    [Tooltip("Bu alt geÃ§idin kullanacaÄŸÄ± yolcu renk sÄ±rasÄ±.")]
     public List<HyperCasualColor> passengerSequence;
 }
 

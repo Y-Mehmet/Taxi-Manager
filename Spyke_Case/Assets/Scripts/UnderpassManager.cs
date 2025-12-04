@@ -1,7 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
-// LevelSpawner'dan aldığı veriyle Underpass prefab'larını oluşturur ve yönetir.
+// LevelSpawner'dan aldÄ±ÄŸÄ± veriyle Underpass prefab'larÄ±nÄ± oluÅŸturur ve yÃ¶netir.
 public class UnderpassManager : MonoBehaviour
 {
     public static UnderpassManager Instance { get; private set; }
@@ -27,7 +27,7 @@ public class UnderpassManager : MonoBehaviour
 
         if (underpassPrefab == null || passengerPrefab == null)
         {
-            Debug.LogError("UnderpassManager'a gerekli prefablar atanmamış!");
+            Debug.LogError("UnderpassManager'a gerekli prefablar atanmamÄ±ÅŸ!");
             return;
         }
 
@@ -37,14 +37,14 @@ public class UnderpassManager : MonoBehaviour
             UnderpassController newUnderpass = Instantiate(underpassPrefab, spawnPos, Quaternion.identity, transform);
             newUnderpass.name = $"Underpass_{data.position.x}_{data.position.y}";
             
-            // Her bir alt geçit için SO'dan gelen yön bilgisini ata
+            // Her bir alt geÃ§it iÃ§in SO'dan gelen yÃ¶n bilgisini ata
             newUnderpass.startCellOffset = data.direction;
 
-            // Controller'ı başlat, o da kendi yolcularını oluştursun
+            // Controller'Ä± baÅŸlat, o da kendi yolcularÄ±nÄ± oluÅŸtursun
             newUnderpass.Initialize(this.gridManager, data.position, passengerPrefab, data.passengerSequence);
             activeUnderpasses.Add(newUnderpass);
 
-            // Oluşturulan yolcuları, hangi alt geçide ait olduklarını bilmek için haritaya ekle
+            // OluÅŸturulan yolcularÄ±, hangi alt geÃ§ide ait olduklarÄ±nÄ± bilmek iÃ§in haritaya ekle
             foreach (var groupInQueue in newUnderpass.GetQueue())
             {
                 groupToUnderpassMap[groupInQueue] = newUnderpass;

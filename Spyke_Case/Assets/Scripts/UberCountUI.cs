@@ -1,8 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// UberManager'dan gelen verilere göre kalan Uber hakkını UI'da gösterir.
+/// UberManager'dan gelen verilere gÃ¶re kalan Uber hakkÄ±nÄ± UI'da gÃ¶sterir.
 /// </summary>
 [RequireComponent(typeof(TextMeshProUGUI))]
 public class UberCountUI : MonoBehaviour
@@ -24,17 +24,17 @@ public class UberCountUI : MonoBehaviour
             return;
         }
 
-        // Başlangıç değerlerini al ve olaylara abone ol
+        // BaÅŸlangÄ±Ã§ deÄŸerlerini al ve olaylara abone ol
         maxCount = UberManager.Instance.maxUberCount;
         UberManager.OnUberCountChanged += UpdateText;
 
-        // Başlangıç metnini ayarla
+        // BaÅŸlangÄ±Ã§ metnini ayarla
         UpdateText(UberManager.Instance.UberCount);
     }
 
     void OnDestroy()
     {
-        // Bellek sızıntısını önle
+        // Bellek sÄ±zÄ±ntÄ±sÄ±nÄ± Ã¶nle
         if (UberManager.Instance != null)
         {
             UberManager.OnUberCountChanged -= UpdateText;
@@ -42,7 +42,7 @@ public class UberCountUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Sayaç her değiştiğinde metni günceller.
+    /// SayaÃ§ her deÄŸiÅŸtiÄŸinde metni gÃ¼nceller.
     /// </summary>
     private void UpdateText(int currentCount)
     {

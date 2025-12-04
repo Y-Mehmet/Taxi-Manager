@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using GridSystem;
@@ -63,7 +63,7 @@ public class PassengerGroup : MonoBehaviour
     [Header("Initialization")]
     [Tooltip("If true, this object will be placed at `gridPos` on Start(). Leave false for manual placement.")]
     public bool useGridPosition = false;
-    [Header("Yön Göstergesi")]
+    [Header("YÃ¶n GÃ¶stergesi")]
     public Transform directionIndicator;
 
     [Header("Effects")]
@@ -139,7 +139,7 @@ public class PassengerGroup : MonoBehaviour
                 gridPos = inferred;
                 if (PassengerGrid.Instance.IsOccupied(gridPos))
                 {
-                    Debug.LogWarning($"Passenger '{name}' manual placement at {gridPos} conflicts with existing occupant.");
+//                     Debug.LogWarning($"Passenger '{name}' manual placement at {gridPos} conflicts with existing occupant.");
                 }
                 PassengerGrid.Instance.RegisterOccupant(gridPos, this);
             }
@@ -202,13 +202,13 @@ public class PassengerGroup : MonoBehaviour
     {
         if (isMoving)
         {
-            Debug.LogWarning($"Yolcu '{name}' zaten hareket halinde olduğu için yeni hareket başlatılamadı.");
+//             Debug.LogWarning($"Yolcu '{name}' zaten hareket halinde olduÄŸu iÃ§in yeni hareket baÅŸlatÄ±lamadÄ±.");
             return;
         }
 
         if (StopManager.Instance != null && !StopManager.Instance.HasAvailableStops())
         {
-            Debug.LogWarning($"Tüm duraklar dolu veya rezerve edilmiş. '{name}' için hareket başlatılamadı.");
+//             Debug.LogWarning($"TÃ¼m duraklar dolu veya rezerve edilmiÅŸ. '{name}' iÃ§in hareket baÅŸlatÄ±lamadÄ±.");
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.ShowFloatingText("All Stops Full", transform.position);
@@ -220,12 +220,12 @@ public class PassengerGroup : MonoBehaviour
         var cell = PassengerGrid.Instance.GetCell(nextPos.x, nextPos.y);
         if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
         {
-            Debug.Log($"PassengerGroup hareket edemedi. Engel veya grid dışı: {nextPos}");
+            Debug.Log($"PassengerGroup hareket edemedi. Engel veya grid dÄ±ÅŸÄ±: {nextPos}");
             StartCoroutine(BounceVisual());
             return;
         }
 
-        Debug.LogWarning($"[MoveStart] Passenger '{name}' at {gridPos} moving {moveDirection}");
+//         Debug.LogWarning($"[MoveStart] Passenger '{name}' at {gridPos} moving {moveDirection}");
 
         List<Vector2Int> straightVec = new List<Vector2Int>();
         Vector2Int pathfindingStartPoint = gridPos;
@@ -246,13 +246,13 @@ public class PassengerGroup : MonoBehaviour
     {
         if (isMoving)
         {
-            Debug.LogWarning($"[UniversalMove] Yolcu '{name}' zaten hareket halinde olduğu için yeni hareket başlatılamadı.");
+//             Debug.LogWarning($"[UniversalMove] Yolcu '{name}' zaten hareket halinde olduÄŸu iÃ§in yeni hareket baÅŸlatÄ±lamadÄ±.");
             return;
         }
 
         if (StopManager.Instance == null || !StopManager.Instance.HasAvailableStops())
         {
-            Debug.LogWarning($"[UniversalMove] Tüm duraklar dolu veya rezerve edilmiş. '{name}' için hareket başlatılamadı.");
+//             Debug.LogWarning($"[UniversalMove] TÃ¼m duraklar dolu veya rezerve edilmiÅŸ. '{name}' iÃ§in hareket baÅŸlatÄ±lamadÄ±.");
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.ShowFloatingText("All Stops Full", transform.position);
@@ -261,7 +261,7 @@ public class PassengerGroup : MonoBehaviour
         }
 
         Vector2Int pathfindingStartPoint = gridPos;
-        Debug.LogWarning($"[UniversalMove] Passenger '{name}' at {gridPos} starting a 4-way search.");
+//         Debug.LogWarning($"[UniversalMove] Passenger '{name}' at {gridPos} starting a 4-way search.");
 
         AttemptPathfinding(pathfindingStartPoint, new List<Vector2Int>());
     }
@@ -271,7 +271,7 @@ public class PassengerGroup : MonoBehaviour
         var reservation = StopManager.Instance.ReserveFirstFreeStop(this);
         if (reservation == null)
         {
-            Debug.LogWarning($"[PathPlan] Could not reserve a stop for {name}. Pathfinding aborted.");
+//             Debug.LogWarning($"[PathPlan] Could not reserve a stop for {name}. Pathfinding aborted.");
             StartCoroutine(BounceVisual());
             return;
         }
@@ -288,7 +288,7 @@ public class PassengerGroup : MonoBehaviour
         {
             List<Vector2Int> fullPath = new List<Vector2Int>(initialPathSegment);
             fullPath.AddRange(path);
-            Debug.LogWarning($"[PathPlan] Path found for {name}. Length: {fullPath.Count}. Starting movement.");
+//             Debug.LogWarning($"[PathPlan] Path found for {name}. Length: {fullPath.Count}. Starting movement.");
             StartCoroutine(ExecuteContinuousPath(fullPath, stopIndex, stopWorldPos));
         }
         else
@@ -580,7 +580,7 @@ public class PassengerGroup : MonoBehaviour
                 var step = fullPath[segmentEndIdx];
                 if (obstacle.isMoving)
                 {
-                    Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by moving passenger '{obstacle.name}'. Waiting.");
+//                     Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by moving passenger '{obstacle.name}'. Waiting.");
                     yield return new WaitUntil(() => PassengerGrid.Instance.GetOccupant(step) != obstacle || !obstacle.isMoving);
                     continue;
                 }
@@ -588,11 +588,11 @@ public class PassengerGroup : MonoBehaviour
                 bool isJumpable = (occupiedCell.cellType == GridCellType.Stop || occupiedCell.cellType == GridCellType.Walkable);
                 if (isJumpable)
                 {
-                    Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is stationary on a jumpable tile. Waiting 0.5s.");
+//                     Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is stationary on a jumpable tile. Waiting 0.5s.");
                     yield return new WaitForSeconds(0.5f);
                     if (PassengerGrid.Instance.GetOccupant(step) == obstacle)
                     {
-                        Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
+//                         Debug.LogWarning($"[ContinuousPath] Occupant '{obstacle.name}' is still there. Aborting path.");
                         if(obstacle != null)
                         {
                             Transform transformToShake = obstacle.modelTransform != null ? obstacle.modelTransform : obstacle.transform;
@@ -606,7 +606,7 @@ public class PassengerGroup : MonoBehaviour
                     }
                     continue;
                 }
-                Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by non-jumpable obstacle '{obstacle.name}'. Returning to origin.");
+//                 Debug.LogWarning($"[ContinuousPath] Path at {step} is blocked by non-jumpable obstacle '{obstacle.name}'. Returning to origin.");
                 if(obstacle != null)
                 { 
                     SoundManager.instance.PlaySfxSequentially(SoundType.Crush, SoundType.Corna);
@@ -615,7 +615,7 @@ public class PassengerGroup : MonoBehaviour
                     if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
                         {
                             GameManager.Instance.CurrentInvoice.OnCrashOccurred();
-                            Debug.LogWarning($"<color=red>CRASH!</color> {name} collided with {obstacle.name}");
+//                             Debug.LogWarning($"<color=red>CRASH!</color> {name} collided with {obstacle.name}");
                             
                             if (UIManager.Instance != null)
                             {
@@ -896,7 +896,7 @@ public class PassengerGroup : MonoBehaviour
         else
         {
             // If no path, teleport and also apply the final rotation.
-            Debug.LogWarning($"[ReturnToOrigin] No path found for {name} to return home from {gridPos} to {originGridPos}. Teleporting as fallback.");
+//             Debug.LogWarning($"[ReturnToOrigin] No path found for {name} to return home from {gridPos} to {originGridPos}. Teleporting as fallback.");
             transform.position = originalPosition;
             PassengerGrid.Instance.UnregisterOccupant(gridPos, this);
             gridPos = originGridPos;
@@ -916,7 +916,7 @@ public class PassengerGroup : MonoBehaviour
 
     private void LogPathNotFound()
     {
-        Debug.Log("Yol bulunamadı");
+        Debug.Log("Yol bulunamadÄ±");
         // We can add a visual feedback for the player here later.
     }
 
@@ -960,14 +960,14 @@ public class PassengerGroup : MonoBehaviour
     {
         if (StopManager.Instance != null && !StopManager.Instance.HasAvailableStops())
         {
-            Debug.LogWarning($"[{name}] Cannot move from conveyor: All stops are full or reserved.");
+//             Debug.LogWarning($"[{name}] Cannot move from conveyor: All stops are full or reserved.");
             return;
         }
 
-        Debug.LogWarning($"[{name}] Attempting to move from conveyor to waiting area.");
+//         Debug.LogWarning($"[{name}] Attempting to move from conveyor to waiting area.");
         if (isMoving) 
         {
-            Debug.LogWarning($"[{name}] Aborting move: Already moving.");
+//             Debug.LogWarning($"[{name}] Aborting move: Already moving.");
             return;
         }
         if (PassengerGrid.Instance == null || PassengerGrid.Instance.gridData == null) 
@@ -1003,7 +1003,7 @@ public class PassengerGroup : MonoBehaviour
 
         if (PassengerGrid.Instance.IsOccupied(closestCell.position))
         {
-            Debug.LogWarning($"[{name}] Aborting move: The closest waiting area cell {closestCell.position} is occupied by another group.");
+//             Debug.LogWarning($"[{name}] Aborting move: The closest waiting area cell {closestCell.position} is occupied by another group.");
             LogPathNotFound();
             return;
         }
@@ -1018,7 +1018,7 @@ public class PassengerGroup : MonoBehaviour
             // Check for terrain blocks
             if (gridCell != null && gridCell.cellType == GridCellType.Blocked)
             {
-                Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by terrain at {cellToTest}.");
+//                 Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by terrain at {cellToTest}.");
                 if (modelTransform != null) modelTransform.DOShakePosition(0.3f, 0.15f);
                 return;
             }
@@ -1029,14 +1029,14 @@ public class PassengerGroup : MonoBehaviour
                 var occupant = PassengerGrid.Instance.GetOccupant(cellToTest);
                 if (occupant != null)
                 {
-                    Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by '{occupant.name}' at {cellToTest}.");
+//                     Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by '{occupant.name}' at {cellToTest}.");
                     if (modelTransform != null) modelTransform.DOShakePosition(0.3f, 0.15f);
                     return;
                 }
             }
         }
 
-        Debug.LogWarning($"[{name}] Closest waiting area cell {closestCell.position} is free. Teleporting and starting pathfind.");
+//         Debug.LogWarning($"[{name}] Closest waiting area cell {closestCell.position} is free. Teleporting and starting pathfind.");
 
         // Step 3: Teleport to the candidate cell and remove from conveyor
         gridPos = closestCell.position;

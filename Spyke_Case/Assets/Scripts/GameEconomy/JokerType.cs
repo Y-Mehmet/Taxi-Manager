@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Joker types for the economy system
 /// </summary>
 public enum JokerType

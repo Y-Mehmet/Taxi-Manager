@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -56,7 +56,7 @@ public static class LevelGenerator
             if (!isSolvable)
             {
                 retries++;
-                Debug.LogWarning($"Level {levelNumber} failed validation. Retrying... ({retries}/{MAX_GENERATION_RETRIES})");
+//                 Debug.LogWarning($"Level {levelNumber} failed validation. Retrying... ({retries}/{MAX_GENERATION_RETRIES})");
             }
 
         } while (!isSolvable && retries < MAX_GENERATION_RETRIES);
@@ -99,7 +99,7 @@ public static class LevelGenerator
                 {
                     if ((nodeA.Position.y > nodeB.Position.y && nodeA.Direction.y < 0) || (nodeB.Position.y > nodeA.Position.y && nodeB.Direction.y < 0))
                     {
-                        Debug.LogWarning($"Level validation failed: Head-on collision detected in column {nodeA.Position.x} between node at {nodeA.Position} and node at {nodeB.Position}.");
+//                         Debug.LogWarning($"Level validation failed: Head-on collision detected in column {nodeA.Position.x} between node at {nodeA.Position} and node at {nodeB.Position}.");
                         return false;
                     }
                 }
@@ -109,7 +109,7 @@ public static class LevelGenerator
                 {
                     if ((nodeA.Position.x > nodeB.Position.x && nodeA.Direction.x < 0) || (nodeB.Position.x > nodeA.Position.x && nodeB.Direction.x < 0))
                     {
-                        Debug.LogWarning($"Level validation failed: Head-on collision detected in row {nodeA.Position.y} between node at {nodeA.Position} and node at {nodeB.Position}.");
+//                         Debug.LogWarning($"Level validation failed: Head-on collision detected in row {nodeA.Position.y} between node at {nodeA.Position} and node at {nodeB.Position}.");
                         return false;
                     }
                 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
-/// Level 1'de oyuncuya oyun mekaniklerini öğreten tutorial sistemi.
+/// Level 1'de oyuncuya oyun mekaniklerini Ã¶ÄŸreten tutorial sistemi.
 /// </summary>
 public class TutorialManager : MonoBehaviour
 {
@@ -14,7 +14,7 @@ public class TutorialManager : MonoBehaviour
 
     [Header("Tutorial Settings")]
     [SerializeField] private bool enableTutorial = true;
-    [SerializeField] private int tutorialLevel = 0; // Tutorial sadece bu levelde çalışır (Level 0 = İlk Level)
+    [SerializeField] private int tutorialLevel = 0; // Tutorial sadece bu levelde Ã§alÄ±ÅŸÄ±r (Level 0 = Ä°lk Level)
 
     [Header("UI References")]
     [SerializeField] private GameObject tutorialCanvas;
@@ -54,17 +54,17 @@ public class TutorialManager : MonoBehaviour
 
     private void Start()
     {
-        // Inspector hatasını önlemek için tutorialLevel'i zorla 0 yap
+        // Inspector hatasÄ±nÄ± Ã¶nlemek iÃ§in tutorialLevel'i zorla 0 yap
         tutorialLevel = 0;
 
-        // Tutorial'ın daha önce tamamlanıp tamamlanmadığını kontrol et
+        // Tutorial'Ä±n daha Ã¶nce tamamlanÄ±p tamamlanmadÄ±ÄŸÄ±nÄ± kontrol et
         if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
         {
             tutorialCompleted = GameDataManager.Instance.GetSaveData().isTutorialShown;
         }
         else
         {
-            Debug.LogWarning("[TutorialManager] GameDataManager not found or Data is null. Defaulting tutorialCompleted to false.");
+//             Debug.LogWarning("[TutorialManager] GameDataManager not found or Data is null. Defaulting tutorialCompleted to false.");
             tutorialCompleted = false;
         }
 
@@ -76,13 +76,13 @@ public class TutorialManager : MonoBehaviour
             return;
         }
 
-        // Tutorial UI'ını başlat
+        // Tutorial UI'Ä±nÄ± baÅŸlat
         InitializeTutorialUI();
 
         // Event'leri dinle
         StopManager.OnPassengerArrivedAtStop += OnPassengerArrivedAtStop;
         
-        // Tutorial'ı başlat
+        // Tutorial'Ä± baÅŸlat
         StartCoroutine(StartTutorialSequence());
     }
 
@@ -107,7 +107,7 @@ public class TutorialManager : MonoBehaviour
             return false;
         }
         
-        // Sadece belirtilen levelde tutorial göster
+        // Sadece belirtilen levelde tutorial gÃ¶ster
         if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
         {
             int currentLevelIndex = GameDataManager.Instance.GetSaveData().levelIndex;
@@ -119,7 +119,7 @@ public class TutorialManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[TutorialManager] GameDataManager or SaveData is null! Skipping level check.");
+//             Debug.LogWarning("[TutorialManager] GameDataManager or SaveData is null! Skipping level check.");
             reason = "GameDataManager or SaveData is null.";
             return false;
         }
@@ -162,7 +162,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(reason))
         {
-            Debug.LogWarning($"[TutorialManager] Disabling tutorial. Reason: {reason}");
+//             Debug.LogWarning($"[TutorialManager] Disabling tutorial. Reason: {reason}");
         }
         
         if (tutorialCanvas != null)
@@ -179,21 +179,21 @@ public class TutorialManager : MonoBehaviour
         InputManager.Instance.DisableInput();
         Debug.Log("[TutorialManager] ALL INPUT DISABLED for 3 seconds.");
     }
-        // 1. Oyunun başlamasını ve vagonların ilerlemesini bekle (3 saniye)
+        // 1. Oyunun baÅŸlamasÄ±nÄ± ve vagonlarÄ±n ilerlemesini bekle (3 saniye)
         yield return new WaitForSeconds(3f);
 
         currentStep = TutorialStep.WaitingForStart;
         
-        // Vagonları durdur
+        // VagonlarÄ± durdur
         SetMetroMovementActive(false);
 
-        // 2. İlk adım: Bilgilendirme ve İlk Passenger
+        // 2. Ä°lk adÄ±m: Bilgilendirme ve Ä°lk Passenger
         yield return StartCoroutine(Step1_ClickFirstPassenger());
 
-        // 3. İkinci adım: Boarding'i bekle
+        // 3. Ä°kinci adÄ±m: Boarding'i bekle
         yield return StartCoroutine(Step2_WaitForBoardingAndSecondPassenger());
 
-        // Tutorial tamamlandı
+        // Tutorial tamamlandÄ±
         CompleteTutorial();
     }
 
@@ -203,7 +203,7 @@ public class TutorialManager : MonoBehaviour
         
         Debug.Log("[Tutorial] Step 1: Click First Passenger");
 
-        // Passengerları bul ve sırala
+        // PassengerlarÄ± bul ve sÄ±rala
         List<PassengerGroup> passengers = GetSortedPassengers();
         if (passengers.Count > 0)
         {
@@ -218,7 +218,7 @@ public class TutorialManager : MonoBehaviour
             yield break;
         }
 
-        // Overlay ve Metni göster
+        // Overlay ve Metni gÃ¶ster
         if (darkOverlay != null) darkOverlay.gameObject.SetActive(true);
         if (tutorialCanvas != null) tutorialCanvas.SetActive(true);
 
@@ -227,7 +227,7 @@ public class TutorialManager : MonoBehaviour
             tutorialText.text = "Don't lose passengers to VIP cars!\nSend a car to the stop!";
         }
 
-        // Passenger'ı highlight et ve El animasyonunu başlat
+        // Passenger'Ä± highlight et ve El animasyonunu baÅŸlat
         ShowHighlight(targetPassenger.transform);
         ShowHandAnimation(targetPassenger.transform);
 if (InputManager.Instance != null)
@@ -239,42 +239,42 @@ if (InputManager.Instance != null)
         isInputBlocked = true;
         InputManager.OnPassengerGroupTapped += OnTutorialPassengerTapped;
 
-        // Tıklanana kadar bekle
+        // TÄ±klanana kadar bekle
         yield return new WaitUntil(() => currentStep != TutorialStep.ClickFirstPassenger);
 
-        // --- Tıklama Sonrası ---
+        // --- TÄ±klama SonrasÄ± ---
         
-        // Input dinlemeyi bırak
+        // Input dinlemeyi bÄ±rak
         InputManager.OnPassengerGroupTapped -= OnTutorialPassengerTapped;
         
-        // Görselleri kapat
+        // GÃ¶rselleri kapat
         HideHandAnimation();
         HideHighlight();
         if (darkOverlay != null) darkOverlay.gameObject.SetActive(false);
         if (tutorialText != null) tutorialText.text = "";
 
-        // Vagonları tekrar hareket ettir
+        // VagonlarÄ± tekrar hareket ettir
         SetMetroMovementActive(true);
         
-        // Input bloğunu kaldır
+        // Input bloÄŸunu kaldÄ±r
         isInputBlocked = false;
         
-        Debug.LogWarning("<color=green>[Tutorial] Step1_ClickFirstPassenger COMPLETED!</color>");
+//         Debug.LogWarning("<color=green>[Tutorial] Step1_ClickFirstPassenger COMPLETED!</color>");
         
-        // *** TUTORIAL TAMAMLANDI OLARAK İŞARETLE ***
-        // Step1 tamamlandığında tutorial'ı "gösterildi" olarak kaydet
-        // Böylece oyuncu bir daha tutorial görmez
+        // *** TUTORIAL TAMAMLANDI OLARAK Ä°ÅARETLE ***
+        // Step1 tamamlandÄ±ÄŸÄ±nda tutorial'Ä± "gÃ¶sterildi" olarak kaydet
+        // BÃ¶ylece oyuncu bir daha tutorial gÃ¶rmez
         tutorialCompleted = true;
         
         if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
         {
             GameDataManager.Instance.GetSaveData().isTutorialShown = true;
             GameDataManager.Instance.SaveGame();
-            Debug.LogWarning("<color=yellow>[Tutorial] ✓ isTutorialShown = TRUE saved after Step1!</color>");
+//             Debug.LogWarning("<color=yellow>[Tutorial] âœ“ isTutorialShown = TRUE saved after Step1!</color>");
         }
         else
         {
-            Debug.LogWarning("<color=red>[Tutorial] ✗ GameDataManager or SaveData is null! Could not save tutorial completion!</color>");
+//             Debug.LogWarning("<color=red>[Tutorial] âœ— GameDataManager or SaveData is null! Could not save tutorial completion!</color>");
         }
     }
 
@@ -283,58 +283,58 @@ if (InputManager.Instance != null)
         currentStep = TutorialStep.WaitForBoarding;
         Debug.Log("[Tutorial] Step 2: Wait For Boarding");
 
-        // İlk passenger dolana kadar bekle
+        // Ä°lk passenger dolana kadar bekle
         PassengerGroup firstPassenger = targetPassenger;
         yield return new WaitUntil(() => firstPassenger == null || !firstPassenger.gameObject.activeInHierarchy || firstPassenger.GroupSize <= 0);
 
         Debug.Log("[Tutorial] First passenger boarded/left. Finding second passenger...");
 
-        // --- İkinci Passenger ---
+        // --- Ä°kinci Passenger ---
         
-        // Vagonları tekrar durdur
+        // VagonlarÄ± tekrar durdur
         SetMetroMovementActive(false);
 
-        // İkinci passenger'ı bulmak için biraz bekle (sahne güncellensin)
+        // Ä°kinci passenger'Ä± bulmak iÃ§in biraz bekle (sahne gÃ¼ncellensin)
         yield return new WaitForSeconds(0.5f);
 
         PassengerGroup secondTarget = null;
         
-        // Doğru passenger'ı bulana kadar dene (maksimum 5 saniye)
+        // DoÄŸru passenger'Ä± bulana kadar dene (maksimum 5 saniye)
         float timeout = 5f;
         float timer = 0f;
 
         while (secondTarget == null && timer < timeout)
         {
             List<PassengerGroup> passengers = GetSortedPassengers();
-            Debug.LogWarning($"[Tutorial] Search attempt {timer}: Found {passengers.Count} candidates.");
+//             Debug.LogWarning($"[Tutorial] Search attempt {timer}: Found {passengers.Count} candidates.");
 
             foreach(var p in passengers)
             {
                 if (p == firstPassenger) 
                 {
-                    Debug.LogWarning($"[Tutorial] Skipping {p.name}: Is first passenger.");
+//                     Debug.LogWarning($"[Tutorial] Skipping {p.name}: Is first passenger.");
                     continue;
                 }
                 if (p.GroupSize <= 0)
                 {
-                    Debug.LogWarning($"[Tutorial] Skipping {p.name}: GroupSize is {p.GroupSize}.");
+//                     Debug.LogWarning($"[Tutorial] Skipping {p.name}: GroupSize is {p.GroupSize}.");
                     continue;
                 }
                 if (p.onConveyorBelt || p.fromConveyor)
                 {
-                    Debug.LogWarning($"[Tutorial] Skipping {p.name}: On conveyor belt.");
+//                     Debug.LogWarning($"[Tutorial] Skipping {p.name}: On conveyor belt.");
                     continue;
                 }
 
                 // Uygun aday bulundu
-                Debug.LogWarning($"[Tutorial] Found suitable second passenger: {p.name}");
+//                 Debug.LogWarning($"[Tutorial] Found suitable second passenger: {p.name}");
                 secondTarget = p;
                 break;
             }
 
             if (secondTarget == null)
             {
-                Debug.LogWarning("[Tutorial] No suitable passenger found in this attempt. Retrying...");
+//                 Debug.LogWarning("[Tutorial] No suitable passenger found in this attempt. Retrying...");
                 yield return new WaitForSeconds(0.5f);
                 timer += 0.5f;
             }
@@ -346,7 +346,7 @@ if (InputManager.Instance != null)
             
             Debug.Log($"[Tutorial] Step 2.5: Click Second Passenger ({targetPassenger.name})");
             
-            // Canvas'ı ve El animasyonunu göster
+            // Canvas'Ä± ve El animasyonunu gÃ¶ster
             if (tutorialCanvas != null) tutorialCanvas.SetActive(true);
             ShowHandAnimation(targetPassenger.transform);
             
@@ -354,9 +354,9 @@ if (InputManager.Instance != null)
             isInputBlocked = true;
             InputManager.OnPassengerGroupTapped += OnTutorialPassengerTapped;
 
-            // Tıklanana kadar bekle
+            // TÄ±klanana kadar bekle
             // Not: OnTutorialPassengerTapped, currentStep'i WaitForPassengerAtStop yapacak.
-            // Bu yüzden currentStep'i ClickFirstPassenger olarak ayarlıyoruz.
+            // Bu yÃ¼zden currentStep'i ClickFirstPassenger olarak ayarlÄ±yoruz.
             currentStep = TutorialStep.ClickFirstPassenger; 
             
             yield return new WaitUntil(() => currentStep != TutorialStep.ClickFirstPassenger);
@@ -364,22 +364,22 @@ if (InputManager.Instance != null)
             InputManager.OnPassengerGroupTapped -= OnTutorialPassengerTapped;
             HideHandAnimation();
             
-            // Vagonları başlat
+            // VagonlarÄ± baÅŸlat
             SetMetroMovementActive(true);
             
-            // *** ÖNEMLİ: İkinci passenger'ın da boarding yapmasını bekle! ***
-            Debug.LogWarning($"[Tutorial] Waiting for second passenger ({targetPassenger.name}) to complete boarding...");
+            // *** Ã–NEMLÄ°: Ä°kinci passenger'Ä±n da boarding yapmasÄ±nÄ± bekle! ***
+//             Debug.LogWarning($"[Tutorial] Waiting for second passenger ({targetPassenger.name}) to complete boarding...");
             PassengerGroup secondPassenger = targetPassenger;
             yield return new WaitUntil(() => secondPassenger == null || !secondPassenger.gameObject.activeInHierarchy || secondPassenger.GroupSize <= 0);
-            Debug.LogWarning("[Tutorial] Second passenger boarding completed!");
+//             Debug.LogWarning("[Tutorial] Second passenger boarding completed!");
         }
         else
         {
-            Debug.LogWarning("[Tutorial] Could not find second passenger!");
+//             Debug.LogWarning("[Tutorial] Could not find second passenger!");
             SetMetroMovementActive(true);
         }
         
-        Debug.LogWarning("<color=green>[Tutorial] Step2_WaitForBoardingAndSecondPassenger COMPLETED!</color>");
+//         Debug.LogWarning("<color=green>[Tutorial] Step2_WaitForBoardingAndSecondPassenger COMPLETED!</color>");
     }
 
     private void OnTutorialPassengerTapped(PassengerGroup tappedPassenger)
@@ -389,7 +389,7 @@ if (InputManager.Instance != null)
         if (tappedPassenger == targetPassenger)
         {
             Debug.Log("[Tutorial] Correct passenger tapped!");
-            currentStep = TutorialStep.WaitForPassengerAtStop; // Döngüden çıkmak için durumu değiştiriyoruz
+            currentStep = TutorialStep.WaitForPassengerAtStop; // DÃ¶ngÃ¼den Ã§Ä±kmak iÃ§in durumu deÄŸiÅŸtiriyoruz
         }
     }
 
@@ -501,26 +501,26 @@ if (InputManager.Instance != null)
     {
         currentStep = TutorialStep.TutorialComplete;
 
-        Debug.LogWarning("<color=yellow>[Tutorial] Tutorial completed!</color>");
+//         Debug.LogWarning("<color=yellow>[Tutorial] Tutorial completed!</color>");
 
         // Tutorial zaten Step1'de kaydedildi, tekrar kaydetmeye gerek yok
         if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
         {
             if (!GameDataManager.Instance.GetSaveData().isTutorialShown)
             {
-                // Eğer bir şekilde Step1'de kaydedilmemişse burada kaydet
+                // EÄŸer bir ÅŸekilde Step1'de kaydedilmemiÅŸse burada kaydet
                 GameDataManager.Instance.GetSaveData().isTutorialShown = true;
                 GameDataManager.Instance.SaveGame();
-                Debug.LogWarning("[Tutorial] Saved tutorial completion to GameDataManager (fallback).");
+//                 Debug.LogWarning("[Tutorial] Saved tutorial completion to GameDataManager (fallback).");
             }
             else
             {
-                Debug.LogWarning("[Tutorial] Tutorial already saved in Step1, skipping duplicate save.");
+//                 Debug.LogWarning("[Tutorial] Tutorial already saved in Step1, skipping duplicate save.");
             }
         }
         else
         {
-            Debug.LogWarning("[Tutorial] GameDataManager or SaveData is null!");
+//             Debug.LogWarning("[Tutorial] GameDataManager or SaveData is null!");
         }
 
         if (tutorialCanvas != null) tutorialCanvas.SetActive(false);

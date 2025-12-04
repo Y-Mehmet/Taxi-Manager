@@ -1,18 +1,18 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// Ability kullanım sayaçlarını takip eder
-/// Her ability için ilk kullanım 100, sonraki her kullanımda 2x artar (100, 200, 400, 800...)
+/// Ability kullanÄ±m sayaÃ§larÄ±nÄ± takip eder
+/// Her ability iÃ§in ilk kullanÄ±m 100, sonraki her kullanÄ±mda 2x artar (100, 200, 400, 800...)
 /// </summary>
 public class AbilityUsageTracker : MonoBehaviour
 {
     public static AbilityUsageTracker Instance { get; private set; }
 
-    // Her ability için kullanım sayısı
+    // Her ability iÃ§in kullanÄ±m sayÄ±sÄ±
     private Dictionary<AbilityType, int> usageCount = new Dictionary<AbilityType, int>();
 
-    // İlk kullanım maliyeti
+    // Ä°lk kullanÄ±m maliyeti
     private const int BASE_COST = 100;
 
     private void Awake()
@@ -30,12 +30,12 @@ public class AbilityUsageTracker : MonoBehaviour
 
     private void Start()
     {
-        // Level başında sayaçları sıfırla
+        // Level baÅŸÄ±nda sayaÃ§larÄ± sÄ±fÄ±rla
         ResetUsageCounts();
     }
 
     /// <summary>
-    /// Level başında tüm sayaçları sıfırla
+    /// Level baÅŸÄ±nda tÃ¼m sayaÃ§larÄ± sÄ±fÄ±rla
     /// </summary>
     public void ResetUsageCounts()
     {
@@ -45,10 +45,10 @@ public class AbilityUsageTracker : MonoBehaviour
 
     /// <summary>
     /// Ability'nin mevcut maliyetini hesapla
-    /// İlk kullanım: 100
-    /// 2. kullanım: 200
-    /// 3. kullanım: 400
-    /// 4. kullanım: 800
+    /// Ä°lk kullanÄ±m: 100
+    /// 2. kullanÄ±m: 200
+    /// 3. kullanÄ±m: 400
+    /// 4. kullanÄ±m: 800
     /// </summary>
     public int GetAbilityCost(AbilityType type)
     {
@@ -61,7 +61,7 @@ public class AbilityUsageTracker : MonoBehaviour
     }
 
     /// <summary>
-    /// Ability kullanıldığında sayacı artır
+    /// Ability kullanÄ±ldÄ±ÄŸÄ±nda sayacÄ± artÄ±r
     /// </summary>
     public void OnAbilityUsed(AbilityType type)
     {
@@ -76,7 +76,7 @@ public class AbilityUsageTracker : MonoBehaviour
     }
 
     /// <summary>
-    /// Ability'nin kaç kez kullanıldığını döndür
+    /// Ability'nin kaÃ§ kez kullanÄ±ldÄ±ÄŸÄ±nÄ± dÃ¶ndÃ¼r
     /// </summary>
     public int GetUsageCount(AbilityType type)
     {
@@ -88,7 +88,7 @@ public class AbilityUsageTracker : MonoBehaviour
     }
 
     /// <summary>
-    /// Ability'nin bir sonraki kullanım maliyetini döndür (kullanım sonrası)
+    /// Ability'nin bir sonraki kullanÄ±m maliyetini dÃ¶ndÃ¼r (kullanÄ±m sonrasÄ±)
     /// </summary>
     public int GetNextCost(AbilityType type)
     {

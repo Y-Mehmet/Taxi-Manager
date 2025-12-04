@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using GridSystem.Data;
@@ -14,7 +14,7 @@ public class GridManager : MonoBehaviour
     {
         if (data == null || gridVisualizer == null)
         {
-            Debug.LogError("Initialize için GridData veya GridVisualizer atanmamış!");
+            Debug.LogError("Initialize iÃ§in GridData veya GridVisualizer atanmamÄ±ÅŸ!");
             return;
         }
         this.gridData = data;
@@ -48,7 +48,7 @@ public class GridManager : MonoBehaviour
 
     private IEnumerator RebuildGridDelayed()
     {
-        // Eski görselleri temizle
+        // Eski gÃ¶rselleri temizle
         foreach (Transform child in gridVisualizer.transform)
         {
             Destroy(child.gameObject);
@@ -56,7 +56,7 @@ public class GridManager : MonoBehaviour
         
         yield return null; // Bir frame bekle
 
-        // Eğer cells listesi boşsa yeni hücreler WaitingArea olacak şekilde oluştur
+        // EÄŸer cells listesi boÅŸsa yeni hÃ¼creler WaitingArea olacak ÅŸekilde oluÅŸtur
         List<GridCell> newCells = new List<GridCell>();
         for (int y = 0; y < gridData.height; y++)
         {
@@ -65,14 +65,14 @@ public class GridManager : MonoBehaviour
                 int index = y * gridData.width + x;
                 if (gridData.cells != null && index < gridData.cells.Count)
                 {
-                    // Mevcut hücreyi koru (pozisyonu güncelle)
+                    // Mevcut hÃ¼creyi koru (pozisyonu gÃ¼ncelle)
                     var existing = gridData.cells[index];
                     existing.position = new Vector2Int(x, y);
                     newCells.Add(existing);
                 }
                 else
                 {
-                    // Yeni hücre: kenar hücreleri Walkable, iç hücreleri WaitingArea yap
+                    // Yeni hÃ¼cre: kenar hÃ¼creleri Walkable, iÃ§ hÃ¼creleri WaitingArea yap
                     bool isBorder = (x == 0 || y == 0 || x == gridData.width - 1 || y == gridData.height - 1);
                     var defaultType = isBorder ? GridCellType.Walkable : GridCellType.WaitingArea;
                     newCells.Add(new GridCell(new Vector2Int(x, y), defaultType));
@@ -81,7 +81,7 @@ public class GridManager : MonoBehaviour
         }
         gridData.cells = newCells;
 
-        // Görselleri oluştur
+        // GÃ¶rselleri oluÅŸtur
         foreach (var cell in gridData.cells)
         {
             gridVisualizer.CreateCellVisual(cell);
@@ -94,12 +94,12 @@ public class GridManager : MonoBehaviour
         return new Vector3(gridPosition.x * gridData.cellSize, 0, gridPosition.y * gridData.cellSize) + gridData.gridWorldOffset;
     }
 
-    [ContextMenu("Yolcu Gruplarını Otomatik Spawn Et")]
+    [ContextMenu("Yolcu GruplarÄ±nÄ± Otomatik Spawn Et")]
     public void AutoSpawnPassengerGroups()
     {
         if (gridData.passengerGroupPrefab == null)
         {
-            Debug.LogWarning("PassengerGroup prefabı atanmadı!");
+//             Debug.LogWarning("PassengerGroup prefabÄ± atanmadÄ±!");
             return;
         }
         foreach (var pos in gridData.autoSpawnPassengerPositions)
@@ -107,7 +107,7 @@ public class GridManager : MonoBehaviour
             var cell = gridData.GetCell(pos.x, pos.y);
             if (cell != null)
             {
-                // Eğer o konumda zaten manuel bir PassengerGroup varsa spawn etme
+                // EÄŸer o konumda zaten manuel bir PassengerGroup varsa spawn etme
                 bool occupied = false;
                 var existing = FindObjectsByType<PassengerGroup>(FindObjectsSortMode.None);
                 foreach (var g in existing)

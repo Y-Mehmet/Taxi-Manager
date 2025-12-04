@@ -1,15 +1,15 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using DG.Tweening;
 
 /// <summary>
-/// Coin UI'da para kaybedildiğinde sarsılma ve renk değişimi animasyonu.
+/// Coin UI'da para kaybedildiÄŸinde sarsÄ±lma ve renk deÄŸiÅŸimi animasyonu.
 /// Hyper-casual oyunlardaki gibi feedback verir.
 /// </summary>
 public class CoinUIShakeEffect : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private RectTransform coinUIContainer; // Coin UI'ın container'ı
+    [SerializeField] private RectTransform coinUIContainer; // Coin UI'Ä±n container'Ä±
     [SerializeField] private TextMeshProUGUI coinText; // Coin text
     
     [Header("Shake Settings")]
@@ -41,20 +41,20 @@ public class CoinUIShakeEffect : MonoBehaviour
     }
     
     /// <summary>
-    /// Para kaybedildiğinde sarsılma ve kırmızıya dönme animasyonu oynatır
+    /// Para kaybedildiÄŸinde sarsÄ±lma ve kÄ±rmÄ±zÄ±ya dÃ¶nme animasyonu oynatÄ±r
     /// </summary>
     public void PlayLoseMoneyAnimation()
     {
-        // Önceki animasyonu durdur
+        // Ã–nceki animasyonu durdur
         shakeSequence?.Kill();
         
-        // Yeni animasyon sekansı oluştur
+        // Yeni animasyon sekansÄ± oluÅŸtur
         shakeSequence = DOTween.Sequence();
         
-        // 1. Coin UI'ı sarsmak
+        // 1. Coin UI'Ä± sarsmak
         if (coinUIContainer != null)
         {
-            // Pozisyonu sıfırla
+            // Pozisyonu sÄ±fÄ±rla
             coinUIContainer.localPosition = originalPosition;
             
             // Shake animasyonu
@@ -69,55 +69,55 @@ public class CoinUIShakeEffect : MonoBehaviour
                 ).SetEase(Ease.OutQuad)
             );
             
-            // Pozisyonu normale döndür
+            // Pozisyonu normale dÃ¶ndÃ¼r
             shakeSequence.Append(
                 coinUIContainer.DOLocalMove(originalPosition, 0.2f).SetEase(Ease.OutQuad)
             );
         }
         
-        // 2. Text rengini değiştir (kırmızıya dön, sonra normale dön)
+        // 2. Text rengini deÄŸiÅŸtir (kÄ±rmÄ±zÄ±ya dÃ¶n, sonra normale dÃ¶n)
         if (coinText != null)
         {
             Sequence colorSequence = DOTween.Sequence();
             
-            // Kırmızıya dön
+            // KÄ±rmÄ±zÄ±ya dÃ¶n
             colorSequence.Append(
                 coinText.DOColor(loseColor, colorChangeDuration).SetEase(Ease.OutQuad)
             );
             
-            // Kısa bekle
+            // KÄ±sa bekle
             colorSequence.AppendInterval(0.2f);
             
-            // Normale dön
+            // Normale dÃ¶n
             colorSequence.Append(
                 coinText.DOColor(normalColor, colorChangeDuration).SetEase(Ease.InQuad)
             );
             
-            // Paralel olarak çalıştır
+            // Paralel olarak Ã§alÄ±ÅŸtÄ±r
             shakeSequence.Join(colorSequence);
         }
         
-        // 3. Opsiyonel: Scale animasyonu (küçül-büyü efekti)
+        // 3. Opsiyonel: Scale animasyonu (kÃ¼Ã§Ã¼l-bÃ¼yÃ¼ efekti)
         if (coinUIContainer != null)
         {
             Sequence scaleSequence = DOTween.Sequence();
             
-            // Küçül
+            // KÃ¼Ã§Ã¼l
             scaleSequence.Append(
                 coinUIContainer.DOScale(0.85f, 0.15f).SetEase(Ease.OutQuad)
             );
             
-            // Büyü (biraz fazla)
+            // BÃ¼yÃ¼ (biraz fazla)
             scaleSequence.Append(
                 coinUIContainer.DOScale(1.1f, 0.15f).SetEase(Ease.OutQuad)
             );
             
-            // Normale dön
+            // Normale dÃ¶n
             scaleSequence.Append(
                 coinUIContainer.DOScale(1f, 0.2f).SetEase(Ease.OutQuad)
             );
             
-            // Paralel olarak çalıştır
+            // Paralel olarak Ã§alÄ±ÅŸtÄ±r
             shakeSequence.Join(scaleSequence);
         }
     }

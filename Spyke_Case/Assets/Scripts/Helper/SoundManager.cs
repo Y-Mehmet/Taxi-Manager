@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,14 +6,14 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager instance;
 
-    [Header("Ses Veritaban�")]
+    [Header("Ses Veritabanï¿½")]
     [SerializeField] private SoundDatabaseSO soundDatabase;
 
     [Header("Audio Source'lar")]
     [SerializeField] private AudioSource bgmSource;
     [SerializeField] private AudioSource sfxSource;
 
-    // Sesleri h�zl�ca bulmak i�in bir s�zl�k (dictionary) kullan�yoruz.
+    // Sesleri hï¿½zlï¿½ca bulmak iï¿½in bir sï¿½zlï¿½k (dictionary) kullanï¿½yoruz.
     private Dictionary<SoundType, AudioClip> soundDictionary;
 
     private void Awake()
@@ -30,7 +30,7 @@ public class SoundManager : MonoBehaviour
             return;
         }
 
-        // Veritaban�ndaki sesleri s�zl��e y�kle
+        // Veritabanï¿½ndaki sesleri sï¿½zlï¿½ï¿½e yï¿½kle
         InitializeSounds();
     }
     public bool  CheckPlayingClip(SoundType soundType)
@@ -67,7 +67,7 @@ public class SoundManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("SoundManager: '" + sound.soundType + "' i�in zaten bir ses klibi mevcut!");
+//                 Debug.LogWarning("SoundManager: '" + sound.soundType + "' iï¿½in zaten bir ses klibi mevcut!");
             }
         }
         foreach (var sound in soundDatabase.correctSounds)
@@ -78,14 +78,14 @@ public class SoundManager : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("SoundManager: '" + sound.soundType + "' i�in zaten bir ses klibi mevcut!");
+//                 Debug.LogWarning("SoundManager: '" + sound.soundType + "' iï¿½in zaten bir ses klibi mevcut!");
             }
         }
 
 
     }
 
-    // Arka plan m�zi�ini �almak i�in
+    // Arka plan mï¿½ziï¿½ini ï¿½almak iï¿½in
     public void PlayBgm(SoundType soundType)
     {
         if (soundDictionary.TryGetValue(soundType, out AudioClip clip))
@@ -96,11 +96,11 @@ public class SoundManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("SoundManager: '" + soundType + "' isimli BGM bulunamad�!");
+//             Debug.LogWarning("SoundManager: '" + soundType + "' isimli BGM bulunamadï¿½!");
         }
     }
 
-    // Ses efektlerini �almak i�in
+    // Ses efektlerini ï¿½almak iï¿½in
     public void PlaySfx(SoundType soundType, float startTime = 0f, bool PlayOneShot=false, float playbackSpeed = 1.0f)
     {
         if (soundDictionary.TryGetValue(soundType, out AudioClip clip))
@@ -110,18 +110,18 @@ public class SoundManager : MonoBehaviour
             {
                 sfxSource.PlayOneShot(clip);
             }
-            // E�er belirli bir saniyeden ba�lamas� isteniyorsa:
+            // Eï¿½er belirli bir saniyeden baï¿½lamasï¿½ isteniyorsa:
             else
             {
-                // D�KKAT: Bu y�ntem sfxSource'da �alan mevcut sesi durdurur!
+                // Dï¿½KKAT: Bu yï¿½ntem sfxSource'da ï¿½alan mevcut sesi durdurur!
                 sfxSource.clip = clip;      // 1. Klibi ata
-                sfxSource.time = startTime; // 2. Ba�lang�� saniyesini ayarla
+                sfxSource.time = startTime; // 2. Baï¿½langï¿½ï¿½ saniyesini ayarla
                 sfxSource.Play();           // 3. Oynat
             }
         }
         else
         {
-            Debug.LogWarning("SoundManager: '" + soundType + "' isimli SFX bulunamad�!");
+//             Debug.LogWarning("SoundManager: '" + soundType + "' isimli SFX bulunamadï¿½!");
         }
     }
     public void PlayBtnClick()
@@ -132,7 +132,7 @@ public class SoundManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("SoundManager: btn isimli SFX bulunamad�!");
+//             Debug.LogWarning("SoundManager: btn isimli SFX bulunamadï¿½!");
         }
     }
     public void StopBG()
@@ -148,7 +148,7 @@ public class SoundManager : MonoBehaviour
         }
     }
 
-    // Ses ayarlar� i�in fonksiyonlar (opsiyonel, �nceki �rnekteki gibi eklenebilir)
+    // Ses ayarlarï¿½ iï¿½in fonksiyonlar (opsiyonel, ï¿½nceki ï¿½rnekteki gibi eklenebilir)
     public void SetBgmVolume(float volume)
     {
         bgmSource.volume = volume;
@@ -163,8 +163,8 @@ public class SoundManager : MonoBehaviour
           ResourceManager.Instance.SaveData(GameDataManager.Instance.GetSaveData());
         
     }
-    // SoundManager.cs i�inde
-    // ... Di�er metodlar�n alt�nda
+    // SoundManager.cs iï¿½inde
+    // ... Diï¿½er metodlarï¿½n altï¿½nda
     public void PlaySfxSequentially(SoundType firstSound, SoundType secondSound)
     {
         StartCoroutine(PlaySoundsInOrder(firstSound, secondSound));
@@ -172,7 +172,7 @@ public class SoundManager : MonoBehaviour
 
     private IEnumerator PlaySoundsInOrder(SoundType firstSound, SoundType secondSound)
     {
-        // Birinci sesi �al
+        // Birinci sesi ï¿½al
         if (soundDictionary.TryGetValue(firstSound, out AudioClip firstClip))
         {
             sfxSource.PlayOneShot(firstClip);
@@ -181,17 +181,17 @@ public class SoundManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("SoundManager: '" + firstSound + "' isimli SFX bulunamad�!");
+//             Debug.LogWarning("SoundManager: '" + firstSound + "' isimli SFX bulunamadï¿½!");
         }
 
-        // �kinci sesi �al
+        // ï¿½kinci sesi ï¿½al
         if (soundDictionary.TryGetValue(secondSound, out AudioClip secondClip))
         {
             sfxSource.PlayOneShot(secondClip);
         }
         else
         {
-            Debug.LogWarning("SoundManager: '" + secondSound + "' isimli SFX bulunamad�!");
+//             Debug.LogWarning("SoundManager: '" + secondSound + "' isimli SFX bulunamadï¿½!");
         }
     }
 

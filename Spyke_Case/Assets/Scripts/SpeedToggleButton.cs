@@ -1,4 +1,4 @@
-
+﻿
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,7 +16,7 @@ public class SpeedToggleButton : MonoBehaviour
 
         if (buttonText == null)
         {
-            Debug.LogError("[SpeedToggleButton] Button'un altında bir TMP_Text componenti bulunamadı!");
+            Debug.LogError("[SpeedToggleButton] Button'un altÄ±nda bir TMP_Text componenti bulunamadÄ±!");
             return;
         }
     }
@@ -41,7 +41,7 @@ public class SpeedToggleButton : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[SpeedToggleButton] MetroManager.Instance bulunamadı!");
+            Debug.LogError("[SpeedToggleButton] MetroManager.Instance bulunamadÄ±!");
         }
     }
 

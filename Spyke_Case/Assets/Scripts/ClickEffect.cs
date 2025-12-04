@@ -1,8 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(ParticleSystem))]
-[RequireComponent(typeof(RectTransform))] // UI elementi olduğu için RectTransform eklenmeli
+[RequireComponent(typeof(RectTransform))] // UI elementi olduÄŸu iÃ§in RectTransform eklenmeli
 public class ClickEffect : MonoBehaviour
 {
     private ParticleSystem ps;
@@ -12,44 +12,44 @@ public class ClickEffect : MonoBehaviour
         ps = GetComponent<ParticleSystem>();
       //  Debug.LogWarning($"[{name}] AWAKE. ParticleSystem component is: {(ps == null ? "NULL" : "Assigned")}");
         
-        var main = ps.main; // 'main' modülünü burada alıyoruz
+        var main = ps.main; // 'main' modÃ¼lÃ¼nÃ¼ burada alÄ±yoruz
 
-        // Loop ayarının kapalı olduğundan emin ol
+        // Loop ayarÄ±nÄ±n kapalÄ± olduÄŸundan emin ol
         if (main.loop)
         {
             //Debug.LogWarning($"[{name}] Loop should be disabled for pooled one-shot effects.");
             main.loop = false;
         }
         
-        // ParticleSystem'in "Play On Awake" (POA) ayarını kapatın. 
+        // ParticleSystem'in "Play On Awake" (POA) ayarÄ±nÄ± kapatÄ±n. 
         if (main.playOnAwake)
         {
            // Debug.LogWarning($"[{name}] Disabling 'Play On Awake'.");
             main.playOnAwake = false;
         }
 
-        // YENİ KONTROL: StopAction (Durdurma Eylemi)
-        // Havuzlama (pooling) yaparken, StopAction'ın 'None' olması gerekir.
-        // Eğer 'Disable' veya 'Destroy' ise, script'in kontrolüyle çakışır.
+        // YENÄ° KONTROL: StopAction (Durdurma Eylemi)
+        // Havuzlama (pooling) yaparken, StopAction'Ä±n 'None' olmasÄ± gerekir.
+        // EÄŸer 'Disable' veya 'Destroy' ise, script'in kontrolÃ¼yle Ã§akÄ±ÅŸÄ±r.
         if (main.stopAction != ParticleSystemStopAction.None)
         {
-            Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Stop Action' ayarı '{main.stopAction}' olarak ayarlanmış. Havuzlama için 'None' olmalıdır. 'None' olarak ayarlanıyor.");
+//             Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Stop Action' ayarÄ± '{main.stopAction}' olarak ayarlanmÄ±ÅŸ. Havuzlama iÃ§in 'None' olmalÄ±dÄ±r. 'None' olarak ayarlanÄ±yor.");
             main.stopAction = ParticleSystemStopAction.None;
         }
 
-        // YENİ KONTROL: Culling Mode (Görünmezse Duraklatma)
-        // Eğer Culling Mode 'Automatic' veya 'Pause' ise,
-        // UI Canvas'ta SetActive(false) yapıldığında simülasyonu duraklatabilir ve tekrar başladığında görünmez olabilir.
+        // YENÄ° KONTROL: Culling Mode (GÃ¶rÃ¼nmezse Duraklatma)
+        // EÄŸer Culling Mode 'Automatic' veya 'Pause' ise,
+        // UI Canvas'ta SetActive(false) yapÄ±ldÄ±ÄŸÄ±nda simÃ¼lasyonu duraklatabilir ve tekrar baÅŸladÄ±ÄŸÄ±nda gÃ¶rÃ¼nmez olabilir.
         if (main.cullingMode != ParticleSystemCullingMode.AlwaysSimulate)
         {
-          //  Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Culling Mode' ayarı '{main.cullingMode}'. 'AlwaysSimulate' olarak ayarlanması, havuzlanan UI efektlerinin görünmez olma sorununu çözebilir. Ayar 'AlwaysSimulate' olarak değiştiriliyor.");
-            // Culling mode'u koddan zorla (en güvenli yöntem)
+          //  Debug.LogWarning($"[{name}] PREFAB UYARISI: 'Culling Mode' ayarÄ± '{main.cullingMode}'. 'AlwaysSimulate' olarak ayarlanmasÄ±, havuzlanan UI efektlerinin gÃ¶rÃ¼nmez olma sorununu Ã§Ã¶zebilir. Ayar 'AlwaysSimulate' olarak deÄŸiÅŸtiriliyor.");
+            // Culling mode'u koddan zorla (en gÃ¼venli yÃ¶ntem)
             main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
         }
     }
 
     /// <summary>
-    /// Efekti oynatır ve bitince havuza geri dönmesi için coroutine başlatır.
+    /// Efekti oynatÄ±r ve bitince havuza geri dÃ¶nmesi iÃ§in coroutine baÅŸlatÄ±r.
     /// </summary>
     public void Play()
     {
@@ -70,7 +70,7 @@ public class ClickEffect : MonoBehaviour
     }
 
     /// <summary>
-    /// Efekti oynatır ancak coroutine başlatmaz. Sadece havuz başlangıç inisiyalizasyonu için kullanılır.
+    /// Efekti oynatÄ±r ancak coroutine baÅŸlatmaz. Sadece havuz baÅŸlangÄ±Ã§ inisiyalizasyonu iÃ§in kullanÄ±lÄ±r.
     /// </summary>
     public void PlayInstant()
     {
@@ -83,16 +83,16 @@ public class ClickEffect : MonoBehaviour
       //  Debug.LogWarning($"[{name}] Coroutine: PlayAndReturnToPool started.");
         
         // Particle sisteminin bitmesini bekler.
-        // Süre, particle sisteminin şu anki (runtime) ayarlarından dinamik olarak hesaplanır.
+        // SÃ¼re, particle sisteminin ÅŸu anki (runtime) ayarlarÄ±ndan dinamik olarak hesaplanÄ±r.
         float currentTotalDuration = ps.main.duration + ps.main.startLifetime.constantMax;
         
         //Debug.LogWarning($"[{name}] Coroutine: Calculated duration: {currentTotalDuration} seconds.");
 
         if (currentTotalDuration <= 0)
         {
-             // Süre sıfırsa, prefab ayarlarının kontrol edilmesi gerekir.
+             // SÃ¼re sÄ±fÄ±rsa, prefab ayarlarÄ±nÄ±n kontrol edilmesi gerekir.
              Debug.LogError($"[{name}] Coroutine: Particle system duration is zero or negative! Check prefab settings.");
-             yield return null; // Bir kare bekle ve havuza dönmeye çalış
+             yield return null; // Bir kare bekle ve havuza dÃ¶nmeye Ã§alÄ±ÅŸ
         }
         else
         {
@@ -109,20 +109,20 @@ public class ClickEffect : MonoBehaviour
         }
         else
         {
-            // Fallback: Yönetici yoksa kendini yok et
+            // Fallback: YÃ¶netici yoksa kendini yok et
          //   Debug.LogWarning($"[{name}] Coroutine: ClickEffectManager.Instance is NULL. Destroying self.");
             Destroy(gameObject);
         }
     }
 
     /// <summary>
-    /// Particle sistemini anında durdurur ve var olan tüm parçacıkları temizler.
-    /// Havuza iade edilmeden önce veya Play() sırasında temiz bir başlangıç için çağrılır.
+    /// Particle sistemini anÄ±nda durdurur ve var olan tÃ¼m parÃ§acÄ±klarÄ± temizler.
+    /// Havuza iade edilmeden Ã¶nce veya Play() sÄ±rasÄ±nda temiz bir baÅŸlangÄ±Ã§ iÃ§in Ã§aÄŸrÄ±lÄ±r.
     /// </summary>
     public void StopAndClear()
     {
       //  Debug.LogWarning($"[{name}] StopAndClear() called.");
-        // StopEmittingAndClear: Yayılan parçacıkları durdurur ve sahnede kalan parçacıkları temizler.
+        // StopEmittingAndClear: YayÄ±lan parÃ§acÄ±klarÄ± durdurur ve sahnede kalan parÃ§acÄ±klarÄ± temizler.
         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 }

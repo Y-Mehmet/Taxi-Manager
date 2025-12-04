@@ -1,50 +1,50 @@
-using UnityEngine;
-using TMPro; // Eğer TextMeshPro kullanıyorsanız bu satırı ekleyin
+ï»¿using UnityEngine;
+using TMPro; // EÄŸer TextMeshPro kullanÄ±yorsanÄ±z bu satÄ±rÄ± ekleyin
 using System.Collections;
 
 public class FBSCounter : MonoBehaviour
 {
-    // FPS değerini göstereceğimiz UI metin elemanı
+    // FPS deÄŸerini gÃ¶stereceÄŸimiz UI metin elemanÄ±
     // Inspector'dan atayabilirsiniz.
-    public TextMeshProUGUI fpsText; // TextMeshPro için
-    // public Text fpsText; // Unity'nin kendi UI Text bileşeni için
+    public TextMeshProUGUI fpsText; // TextMeshPro iÃ§in
+    // public Text fpsText; // Unity'nin kendi UI Text bileÅŸeni iÃ§in
 
-    public float hudRefreshRate = 1f; // FPS sayacını kaç saniyede bir güncelleyeceğimiz
+    public float hudRefreshRate = 1f; // FPS sayacÄ±nÄ± kaÃ§ saniyede bir gÃ¼ncelleyeceÄŸimiz
 
-    private float _accumulatedTime = 0; // Geçen zamanı biriktirir
-    private int _frames = 0; // Bu sürede render edilen kare sayısı
-    private float _timeUntilUpdate = 0; // Bir sonraki güncellemeye kalan süre
+    private float _accumulatedTime = 0; // GeÃ§en zamanÄ± biriktirir
+    private int _frames = 0; // Bu sÃ¼rede render edilen kare sayÄ±sÄ±
+    private float _timeUntilUpdate = 0; // Bir sonraki gÃ¼ncellemeye kalan sÃ¼re
 
     void Start()
     {
-        // Eğer fpsText atanmamışsa hata veririz.
+        // EÄŸer fpsText atanmamÄ±ÅŸsa hata veririz.
         if (fpsText == null)
         {
-            Debug.LogError("FPS Text bileşeni atanmadı! Lütfen Inspector'dan atayın.");
-            enabled = false; // Betiği devre dışı bırak
+            Debug.LogError("FPS Text bileÅŸeni atanmadÄ±! LÃ¼tfen Inspector'dan atayÄ±n.");
+            enabled = false; // BetiÄŸi devre dÄ±ÅŸÄ± bÄ±rak
             return;
         }
 
-        _timeUntilUpdate = hudRefreshRate; // İlk güncelleme zamanını ayarla
+        _timeUntilUpdate = hudRefreshRate; // Ä°lk gÃ¼ncelleme zamanÄ±nÄ± ayarla
     }
 
     void Update()
     {
-        // Geçen zamanı ve kare sayısını biriktir
+        // GeÃ§en zamanÄ± ve kare sayÄ±sÄ±nÄ± biriktir
         _accumulatedTime += Time.deltaTime;
         _frames++;
         _timeUntilUpdate -= Time.deltaTime;
 
-        // Belirlenen güncelleme süresi dolduğunda
+        // Belirlenen gÃ¼ncelleme sÃ¼resi dolduÄŸunda
         if (_timeUntilUpdate <= 0)
         {
-            // FPS'i hesapla (kare sayısı / geçen süre)
+            // FPS'i hesapla (kare sayÄ±sÄ± / geÃ§en sÃ¼re)
             float fps = _frames / _accumulatedTime;
 
-            // Hesaplanan FPS değerini UI metnine yaz
+            // Hesaplanan FPS deÄŸerini UI metnine yaz
             fpsText.text = $"FPS: {Mathf.Round(fps)}";
 
-            // Değişkenleri sıfırla ve bir sonraki güncelleme zamanını ayarla
+            // DeÄŸiÅŸkenleri sÄ±fÄ±rla ve bir sonraki gÃ¼ncelleme zamanÄ±nÄ± ayarla
             _accumulatedTime = 0;
             _frames = 0;
             _timeUntilUpdate = hudRefreshRate;

@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
 /// <summary>
-/// Oyun verilerini yöneten, kaydetme ve yükleme operasyonlarını koordine eden merkezi yönetici.
-/// Singleton deseni kullanır.
+/// Oyun verilerini yÃ¶neten, kaydetme ve yÃ¼kleme operasyonlarÄ±nÄ± koordine eden merkezi yÃ¶netici.
+/// Singleton deseni kullanÄ±r.
 /// </summary>
 public class GameDataManager : MonoBehaviour
 {
@@ -12,7 +12,7 @@ public class GameDataManager : MonoBehaviour
     private SaveGameData saveData;
     private const string SAVE_FILE_NAME = "savegame.json";
 
-    // Diğer yöneticilerin veri yüklendiğinde güncellenmesi için olay.
+    // DiÄŸer yÃ¶neticilerin veri yÃ¼klendiÄŸinde gÃ¼ncellenmesi iÃ§in olay.
     public event Action<SaveGameData> OnDataLoaded;
 
     private void Awake()
@@ -43,7 +43,7 @@ public class GameDataManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Oyunu yükler. Kayıt dosyası yoksa yeni bir tane oluşturur.
+    /// Oyunu yÃ¼kler. KayÄ±t dosyasÄ± yoksa yeni bir tane oluÅŸturur.
     /// </summary>
     public void LoadGame()
     {
@@ -55,33 +55,33 @@ public class GameDataManager : MonoBehaviour
             saveData = new SaveGameData();
         }
 
-        // Veri yüklendikten sonra olayları tetikle.
+        // Veri yÃ¼klendikten sonra olaylarÄ± tetikle.
         OnDataLoaded?.Invoke(saveData);
     }
 
     /// <summary>
-    /// Oyunu kaydeder. Tüm yöneticilerden güncel verileri toplar.
+    /// Oyunu kaydeder. TÃ¼m yÃ¶neticilerden gÃ¼ncel verileri toplar.
     /// </summary>
     public void SaveGame()
     {
         if (saveData == null)
         {
-            Debug.LogWarning("SaveData is null. Cannot save game.");
+//             Debug.LogWarning("SaveData is null. Cannot save game.");
             return;
         }
 
-        // Diğer yöneticilerden verileri topla
-        // Bu yöneticilerin sahnede aktif ve erişilebilir olduğu varsayılır.
+        // DiÄŸer yÃ¶neticilerden verileri topla
+        // Bu yÃ¶neticilerin sahnede aktif ve eriÅŸilebilir olduÄŸu varsayÄ±lÄ±r.
        ResourceManager.Instance?.SaveData(saveData);
        AbilityManager.Instance?.SaveData(saveData);
 
-        // Diğer yöneticiler için de benzer çağrılar eklenebilir.
+        // DiÄŸer yÃ¶neticiler iÃ§in de benzer Ã§aÄŸrÄ±lar eklenebilir.
 
         SaveSystem.Save(saveData);
     }
 
     /// <summary>
-    /// Diğer scriptlerin başlangıçta veri alabilmesi için kullanılır.
+    /// DiÄŸer scriptlerin baÅŸlangÄ±Ã§ta veri alabilmesi iÃ§in kullanÄ±lÄ±r.
     /// </summary>
     public SaveGameData GetSaveData()
     {

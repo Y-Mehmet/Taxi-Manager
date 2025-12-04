@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
@@ -163,7 +163,7 @@ public class JokerCard : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[JokerCard] Failed to purchase {jokerType}");
+//             Debug.LogWarning($"[JokerCard] Failed to purchase {jokerType}");
         }
     }
 

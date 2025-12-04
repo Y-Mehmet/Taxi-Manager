@@ -1,4 +1,4 @@
-public enum AbilityType
+﻿public enum AbilityType
 {
     AddNewStop,
     UniversalPathfinding,

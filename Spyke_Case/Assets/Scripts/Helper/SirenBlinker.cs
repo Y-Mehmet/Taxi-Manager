@@ -1,20 +1,20 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class SirenBlinker : MonoBehaviour
 {
-    // Unity editöründen bu objeleri sürükleyip bırakacaksın
+    // Unity editÃ¶rÃ¼nden bu objeleri sÃ¼rÃ¼kleyip bÄ±rakacaksÄ±n
     public GameObject kirmiziLambaObjesi;
     public GameObject maviLambaObjesi;
 
-    // Saniyede kaç kere yanıp söneceği (0.2 = hızlı)
+    // Saniyede kaÃ§ kere yanÄ±p sÃ¶neceÄŸi (0.2 = hÄ±zlÄ±)
     public float yanipSonmeHizi = 0.2f;
 
     private Coroutine blinkCoroutine;
 
     private void OnEnable()
     {
-        // Başlangıçta lambaları kapat
+        // BaÅŸlangÄ±Ã§ta lambalarÄ± kapat
         kirmiziLambaObjesi.SetActive(false);
         maviLambaObjesi.SetActive(false);
 
@@ -24,9 +24,9 @@ public class SirenBlinker : MonoBehaviour
 
     private void OnDisable()
     {
-        // Event'ten aboneliği kaldır
+        // Event'ten aboneliÄŸi kaldÄ±r
         AbilityManager.OnUniversalPathfindingModeChanged -= HandleUniversalPathfindingModeChanged;
-        // Objeden çıkarken yanıp sönmeyi durdur
+        // Objeden Ã§Ä±karken yanÄ±p sÃ¶nmeyi durdur
         StopBlinking();
     }
 
@@ -66,20 +66,20 @@ public class SirenBlinker : MonoBehaviour
 
     IEnumerator BlinkDongusu()
     {
-        // Bu döngü durdurulana kadar devam eder
+        // Bu dÃ¶ngÃ¼ durdurulana kadar devam eder
         while (true)
         {
-            // Belirlenen süre kadar bekle
+            // Belirlenen sÃ¼re kadar bekle
             yield return new WaitForSeconds(yanipSonmeHizi);
 
-            // Kırmızıyı kapat, maviyi aç
+            // KÄ±rmÄ±zÄ±yÄ± kapat, maviyi aÃ§
             kirmiziLambaObjesi.SetActive(false);
             maviLambaObjesi.SetActive(true);
 
             // Tekrar bekle
             yield return new WaitForSeconds(yanipSonmeHizi);
 
-            // Maviyi kapat, kırmızıyı aç
+            // Maviyi kapat, kÄ±rmÄ±zÄ±yÄ± aÃ§
             kirmiziLambaObjesi.SetActive(true);
             maviLambaObjesi.SetActive(false);
         }

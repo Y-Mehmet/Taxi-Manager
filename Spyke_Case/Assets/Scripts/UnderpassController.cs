@@ -199,8 +199,7 @@ public class UnderpassController : MonoBehaviour
     private void AnimateNextPassengerToStart()
     {
         PassengerGroup nextGroup = passengerQueue.Peek();
-        nextGroup.gameObject.SetActive(true);
-
+        
         Vector2Int startCellGridPos = myGridPosition + startCellOffset;
         Vector3 targetPos = gridManager.GetWorldPosition(startCellGridPos);
 
@@ -213,6 +212,7 @@ public class UnderpassController : MonoBehaviour
         nextGroup.homeGridPos = startCellGridPos;
         Debug.Log($"[UnderpassController] Set homeGridPos for {nextGroup.name} to {startCellGridPos}");
 
+        // ✅ Önce hareket başlasın (invisible)
         activeQueueAnimation = nextGroup.transform.DOMove(targetPos, 0.5f)
             .SetEase(Ease.OutQuad)
             .OnComplete(() =>
@@ -220,6 +220,15 @@ public class UnderpassController : MonoBehaviour
                 nextGroup.GetComponent<Collider>().enabled = true;
                 activeQueueAnimation = null;
             });
+        
+        // ✅ 0.25 saniye sonra SetActive(true) - hareket sırasında görünür hale gelsin
+        DOVirtual.DelayedCall(0.25f, () =>
+        {
+            if (nextGroup != null && nextGroup.gameObject != null)
+            {
+                nextGroup.gameObject.SetActive(true);
+            }
+        });
     }
 
     private void UpdateCounterText()

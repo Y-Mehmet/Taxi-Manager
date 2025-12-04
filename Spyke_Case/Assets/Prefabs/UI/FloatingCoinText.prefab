@@ -154,7 +154,9 @@ MonoBehaviour:
   canvasGroup: {fileID: 0}
   popDuration: 0.3
   popScale: 1.2
-  moveDuration: 0.8
+  displayDuration: 1
+  moveUpDistance: 100
+  moveUpDuration: 0.8
   fadeDuration: 0.3
 --- !u!225 &2508663378437956211
 CanvasGroup:
@@ -166,5 +168,5 @@ CanvasGroup:
   m_Enabled: 1
   m_Alpha: 1
   m_Interactable: 1
-  m_BlocksRaycasts: 1
+  m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0

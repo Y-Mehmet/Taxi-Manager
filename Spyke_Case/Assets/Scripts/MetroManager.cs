@@ -456,6 +456,9 @@ public class MetroManager : MonoBehaviour
             isAdjusting = false;
             OnTrainAdjustmentStateChanged?.Invoke(false);
             Debug.Log("[MetroManager] Wagon colors have been shuffled.");
+            
+            // ✅ Animasyon bittikten sonra gap filling ve boarding kontrol et
+            StartCoroutine(ProcessPendingRemovals());
         });
 
         yield return shuffleSequence.WaitForCompletion();

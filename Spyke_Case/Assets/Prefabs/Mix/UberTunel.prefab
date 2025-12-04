@@ -497,7 +497,7 @@ PrefabInstance:
     - target: {fileID: -1388847265518615330, guid: 945c640891ca74c8e93b5812990e8a5f, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: d67faa685c7e74e418f45b9e7c740478, type: 2}
+      objectReference: {fileID: 2100000, guid: 1175ea6d17d49164c91fa75f6dc1eac7, type: 2}
     - target: {fileID: 919132149155446097, guid: 945c640891ca74c8e93b5812990e8a5f, type: 3}
       propertyPath: m_Name
       value: WaterCylinder
@@ -537,11 +537,11 @@ PrefabInstance:
     - target: {fileID: 8498817462646443009, guid: 945c640891ca74c8e93b5812990e8a5f, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: d67faa685c7e74e418f45b9e7c740478, type: 2}
+      objectReference: {fileID: 2100000, guid: 1175ea6d17d49164c91fa75f6dc1eac7, type: 2}
     - target: {fileID: 8498817462646443009, guid: 945c640891ca74c8e93b5812990e8a5f, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
-      objectReference: {fileID: 2100000, guid: d67faa685c7e74e418f45b9e7c740478, type: 2}
+      objectReference: {fileID: 2100000, guid: 1175ea6d17d49164c91fa75f6dc1eac7, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

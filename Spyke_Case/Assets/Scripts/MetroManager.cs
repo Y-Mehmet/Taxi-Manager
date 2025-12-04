@@ -428,29 +428,27 @@ public class MetroManager : MonoBehaviour
             shuffleSequence.Join(wagonsToShuffle[i].transform.DOMoveY(originalPositions[i].y + 2f, halfDuration).SetEase(Ease.OutQuad));
             if (wagonRenderers[i] != null)
             {
+                // Fade to grey (still using color for animation)
                 shuffleSequence.Join(wagonRenderers[i].material.DOColor(Color.grey, halfDuration));
             }
         }
 
-        // Set the new color property at the peak
+        // Set the new color using the new material system at the peak
         shuffleSequence.AppendCallback(() => {
             for (int i = 0; i < wagonsToShuffle.Count; i++)
             {
                 if (i < newColors.Count)
                 {
-                    wagonsToShuffle[i].SetWagonColorProperty(newColors[i]);
+                    // Use SetColor() which loads custom materials from Resources/Materials
+                    wagonsToShuffle[i].SetColor(newColors[i]);
                 }
             }
         });
 
-        // Move down and fade to new color
+        // Move down (color is already set by SetColor, no need to fade)
         for (int i = 0; i < wagonsToShuffle.Count; i++)
         {
             shuffleSequence.Join(wagonsToShuffle[i].transform.DOMoveY(originalPositions[i].y, halfDuration).SetEase(Ease.InQuad));
-            if (wagonRenderers[i] != null && i < newColors.Count)
-            {
-                shuffleSequence.Join(wagonRenderers[i].material.DOColor(newColors[i].ToColor(), halfDuration));
-            }
         }
 
         shuffleSequence.OnComplete(() =>

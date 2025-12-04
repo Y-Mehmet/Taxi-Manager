@@ -190,7 +190,7 @@ public class AbilityButton : MonoBehaviour
     {
         if (costText == null)
         {
-            Debug.LogError($"[AbilityButton:{abilityType}] CostText reference is not set in the inspector!");
+          //  Debug.LogError($"[AbilityButton:{abilityType}] CostText reference is not set in the inspector!");
             return;
         }
 

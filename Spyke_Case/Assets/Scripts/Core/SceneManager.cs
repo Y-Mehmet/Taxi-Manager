@@ -51,6 +51,14 @@ public class SceneManager : Singleton<SceneManager>
     /// </summary>
     public void LoadMainMenu()
     {
+        // Set CurrentLevel to the highest unlocked level before loading main menu
+        // This ensures the level selection shows the latest unlocked level
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.CurrentLevel = ResourceManager.Instance.MaxOpenedLevel;
+            Debug.Log($"[SceneManager] Set CurrentLevel to MaxOpenedLevel: {ResourceManager.Instance.MaxOpenedLevel}");
+        }
+        
         Debug.Log($"Loading Main Menu. Build Index: {mainMenuBuildIndex}");
         LoadSceneByIndex(mainMenuBuildIndex);
     }

@@ -51,6 +51,7 @@ public class BoardingManager : MonoBehaviour
 
         // Diğer sistemlerden gelen olayları dinlemeye başla.
         StopManager.OnPassengerArrivedAtStop += HandlePassengerOrWagonChange;
+        StopManager.OnStopRegistered += HandleStopRegistered;
         WagonManager.Instance.OnWagonRemoved += HandleWagonRemoved;
         MetroManager.OnTrainAdjustmentStateChanged += HandleTrainAdjustmentStateChanged;
     }
@@ -59,6 +60,7 @@ public class BoardingManager : MonoBehaviour
     {
         // Bellek sızıntılarını önle.
         StopManager.OnPassengerArrivedAtStop -= HandlePassengerOrWagonChange;
+        StopManager.OnStopRegistered -= HandleStopRegistered;
         if (WagonManager.Instance != null)
         {
             WagonManager.Instance.OnWagonRemoved -= HandleWagonRemoved;
@@ -118,6 +120,12 @@ public class BoardingManager : MonoBehaviour
     private void HandlePassengerOrWagonChange(PassengerGroup passenger, int stopIndex)
     {
         Debug.Log($"<color=lightblue>Yeni Yolcu Geldi:</color> Eşleştirme kontrolü tetiklendi.");
+        TryBoardPassengers();
+    }
+    
+    private void HandleStopRegistered()
+    {
+        Debug.Log($"<color=lightblue>Yeni Durak Eklendi:</color> Eşleştirme kontrolü tetiklendi.");
         TryBoardPassengers();
     }
     
@@ -200,8 +208,9 @@ public class BoardingManager : MonoBehaviour
                         GameManager.Instance.CheckWinCondition(); // Check for win condition after passenger departs
                     }
                     
-                    // Bir eşleşme bulunduktan sonra bu frame için işlemi bitir.
-                    return; 
+                    // Continue to check other passengers instead of returning early
+                    // This allows multiple passengers to be matched in the same call
+                    continue; 
                 }
             }
         }

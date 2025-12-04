@@ -243,28 +243,88 @@ public class PassengerGroup : MonoBehaviour
     }
 
     public void TryUniversalMove()
+{
+    if (isMoving)
     {
-        if (isMoving)
-        {
-//             Debug.LogWarning($"[UniversalMove] Yolcu '{name}' zaten hareket halinde olduÄŸu iÃ§in yeni hareket baÅŸlatÄ±lamadÄ±.");
-            return;
-        }
-
-        if (StopManager.Instance == null || !StopManager.Instance.HasAvailableStops())
-        {
-//             Debug.LogWarning($"[UniversalMove] TÃ¼m duraklar dolu veya rezerve edilmiÅŸ. '{name}' iÃ§in hareket baÅŸlatÄ±lamadÄ±.");
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.ShowFloatingText("All Stops Full", transform.position);
-            }
-            return;
-        }
-
-        Vector2Int pathfindingStartPoint = gridPos;
-//         Debug.LogWarning($"[UniversalMove] Passenger '{name}' at {gridPos} starting a 4-way search.");
-
-        AttemptPathfinding(pathfindingStartPoint, new List<Vector2Int>());
+//             Debug.LogWarning($"[UniversalMove] Yolcu '{name}' zaten hareket halinde olduğu için yeni hareket başlatılamadı.");
+        return;
     }
+
+    if (StopManager.Instance == null || !StopManager.Instance.HasAvailableStops())
+    {
+//             Debug.LogWarning($"[UniversalMove] Tüm duraklar dolu veya rezerve edilmiş. '{name}' için hareket başlatılamadı.");
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowFloatingText("All Stops Full", transform.position);
+        }
+        return;
+    }
+
+    // Check if we're in WaitingArea - if so, use pathfinding to find nearest Walkable
+    var currentCell = PassengerGrid.Instance.GetCell(gridPos.x, gridPos.y);
+    List<Vector2Int> initialPathSegment = new List<Vector2Int>();
+    Vector2Int pathfindingStartPoint = gridPos;
+    
+    if (currentCell != null && currentCell.cellType == GridCellType.WaitingArea)
+    {
+        // Use pathfinding to find ALL Walkable cells, then pick the nearest one
+        List<Vector2Int> walkableCells = new List<Vector2Int>();
+        
+        for (int y = 0; y < PassengerGrid.Instance.gridData.height; y++)
+        {
+            for (int x = 0; x < PassengerGrid.Instance.gridData.width; x++)
+            {
+                var cell = PassengerGrid.Instance.GetCell(x, y);
+                if (cell != null && cell.cellType == GridCellType.Walkable)
+                {
+                    walkableCells.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+        
+        if (walkableCells.Count == 0)
+        {
+            Debug.LogError($"[UniversalMove] No Walkable cells found in grid");
+            StartCoroutine(BounceVisual());
+            return;
+        }
+        
+        // Find shortest path to any Walkable (allowing WaitingArea in path)
+        List<Vector2Int> bestPath = null;
+        int bestLength = int.MaxValue;
+        
+        foreach (var walkablePos in walkableCells)
+        {
+            var path = PassengerGrid.Instance.FindPathToTarget(
+                gridPos, 
+                walkablePos, 
+                this, 
+                new List<GridCellType> { GridCellType.WaitingArea, GridCellType.Walkable }
+            );
+            
+            if (path != null && path.Count > 0 && path.Count < bestLength)
+            {
+                bestLength = path.Count;
+                bestPath = path;
+            }
+        }
+        
+        if (bestPath == null || bestPath.Count == 0)
+        {
+            Debug.LogError($"[UniversalMove] No path to Walkable found from WaitingArea at {gridPos}");
+            StartCoroutine(BounceVisual());
+            return;
+        }
+        
+        // Use the path to Walkable as initial segment
+        initialPathSegment = bestPath;
+        pathfindingStartPoint = bestPath[bestPath.Count - 1];
+        
+        Debug.LogWarning($"[UniversalMove] Found path to Walkable at {pathfindingStartPoint}, length: {bestPath.Count}");
+    }
+
+    AttemptPathfinding(pathfindingStartPoint, initialPathSegment);
+}
 
     private void AttemptPathfinding(Vector2Int pathfindingStartPoint, List<Vector2Int> initialPathSegment)
     {
@@ -282,7 +342,7 @@ public class PassengerGroup : MonoBehaviour
         Vector2Int reservedStopGridPos = PassengerGrid.Instance.gridData.stopSlots[stopIndex];
 
         // Find path directly to the reserved stop
-        List<Vector2Int> path = PassengerGrid.Instance.FindPathToTarget(pathfindingStartPoint, reservedStopGridPos, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop, GridCellType.WaitingArea });
+       List<Vector2Int> path = PassengerGrid.Instance.FindPathToTarget(pathfindingStartPoint, reservedStopGridPos, this, new List<GridCellType> { GridCellType.Walkable, GridCellType.Stop });
 
         if (path != null)
         {

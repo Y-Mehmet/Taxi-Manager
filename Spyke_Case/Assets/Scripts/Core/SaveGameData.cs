@@ -33,7 +33,16 @@ public class SaveGameData
     public float soundFxVolume;
     public float musicVolume;
     public bool isTutorialShown;
-    public bool isAbilityTutorialCompleted; // Has user completed or skipped ability tutorial?
+    
+    // Ability Tutorial Completion Flags (per unlock level)
+    public bool hasSeenAddStopTutorial; // Level 4
+    public bool hasSeenUniversalPathfindingTutorial; // Level 8
+    public bool hasSeenFlasherTutorial; // Level 16
+    public bool hasSeenShuffleTutorial; // Level 32
+    
+    // Current ability tutorial to show (set by SceneManager, read by AbilityTutorialManager)
+    public string currentAbilityTutorial; // "AddStop", "UniversalPathfinding", "Flasher", "Shuffle"
+    
     public bool isPushNotificationEnabled; // Push notification settings
 
     // JokerSystem (Category-Based System)
@@ -62,7 +71,14 @@ public class SaveGameData
         offlineEarningsLevel = 1;
         soundFxVolume=0.5f;
         musicVolume=0.5f;
-        isAbilityTutorialCompleted = false; // Show tutorial by default
+        
+        // Initialize ability tutorial flags
+        hasSeenAddStopTutorial = false;
+        hasSeenUniversalPathfindingTutorial = false;
+        hasSeenFlasherTutorial = false;
+        hasSeenShuffleTutorial = false;
+        currentAbilityTutorial = "";
+        
         isPushNotificationEnabled = true; // Default: enabled
         
         // Initialize joker data

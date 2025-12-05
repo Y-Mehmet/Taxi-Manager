@@ -19,27 +19,60 @@ public class SceneManager : Singleton<SceneManager>
 
     /// <summary>
     /// ResourceManager'dan alınan mevcut seviyeyi yükler.
-    /// Eğer ability tutorial gösterilmediyse, önce tutorial'ı gösterir.
-    /// Tüm level'lar aynı sahneden (AllLevel) yüklenir.
+    /// Belirli levellerde ability tutorial'ı gösterir (ilk kez açıldığında).
     /// </summary>
     public void LoadLevelSceene()
     {
-        // Check if we should show ability tutorial first
+        int currentLevel = ResourceManager.Instance.CurrentLevel;
+        
+        // Check if we should show ability tutorial for this level
         if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
         {
-            bool tutorialCompleted = GameDataManager.Instance.GetSaveData().isAbilityTutorialCompleted;
+            SaveGameData saveData = GameDataManager.Instance.GetSaveData();
             
-            if (!tutorialCompleted)
+            // Level 4: Add Stop Tutorial
+            if (currentLevel == 4 && !saveData.hasSeenAddStopTutorial)
             {
-                // Show tutorial first
-                Debug.Log("[SceneManager] Loading Ability Tutorial scene first");
+                Debug.Log("[SceneManager] Level 4 - Loading Add Stop Tutorial");
+                saveData.currentAbilityTutorial = "AddStop";
+                GameDataManager.Instance.SaveGame();
+                LoadSceneByIndex(abilityTutorialBuildIndex);
+                return;
+            }
+            
+            // Level 8: Universal Pathfinding Tutorial
+            if (currentLevel == 8 && !saveData.hasSeenUniversalPathfindingTutorial)
+            {
+                Debug.Log("[SceneManager] Level 8 - Loading Universal Pathfinding Tutorial");
+                saveData.currentAbilityTutorial = "UniversalPathfinding";
+                GameDataManager.Instance.SaveGame();
+                LoadSceneByIndex(abilityTutorialBuildIndex);
+                return;
+            }
+            
+            // Level 16: Flasher Tutorial
+            if (currentLevel == 16 && !saveData.hasSeenFlasherTutorial)
+            {
+                Debug.Log("[SceneManager] Level 16 - Loading Flasher Tutorial");
+                saveData.currentAbilityTutorial = "Flasher";
+                GameDataManager.Instance.SaveGame();
+                LoadSceneByIndex(abilityTutorialBuildIndex);
+                return;
+            }
+            
+            // Level 32: Shuffle Tutorial
+            if (currentLevel == 32 && !saveData.hasSeenShuffleTutorial)
+            {
+                Debug.Log("[SceneManager] Level 32 - Loading Shuffle Tutorial");
+                saveData.currentAbilityTutorial = "Shuffle";
+                GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(abilityTutorialBuildIndex);
                 return;
             }
         }
         
-        // Tutorial already completed or skipped, load level directly
-        Debug.Log("[SceneManager] Loading AllLevel scene directly (tutorial completed)");
+        // No tutorial needed, load level directly
+        Debug.Log($"[SceneManager] Loading Level {currentLevel} directly (no tutorial)");
         LoadSceneByIndex(allLevelSceneBuildIndex);
     }
 

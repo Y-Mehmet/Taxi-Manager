@@ -23,6 +23,7 @@ public class AbilityTutorialButton : MonoBehaviour
     [SerializeField] private bool enableAutoClick = true; // Otomatik tıklama aktif mi?
     [SerializeField] private int autoClickCount = 3; // Kaç kere otomatik tıklama
     [SerializeField] private float autoClickDelay = 2f; // Tıklamalar arası bekleme (saniye)
+    [SerializeField] private AbilityTutorialManager tutorialManager; // Tutorial manager (opsiyonel)
     
     [Header("Visual Effects")]
     [SerializeField] private ParticleSystem clickParticleEffectPrefab; // Particle prefab (opsiyonel)
@@ -154,6 +155,22 @@ public class AbilityTutorialButton : MonoBehaviour
                 break;
             }
         }
+        
+        // Notify manager that tutorial is completed
+        if (tutorialManager != null && tutorial.IsCompleted)
+        {
+            Debug.Log("[AbilityTutorialButton] Notifying manager: tutorial completed");
+            tutorialManager.OnTutorialCompleted();
+        }
+    }
+    
+    /// <summary>
+    /// Set tutorial manager (called by AbilityTutorialManager after spawning)
+    /// </summary>
+    public void SetTutorialManager(AbilityTutorialManager manager)
+    {
+        tutorialManager = manager;
+        Debug.Log("[AbilityTutorialButton] Tutorial manager set");
     }
     
     /// <summary>

@@ -43,18 +43,25 @@ public class LevelButton : MonoBehaviour
     {
         int myLevelIndex = transform.GetSiblingIndex();
         
+        Debug.Log($"[LevelButton] Button {myLevelIndex} received selection event for level {selectedLevelIndex}");
+        
         if (wheelRotator != null)
         {
             if (selectedLevelIndex == myLevelIndex)
             {
                 // This is the selected level, start rotation
                 wheelRotator.StartRotation();
+                Debug.Log($"[LevelButton] Button {myLevelIndex} - STARTING wheel rotation");
             }
             else
             {
                 // This is not the selected level, stop rotation
                 wheelRotator.StopRotation();
             }
+        }
+        else
+        {
+            Debug.LogWarning($"[LevelButton] Button {myLevelIndex} - wheelRotator is NULL!");
         }
     }
 

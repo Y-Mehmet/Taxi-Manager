@@ -14,33 +14,66 @@ public class LevelSelectionManager : MonoBehaviour
 
     // Currently selected level index
     private int selectedLevelIndex = 0;
+    private bool isInitializing = false; // Prevent multiple simultaneous initializations
 
     public int SelectedLevelIndex => selectedLevelIndex;
 
     private void Awake()
     {
+        Debug.Log("[LevelSelectionManager] Awake called");
+        
         if (Instance == null)
         {
             Instance = this;
+            Debug.Log("[LevelSelectionManager] Instance created");
         }
         else
         {
+            Debug.LogWarning("[LevelSelectionManager] Duplicate instance found, destroying this one");
             Destroy(gameObject);
             return;
         }
     }
 
-    private void Start()
+    /// <summary>
+    /// Refresh the level selection to show max opened level
+    /// </summary>
+    private void RefreshSelection()
     {
+        if (!isInitializing)
+        {
+            StartCoroutine(InitializeSelection());
+        }
+    }
+
+    private System.Collections.IEnumerator InitializeSelection()
+    {
+        isInitializing = true;
+        
+        // Wait for end of frame to ensure all UI elements are ready
+        yield return new WaitForEndOfFrame();
+        
         // Initialize with max opened level
         if (ResourceManager.Instance != null)
         {
-            selectedLevelIndex = ResourceManager.Instance.MaxOpenedLevel;
-            Debug.Log($"[LevelSelectionManager] Initialized with level {selectedLevelIndex}");
+            int maxLevel = ResourceManager.Instance.MaxOpenedLevel;
+            int currentLevel = ResourceManager.Instance.CurrentLevel;
             
-            // Notify listeners
+            Debug.Log($"[LevelSelectionManager] INIT - MaxOpenedLevel: {maxLevel}, CurrentLevel: {currentLevel}");
+            
+            // Always select the max opened level when entering main menu
+            selectedLevelIndex = maxLevel;
+            Debug.Log($"[LevelSelectionManager] Selected level set to: {selectedLevelIndex}");
+            
+            // Notify listeners (this will trigger wheel rotation and play button update)
             OnLevelSelected?.Invoke(selectedLevelIndex);
         }
+        else
+        {
+            Debug.LogError("[LevelSelectionManager] ResourceManager.Instance is NULL!");
+        }
+        
+        isInitializing = false;
     }
 
     /// <summary>

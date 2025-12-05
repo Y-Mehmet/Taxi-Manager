@@ -23,9 +23,16 @@ public class PlayButton : MonoBehaviour
         // Subscribe to level selection events
         LevelSelectionManager.OnLevelSelected += UpdateLevelText;
         
-        // Update text immediately if manager exists
-        if (LevelSelectionManager.Instance != null)
+        // Force select max opened level when returning to main menu
+        if (LevelSelectionManager.Instance != null && ResourceManager.Instance != null)
         {
+            int maxLevel = ResourceManager.Instance.MaxOpenedLevel;
+            Debug.Log($"[PlayButton] OnEnable - Forcing selection to max level: {maxLevel}");
+            LevelSelectionManager.Instance.SelectLevel(maxLevel);
+        }
+        else if (LevelSelectionManager.Instance != null)
+        {
+            // Fallback: just update text with current selection
             UpdateLevelText(LevelSelectionManager.Instance.SelectedLevelIndex);
         }
     }

@@ -20,16 +20,12 @@ public class LevelSelectionManager : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("[LevelSelectionManager] Awake called");
-        
         if (Instance == null)
         {
             Instance = this;
-            Debug.Log("[LevelSelectionManager] Instance created");
         }
         else
         {
-            Debug.LogWarning("[LevelSelectionManager] Duplicate instance found, destroying this one");
             Destroy(gameObject);
             return;
         }

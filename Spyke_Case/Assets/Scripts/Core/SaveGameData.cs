@@ -33,6 +33,7 @@ public class SaveGameData
     public float soundFxVolume;
     public float musicVolume;
     public bool isTutorialShown;
+    public bool isAbilityTutorialCompleted; // Has user completed or skipped ability tutorial?
     public bool isPushNotificationEnabled; // Push notification settings
 
     // JokerSystem (Category-Based System)
@@ -61,6 +62,7 @@ public class SaveGameData
         offlineEarningsLevel = 1;
         soundFxVolume=0.5f;
         musicVolume=0.5f;
+        isAbilityTutorialCompleted = false; // Show tutorial by default
         isPushNotificationEnabled = true; // Default: enabled
         
         // Initialize joker data

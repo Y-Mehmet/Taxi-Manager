@@ -2,35 +2,53 @@
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Oyun iÃ§indeki sahne geÃ§iÅŸlerini yÃ¶neten merkezi sistem.
-/// TÃ¼m level'lar aynÄ± sahneden (AllLevel - Build Index 1) yÃ¼klenir.
+/// Oyun içindeki sahne geçişlerini yöneten merkezi sistem.
+/// Tüm level'lar aynı sahneden (AllLevel - Build Index 1) yüklenir.
 /// </summary>
 public class SceneManager : Singleton<SceneManager>
 {
     [Header("Scene Build Indices")]
-    [Tooltip("Ana MenÃ¼ sahnesinin Build Settings'deki index'i")]
+    [Tooltip("Ana Menü sahnesinin Build Settings'deki index'i")]
     [SerializeField] private int mainMenuBuildIndex = 0;
 
-    [Tooltip("TÃ¼m levellerin yÃ¼klendiÄŸi sahne (AllLevel scene)")]
+    [Tooltip("Tüm levellerin yüklendiği sahne (AllLevel scene)")]
     [SerializeField] private int allLevelSceneBuildIndex = 1;
 
+    [Tooltip("Ability öğretici sahnesinin Build Settings'deki index'i")]
+    [SerializeField] private int abilityTutorialBuildIndex = 2;
+
     /// <summary>
-    /// ResourceManager'dan alÄ±nan mevcut seviyeyi yÃ¼kler.
-    /// TÃ¼m level'lar aynÄ± sahneden (AllLevel) yÃ¼klenir.
+    /// ResourceManager'dan alınan mevcut seviyeyi yükler.
+    /// Eğer ability tutorial gösterilmediyse, önce tutorial'ı gösterir.
+    /// Tüm level'lar aynı sahneden (AllLevel) yüklenir.
     /// </summary>
     public void LoadLevelSceene()
     {
-        // Always load the AllLevel scene (build index 1)
-        // The actual level data is loaded based on ResourceManager.CurrentLevel
+        // Check if we should show ability tutorial first
+        if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
+        {
+            bool tutorialCompleted = GameDataManager.Instance.GetSaveData().isAbilityTutorialCompleted;
+            
+            if (!tutorialCompleted)
+            {
+                // Show tutorial first
+                Debug.Log("[SceneManager] Loading Ability Tutorial scene first");
+                LoadSceneByIndex(abilityTutorialBuildIndex);
+                return;
+            }
+        }
+        
+        // Tutorial already completed or skipped, load level directly
+        Debug.Log("[SceneManager] Loading AllLevel scene directly (tutorial completed)");
         LoadSceneByIndex(allLevelSceneBuildIndex);
     }
 
     /// <summary>
-    /// Belirtilen level index'i iÃ§in AllLevel sahnesini yÃ¼kler.
-    /// IMPORTANT: levelIndex scene build index DEÄÄ°LDÄ°R!
-    /// TÃ¼m level'lar aynÄ± sahneden (build index 1) yÃ¼klenir.
+    /// Belirtilen level index'i için AllLevel sahnesini yükler.
+    /// IMPORTANT: levelIndex scene build index DEĞİLDİR!
+    /// Tüm level'lar aynı sahneden (build index 1) yüklenir.
     /// </summary>
-    /// <param name="levelIndex">YÃ¼klenecek level'Ä±n index'i (0, 1, 2, 3...)</param>
+    /// <param name="levelIndex">Yüklenecek level'ın index'i (0, 1, 2, 3...)</param>
     public void LoadSpecificLevel(int levelIndex)
     {
         // Set the level index in ResourceManager BEFORE loading the scene
@@ -47,7 +65,7 @@ public class SceneManager : Singleton<SceneManager>
     }
 
     /// <summary>
-    /// Ana menÃ¼ sahnesini yÃ¼kler.
+    /// Ana menü sahnesini yükler.
     /// </summary>
     public void LoadMainMenu()
     {
@@ -64,18 +82,18 @@ public class SceneManager : Singleton<SceneManager>
     }
 
     /// <summary>
-    /// Verilen build index'e gÃ¶re sahneyi yÃ¼kleyen temel metot.
+    /// Verilen build index'e göre sahneyi yükleyen temel metot.
     /// </summary>
     private void LoadSceneByIndex(int sceneBuildIndex)
     {
-        // Build Settings'de bu index'te bir sahne olup olmadÄ±ÄŸÄ±nÄ± kontrol et
+        // Build Settings'de bu index'te bir sahne olup olmadığını kontrol et
         if (sceneBuildIndex < 0 || sceneBuildIndex >= UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings)
         {
             Debug.LogError($"Invalid Scene Build Index: {sceneBuildIndex}. Make sure the scene is added to Build Settings.");
             return;
         }
 
-        // TODO: Asenkron yÃ¼kleme ve bir loading ekranÄ± gÃ¶sterme mantÄ±ÄŸÄ± buraya eklenebilir.
+        // TODO: Asenkron yükleme ve bir loading ekranı gösterme mantığı buraya eklenebilir.
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneBuildIndex);
     }
 }

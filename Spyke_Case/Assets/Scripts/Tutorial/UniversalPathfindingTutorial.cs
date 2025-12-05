@@ -17,7 +17,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
     [Header("Settings")]
     [SerializeField] private int costPerUse = 40;
     [SerializeField] private string abilityName = "Universal Pathfinding";
-    [SerializeField] private string description = "Allow a passenger group to go to any stop. Very useful when you're stuck and need flexibility!";
+    [SerializeField] private string description = "Allow a passenger group to go to any stop. Very useful when you're stuck and need flexibility!\n\n💰 Cost increases with each use:\n1st: 100 | 2nd: 200 | 3rd: 400 | 4th: 800 Coins";
     
     private int usageCount = 0;
     private int maxUsages = 2;

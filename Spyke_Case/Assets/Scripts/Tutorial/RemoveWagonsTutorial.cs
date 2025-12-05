@@ -16,7 +16,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
     [Header("Settings")]
     [SerializeField] private int costPerUse = 30;
     [SerializeField] private string abilityName = "Remove Wagons";
-    [SerializeField] private string description = "Remove a specific passenger group from the map. Use this to clear space when you're stuck.";
+    [SerializeField] private string description = "Remove a specific passenger group from the map. Use this to clear space when you're stuck.\n\n💰 Cost increases with each use:\n1st: 100 | 2nd: 200 | 3rd: 400 | 4th: 800 Coins";
     
     private int usageCount = 0;
     private int maxUsages = 3; // Kaç kez kullanılabilir

@@ -17,7 +17,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
     [Header("Settings")]
     [SerializeField] private int costPerUse = 25;
     [SerializeField] private string abilityName = "Shuffle Colors";
-    [SerializeField] private string description = "Shuffle wagon colors to create new matching opportunities. Great for breaking deadlocks!";
+    [SerializeField] private string description = "Shuffle wagon colors to create new matching opportunities. Great for breaking deadlocks!\n\n💰 Cost increases with each use:\n1st: 100 | 2nd: 200 | 3rd: 400 | 4th: 800 Coins";
     
     private int usageCount = 0;
     private int maxUsages = 3;

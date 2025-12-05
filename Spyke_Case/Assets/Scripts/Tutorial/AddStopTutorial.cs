@@ -18,11 +18,10 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
     [Header("Settings")]
     [SerializeField] private AbilityType abilityType = AbilityType.AddNewStop; // Ability tipi
     [SerializeField] private string abilityName = "Add Stop";
-    [SerializeField] private string description = "Add a new stop to the map. This allows passengers to board faster and reduces traffic congestion.";
+    [SerializeField] private string description = "Add a new stop to the map. This allows passengers to board faster and reduces traffic congestion.\n\n💰 Cost increases with each use:\n1st use: 100 Coins\n2nd use: 200 Coins\n3rd use: 400 Coins\n4th use: 800 Coins";
     
     private StopPanelData[] stopPanels; // Otomatik olarak doldurulacak
     private int currentStopIndex = 1; // İlk stop (index 0) zaten aktif, 1'den başlıyoruz
-    private int totalCostSpent = 0;
     
     public bool IsCompleted => currentStopIndex >= stopPanels.Length;
     
@@ -139,15 +138,14 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
         // Mevcut stop'u aktif et
         ActivateStop(currentStopIndex);
         
-        // Maliyeti AbilityUsageTracker'dan al
-        int cost = GetCost();
-        totalCostSpent += cost;
-        UpdateCostDisplay();
-        
         // Sonraki stop'a geç
         currentStopIndex++;
         
-        Debug.Log($"[AddStopTutorial] Activated stop {currentStopIndex}, Cost: {cost}, Total: {totalCostSpent}");
+        // UI'ı güncelle (BİR SONRAKİ kullanım maliyetini göster)
+        // currentStopIndex zaten artırıldı, bu yüzden bir sonraki kullanım maliyetini gösterir
+        UpdateCostDisplay();
+        
+        Debug.Log($"[AddStopTutorial] Activated stop {currentStopIndex}, Next cost: {GetCost()}");
         
         if (IsCompleted)
         {
@@ -175,13 +173,21 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
     }
     
     /// <summary>
-    /// Maliyet metnini günceller
+    /// Maliyet metnini günceller (bir sonraki kullanım maliyetini gösterir)
     /// </summary>
     private void UpdateCostDisplay()
     {
         if (costText != null)
         {
-            costText.text = $"Harcanan: {totalCostSpent} Coin";
+            if (IsCompleted)
+            {
+                costText.text = "Completed!";
+            }
+            else
+            {
+                int nextCost = GetCost();
+                costText.text = $"{nextCost} Coin";
+            }
         }
     }
     
@@ -191,7 +197,6 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
     public void ResetTutorial()
     {
         currentStopIndex = 1;
-        totalCostSpent = 0;
         InitializePanels();
         UpdateCostDisplay();
         
@@ -205,11 +210,18 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
     {
         if (AbilityUsageTracker.Instance != null)
         {
-            // Tutorial'da her kullanımda maliyet artar (gerçek sistemdeki gibi)
-            // currentStopIndex - 1 çünkü henüz kullanılmadı
+            // currentStopIndex - 1 çünkü:
+            // currentStopIndex = 1 → 0 kullanım → 100 * 2^0 = 100
+            // currentStopIndex = 2 → 1 kullanım → 100 * 2^1 = 200
+            // currentStopIndex = 3 → 2 kullanım → 100 * 2^2 = 400
+            // currentStopIndex = 4 → 3 kullanım → 100 * 2^3 = 800
             int usageCount = currentStopIndex - 1;
             int baseCost = 100; // AbilityUsageTracker.BASE_COST
-            return baseCost * (int)Mathf.Pow(2, usageCount);
+            int cost = baseCost * (int)Mathf.Pow(2, usageCount);
+            
+            Debug.Log($"[AddStopTutorial] GetCost: currentStopIndex={currentStopIndex}, usageCount={usageCount}, cost={cost}");
+            
+            return cost;
         }
         
         // Fallback

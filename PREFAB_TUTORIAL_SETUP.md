@@ -18,7 +18,7 @@ Tutorial oynatılır
 
 ## 📦 Prefab Yapısı
 
-### 1. AddStopTutorialPanel (Prefab)
+### 1.  (Prefab)
 
 ```
 AddStopTutorialPanel (Prefab)

@@ -16,10 +16,9 @@ public class AbilityTutorialButton : MonoBehaviour
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI buttonText; // Buton üzerindeki text (opsiyonel)
     [SerializeField] private TextMeshProUGUI costText; // Maliyet göstergesi (opsiyonel)
-    [SerializeField] private TextMeshProUGUI descriptionText; // Açıklama metni (ortak, opsiyonel)
+    // descriptionText ve typewriterEffect artık AbilityTutorialManager'dan alınacak
     
-    [Header("Typewriter Effect")]
-    [SerializeField] private TypewriterEffect typewriterEffect; // Typewriter component (opsiyonel)
+    [Header("Auto Click Settings")]
     [SerializeField] private bool enableAutoClick = true; // Otomatik tıklama aktif mi?
     [SerializeField] private int autoClickCount = 3; // Kaç kere otomatik tıklama
     [SerializeField] private float autoClickDelay = 2f; // Tıklamalar arası bekleme (saniye)
@@ -42,6 +41,10 @@ public class AbilityTutorialButton : MonoBehaviour
     private ParticleSystem instantiatedParticle; // Instantiate edilmiş particle
     private AudioSource audioSource; // Audio source component
     private int handClickCount = 0; // El kaç kere tıkladı
+    
+    // Manager'dan alınacak UI componentleri
+    private TextMeshProUGUI descriptionText;
+    private TypewriterEffect typewriterEffect;
     
     private void Awake()
     {
@@ -171,6 +174,17 @@ public class AbilityTutorialButton : MonoBehaviour
     {
         tutorialManager = manager;
         Debug.Log("[AbilityTutorialButton] Tutorial manager set");
+    }
+    
+    /// <summary>
+    /// Set UI components from manager (SelectionText and TypewriterEffect)
+    /// </summary>
+    public void SetUIComponents(TextMeshProUGUI selectionText, TypewriterEffect typewriter)
+    {
+        descriptionText = selectionText;
+        typewriterEffect = typewriter;
+        
+        Debug.Log($"[AbilityTutorialButton] UI components set - SelectionText: {selectionText != null}, TypewriterEffect: {typewriter != null}");
     }
     
     /// <summary>

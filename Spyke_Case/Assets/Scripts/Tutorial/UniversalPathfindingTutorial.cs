@@ -48,6 +48,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
     private bool isSkipped = false;
     private Coroutine mainLoop;
     private AudioSource audioSource;
+    private int currentCost = 100; // Başlangıç maliyeti, her döngüde 2 katına çıkar
     
     public bool IsCompleted => false; // Sürekli tekrar eder, skip ile durur
     
@@ -115,7 +116,12 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
             yield return new WaitForSeconds(parkDuration);
             ResetPositions();
             
-            // 6. Tekrar başlamadan önce kısa bekle
+            // 6. Cost'u 2 katına çıkar ve güncelle
+            currentCost *= 2;
+            UpdateCostDisplay();
+            Debug.Log($"[UniversalPathfindingTutorial] Cost doubled to: {currentCost}");
+            
+            // 7. Tekrar başlamadan önce kısa bekle
             yield return new WaitForSeconds(1f);
         }
         
@@ -475,7 +481,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
     {
         if (costText != null)
         {
-            costText.text = "100 Coin";
+            costText.text = $"{currentCost} Coin";
         }
     }
     
@@ -485,6 +491,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
     public void ResetTutorial()
     {
         isSkipped = false;
+        currentCost = 100; // Reset cost to initial value
         ResetPositions();
         UpdateCostDisplay();
         StartMainLoop();
@@ -492,7 +499,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
         Debug.Log("[UniversalPathfindingTutorial] Tutorial reset");
     }
     
-    public int GetCost() => 100;
+    public int GetCost() => currentCost;
     public string GetAbilityName() => abilityName;
     public string GetDescription() => description;
     

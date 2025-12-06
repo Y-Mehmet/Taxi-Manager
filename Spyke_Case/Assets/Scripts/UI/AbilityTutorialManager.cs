@@ -27,6 +27,8 @@ public class AbilityTutorialManager : MonoBehaviour
     
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI timerText; // Geri sayım göstergesi (opsiyonel)
+    [SerializeField] private TextMeshProUGUI selectionText; // Tutorial açıklama metni (AbilityTutorialButton'a verilecek)
+    [SerializeField] private TypewriterEffect typewriterEffect; // Typewriter efekti (AbilityTutorialButton'a verilecek)
     
     private GameObject spawnedPanel; // Spawn edilen panel
     private AbilityType currentAbilityType;
@@ -137,10 +139,10 @@ public class AbilityTutorialManager : MonoBehaviour
         
         if (tutorialButton != null)
         {
-            // Set manager reference via reflection or public method
-            // Since we can't directly set private field, we'll use a public method
+            // Set manager reference and UI components
             tutorialButton.SetTutorialManager(this);
-            Debug.Log("[AbilityTutorialManager] Connected tutorial button to manager");
+            tutorialButton.SetUIComponents(selectionText, typewriterEffect);
+            Debug.Log("[AbilityTutorialManager] Connected tutorial button to manager and set UI components");
         }
         else
         {
@@ -266,15 +268,9 @@ public class AbilityTutorialManager : MonoBehaviour
     /// </summary>
     private void LoadLevel()
     {
-        if (SceneManager.Instance != null)
-        {
-            // Directly load AllLevel scene (build index 1)
-            UnityEngine.SceneManagement.SceneManager.LoadScene(1);
-        }
-        else
-        {
-            Debug.LogError("[AbilityTutorialManager] SceneManager not found!");
-        }
+        Debug.Log("[AbilityTutorialManager] Loading AllLevel scene (build index 1)");
+        // Directly load AllLevel scene (build index 1)
+        UnityEngine.SceneManagement.SceneManager.LoadScene(1);
     }
     
     private void OnDestroy()

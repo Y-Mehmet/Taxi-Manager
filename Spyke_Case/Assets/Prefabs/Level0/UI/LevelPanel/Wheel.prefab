@@ -378,6 +378,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 592562082515594588}
     m_Modifications:
+    - target: {fileID: 2147943587305565975, guid: 87936ec0f1af0b040b2e9a5b178023af, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 164
+      objectReference: {fileID: 0}
     - target: {fileID: 5934373338651443351, guid: 87936ec0f1af0b040b2e9a5b178023af, type: 3}
       propertyPath: m_Name
       value: Whell_Image_Panel (1)

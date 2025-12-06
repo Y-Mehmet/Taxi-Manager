@@ -743,6 +743,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 89870092217467083, guid: d514d94e616b8584186bef30c1965f30, type: 3}
   m_PrefabInstance: {fileID: 814528865}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &814528867 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7195563582998205806, guid: d514d94e616b8584186bef30c1965f30, type: 3}
+  m_PrefabInstance: {fileID: 814528865}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1857298808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &976602611
 GameObject:
   m_ObjectHideFlags: 0
@@ -793,7 +804,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   addStopTutorialPrefab: {fileID: 4852167091024102420, guid: 0d6d988ddd1a8ef4490441994a6021f2, type: 3}
-  universalPathfindingTutorialPrefab: {fileID: 4852167091024102420, guid: 0d6d988ddd1a8ef4490441994a6021f2, type: 3}
+  universalPathfindingTutorialPrefab: {fileID: 7264086042592649791, guid: db32284ace1e5d541afce7f2700e8c99, type: 3}
   flasherTutorialPrefab: {fileID: 4852167091024102420, guid: 0d6d988ddd1a8ef4490441994a6021f2, type: 3}
   shuffleTutorialPrefab: {fileID: 4852167091024102420, guid: 0d6d988ddd1a8ef4490441994a6021f2, type: 3}
   panelContainer: {fileID: 1236050434}
@@ -801,6 +812,8 @@ MonoBehaviour:
   skipButton: {fileID: 1758139867}
   autoSkipDelay: 10
   timerText: {fileID: 1318806865}
+  selectionText: {fileID: 814528867}
+  typewriterEffect: {fileID: 1857298812}
 --- !u!82 &976602614
 AudioSource:
   m_ObjectHideFlags: 0

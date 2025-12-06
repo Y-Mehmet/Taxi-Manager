@@ -30,6 +30,12 @@ public class LevelSelectionManager : MonoBehaviour
             return;
         }
     }
+    
+    private void Start()
+    {
+        // Initialize selection on start
+        RefreshSelection();
+    }
 
     /// <summary>
     /// Refresh the level selection to show max opened level

@@ -21,10 +21,9 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
     
     private Image[] colorPanels;
     private Color[] originalColors;
-    private int currentShuffleIndex = 0;
-    private int maxShuffles = 3;
+    private int currentCost = 100; // Başlangıç maliyeti, her kullanımda 2 katına çıkar
     
-    public bool IsCompleted => currentShuffleIndex >= maxShuffles;
+    public bool IsCompleted => false; // Sürekli tekrar eder, skip ile durur
     
     private void Start()
     {
@@ -52,12 +51,11 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
             return;
         }
         
-        // Take first 3 children as color panels
-        maxShuffles = Mathf.Min(childCount, 3);
-        colorPanels = new Image[maxShuffles];
-        originalColors = new Color[maxShuffles];
+        // Get all children as color panels
+        colorPanels = new Image[childCount];
+        originalColors = new Color[childCount];
         
-        for (int i = 0; i < maxShuffles; i++)
+        for (int i = 0; i < childCount; i++)
         {
             Transform child = colorContainer.GetChild(i);
             colorPanels[i] = child.GetComponent<Image>();
@@ -68,7 +66,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
             }
         }
         
-        Debug.Log($"[ShuffleColorsTutorial] Auto-filled {maxShuffles} color panels from children");
+        Debug.Log($"[ShuffleColorsTutorial] Auto-filled {childCount} color panels from children");
     }
     
     /// <summary>
@@ -98,27 +96,16 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
     /// </summary>
     public void OnAbilityUsed()
     {
-        if (IsCompleted)
-        {
-            Debug.Log("[ShuffleColorsTutorial] Tutorial already completed!");
-            return;
-        }
-        
         // Renkleri shuffle et
         ShuffleColors();
         
-        // Shuffle sayısını artır
-        currentShuffleIndex++;
+        // Cost'u 2 katına çıkar
+        currentCost *= 2;
         
         // UI'ı güncelle
         UpdateCostDisplay();
         
-        Debug.Log($"[ShuffleColorsTutorial] Shuffled {currentShuffleIndex}/{maxShuffles} times, Next cost: {GetCost()}");
-        
-        if (IsCompleted)
-        {
-            Debug.Log("[ShuffleColorsTutorial] Tutorial completed!");
-        }
+        Debug.Log($"[ShuffleColorsTutorial] Colors shuffled, Next cost: {currentCost}");
     }
     
     /// <summary>
@@ -154,15 +141,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
     {
         if (costText != null)
         {
-            if (IsCompleted)
-            {
-                costText.text = "Completed!";
-            }
-            else
-            {
-                int nextCost = GetCost();
-                costText.text = $"{nextCost} Coin";
-            }
+            costText.text = $"{currentCost} Coin";
         }
     }
     
@@ -171,7 +150,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
     /// </summary>
     public void ResetTutorial()
     {
-        currentShuffleIndex = 0;
+        currentCost = 100;
         InitializePanels();
         UpdateCostDisplay();
         
@@ -183,11 +162,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
     /// </summary>
     public int GetCost()
     {
-        int usageCount = currentShuffleIndex;
-        int baseCost = 100;
-        int cost = baseCost * (int)Mathf.Pow(2, usageCount);
-        
-        return cost;
+        return currentCost;
     }
     
     public string GetAbilityName() => abilityName;

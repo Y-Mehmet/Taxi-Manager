@@ -30,40 +30,40 @@ public class SceneManager : Singleton<SceneManager>
         {
             SaveGameData saveData = GameDataManager.Instance.GetSaveData();
             
-            // Level 4: Add Stop Tutorial
-            if (currentLevel == 4 && !saveData.hasSeenAddStopTutorial)
+            // Add Stop Tutorial - check against configured unlock level
+            if (currentLevel == saveData.abilityAddNewStopUnlockLevel && !saveData.hasSeenAddStopTutorial)
             {
-                Debug.Log("[SceneManager] Level 4 - Loading Add Stop Tutorial");
+                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Add Stop Tutorial");
                 saveData.currentAbilityTutorial = "AddStop";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(abilityTutorialBuildIndex);
                 return;
             }
             
-            // Level 8: Universal Pathfinding Tutorial
-            if (currentLevel == 8 && !saveData.hasSeenUniversalPathfindingTutorial)
+            // Universal Pathfinding Tutorial - check against configured unlock level
+            if (currentLevel == saveData.abilityUniversalPathfindingUnlockLevel && !saveData.hasSeenUniversalPathfindingTutorial)
             {
-                Debug.Log("[SceneManager] Level 8 - Loading Universal Pathfinding Tutorial");
+                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Universal Pathfinding Tutorial");
                 saveData.currentAbilityTutorial = "UniversalPathfinding";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(abilityTutorialBuildIndex);
                 return;
             }
             
-            // Level 16: Flasher Tutorial
-            if (currentLevel == 16 && !saveData.hasSeenFlasherTutorial)
+            // Flasher Tutorial - check against configured unlock level
+            if (currentLevel == saveData.abilityRemoveWagonsUnlockLevel && !saveData.hasSeenFlasherTutorial)
             {
-                Debug.Log("[SceneManager] Level 16 - Loading Flasher Tutorial");
+                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Flasher Tutorial");
                 saveData.currentAbilityTutorial = "Flasher";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(abilityTutorialBuildIndex);
                 return;
             }
             
-            // Level 32: Shuffle Tutorial
-            if (currentLevel == 32 && !saveData.hasSeenShuffleTutorial)
+            // Shuffle Tutorial - check against configured unlock level
+            if (currentLevel == saveData.abilityShuffleWagonColorsUnlockLevel && !saveData.hasSeenShuffleTutorial)
             {
-                Debug.Log("[SceneManager] Level 32 - Loading Shuffle Tutorial");
+                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Shuffle Tutorial");
                 saveData.currentAbilityTutorial = "Shuffle";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(abilityTutorialBuildIndex);

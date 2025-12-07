@@ -40,6 +40,12 @@ public class SaveGameData
     public bool hasSeenFlasherTutorial; // Level 16
     public bool hasSeenShuffleTutorial; // Level 32
     
+    // Ability Unlock Levels (which level unlocks each ability)
+    public int abilityAddNewStopUnlockLevel = 2;
+    public int abilityUniversalPathfindingUnlockLevel = 3;
+    public int abilityRemoveWagonsUnlockLevel = 4;
+    public int abilityShuffleWagonColorsUnlockLevel = 5;
+    
     // Current ability tutorial to show (set by SceneManager, read by AbilityTutorialManager)
     public string currentAbilityTutorial; // "AddStop", "UniversalPathfinding", "Flasher", "Shuffle"
     

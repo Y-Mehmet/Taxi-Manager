@@ -100,16 +100,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 618038830894507114}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6953696018382895650}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -116, y: -700}
+  m_AnchoredPosition: {x: 500, y: -700}
   m_SizeDelta: {x: 371, y: 460}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9140576963792998356
@@ -175,16 +175,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2712769397974175302}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6953696018382895650}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 100, y: -700}
+  m_AnchoredPosition: {x: 0, y: -700}
   m_SizeDelta: {x: 371, y: 460}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6625701507665207916
@@ -259,7 +259,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -390, y: 138.33188}
+  m_AnchoredPosition: {x: -393.28, y: 114}
   m_SizeDelta: {x: 511.99994, y: 512}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4043500690143589885
@@ -325,16 +325,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3937858433716712275}
-  m_LocalRotation: {x: -0, y: -0, z: -0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6953696018382895650}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -390, y: 138.33203}
+  m_AnchoredPosition: {x: -388, y: 111}
   m_SizeDelta: {x: 371, y: 460}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1988447163874927970
@@ -849,8 +849,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2512736464753529493}
-  - {fileID: 2012320200901485047}
   - {fileID: 663684227902852016}
+  - {fileID: 2012320200901485047}
   - {fileID: 1014105120022304236}
   - {fileID: 668067396458056640}
   - {fileID: 1096661396962464176}
@@ -934,8 +934,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 376048256411860406}
-  - component: {fileID: 1681450272256377228}
   - component: {fileID: 7240117462873611345}
+  - component: {fileID: 1681450272256377228}
   m_Layer: 5
   m_Name: TutorialManager
   m_TagString: Untagged
@@ -962,18 +962,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1681450272256377228
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8188206575351144229}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f884e582e8c0f943994bc036532b9fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &7240117462873611345
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1001,11 +989,23 @@ MonoBehaviour:
   waitAfterAbilityClick: 1
   costText: {fileID: 4542986287077971687}
   abilityType: 2
-  abilityName: Remove Wagons
-  description: "Hi boss! New Booster Unlocked: Rescue Towing!  Select a taxi waiting
+  abilityName: Tow
+  description: "Hi boss! New Booster Unlocked: Rescue Towing!  Select a car waiting
     at a stop to send it back to the inventory. Use this to clear the pick-up spot
-    and manage your unused cars.\n\U0001F4B0 Cost increases with each use:\n1st:
-    100 | 2nd: 200 | 3rd: 400 | 4th: 800 Coins"
+    and manage your unused cars.\n Cost increases with each use:\n1st: 100 | 2nd:
+    200 | 3rd: 400 | 4th: 800 Coins"
+--- !u!114 &1681450272256377228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8188206575351144229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f884e582e8c0f943994bc036532b9fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8198279431723730775
 GameObject:
   m_ObjectHideFlags: 0
@@ -1031,16 +1031,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8198279431723730775}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6953696018382895650}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 342, y: -700}
+  m_AnchoredPosition: {x: -500, y: -700}
   m_SizeDelta: {x: 371, y: 460}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3228962312724061356
@@ -1229,6 +1229,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AbilityBtn
       objectReference: {fileID: 0}
+    - target: {fileID: 637647261554797348, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
+      propertyPath: m_TextWrappingMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1308491709362961882, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -1318,6 +1322,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4071200128751382899, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
+      propertyPath: m_text
+      value: Tow
+      objectReference: {fileID: 0}
+    - target: {fileID: 4071200128751382899, guid: c2a813ed6e20a14409799567ee6ddf79, type: 3}
       propertyPath: m_TextWrappingMode
       value: 0
       objectReference: {fileID: 0}
@@ -1377,7 +1385,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16d3959642e4cec48b92468aadf96f52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tutorialBehaviour: {fileID: 0}
+  tutorialBehaviour: {fileID: 7240117462873611345}
   buttonText: {fileID: 1129633613918866608}
   costText: {fileID: 4542986287077971687}
   enableAutoClick: 1

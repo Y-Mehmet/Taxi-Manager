@@ -1,0 +1,7 @@
+// AbilityButton.cs'e eklenecek satırlar:
+
+// Satır 18'den SONRA ekle:
+    [SerializeField] private Image abilityIconImage; // Ability icon image (locked/unlocked sprite için)
+
+// Satır 20'den SONRA ekle (private Button button; satırından sonra):
+    private Sprite originalIconSprite; // Orijinal icon sprite (unlock durumu için)

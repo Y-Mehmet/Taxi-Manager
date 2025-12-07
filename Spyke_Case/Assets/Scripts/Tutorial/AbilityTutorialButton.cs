@@ -20,8 +20,6 @@ public class AbilityTutorialButton : MonoBehaviour
     
     [Header("Auto Click Settings")]
     [SerializeField] private bool enableAutoClick = true; // Otomatik tıklama aktif mi?
-    [SerializeField] private int autoClickCount = 3; // Kaç kere otomatik tıklama
-    [SerializeField] private float autoClickDelay = 2f; // Tıklamalar arası bekleme (saniye)
     [SerializeField] private AbilityTutorialManager tutorialManager; // Tutorial manager (opsiyonel)
     
     [Header("Visual Effects")]
@@ -126,45 +124,33 @@ public class AbilityTutorialButton : MonoBehaviour
     /// </summary>
     private void OnTypingComplete()
     {
-        Debug.Log("[AbilityTutorialButton] Typewriter complete, starting auto-click");
+        Debug.Log("[AbilityTutorialButton] Typewriter complete, waiting 2 seconds before starting animations");
         
-        // Start auto-click sequence
+        // Start auto-click sequence after 2 second delay
         if (enableAutoClick && !hasStartedAutoClick)
         {
             hasStartedAutoClick = true;
-            StartCoroutine(AutoClickSequence());
+            StartCoroutine(AutoClickSequenceWithDelay());
         }
     }
     
     /// <summary>
-    /// Auto-click the button multiple times with delay
+    /// Auto-click the button once after 2 second delay
     /// </summary>
-    private System.Collections.IEnumerator AutoClickSequence()
+    private System.Collections.IEnumerator AutoClickSequenceWithDelay()
     {
-        for (int i = 0; i < autoClickCount; i++)
+        // Wait 2 seconds after typewriter completes
+        yield return new WaitForSeconds(2f);
+        
+        Debug.Log("[AbilityTutorialButton] Auto-clicking button once to start tutorial animations");
+        
+        // Single click to trigger OnAbilityUsed
+        if (!tutorial.IsCompleted)
         {
-            // Wait before clicking
-            yield return new WaitForSeconds(autoClickDelay);
-            
-            // Simulate button click
-            if (!tutorial.IsCompleted)
-            {
-                Debug.Log($"[AbilityTutorialButton] Auto-click {i + 1}/{autoClickCount}");
-                OnButtonClicked();
-            }
-            else
-            {
-                Debug.Log("[AbilityTutorialButton] Tutorial completed, stopping auto-click");
-                break;
-            }
+            OnButtonClicked();
         }
         
-        // Notify manager that tutorial is completed
-        if (tutorialManager != null && tutorial.IsCompleted)
-        {
-            Debug.Log("[AbilityTutorialButton] Notifying manager: tutorial completed");
-            tutorialManager.OnTutorialCompleted();
-        }
+        Debug.Log("[AbilityTutorialButton] Auto-click complete. Tutorial animations started. Waiting for user to click Continue button.");
     }
     
     /// <summary>
@@ -192,17 +178,23 @@ public class AbilityTutorialButton : MonoBehaviour
     /// </summary>
     private void OnButtonClicked()
     {
+        Debug.Log("[AbilityTutorialButton] OnButtonClicked called");
+        
         if (tutorial == null)
         {
             Debug.LogError("[AbilityTutorialButton] Tutorial is null!");
             return;
         }
         
+        Debug.Log($"[AbilityTutorialButton] Tutorial IsCompleted: {tutorial.IsCompleted}");
+        
         if (tutorial.IsCompleted)
         {
             Debug.Log($"[AbilityTutorialButton] {tutorial.GetAbilityName()} tutorial already completed!");
             return;
         }
+        
+        Debug.Log($"[AbilityTutorialButton] Calling tutorial.OnAbilityUsed()");
         
         // Ability'yi kullan
         tutorial.OnAbilityUsed();

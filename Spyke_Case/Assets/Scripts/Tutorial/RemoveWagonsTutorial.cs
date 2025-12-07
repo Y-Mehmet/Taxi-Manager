@@ -77,10 +77,10 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
         
         UpdateCostDisplay();
         
-        // Start main loop
-        StartMainLoop();
+        // Don't start main loop here - AbilityTutorialButton will trigger it
+        // via OnAbilityUsed() after typewriter completes
         
-        Debug.Log($"[RemoveWagonsTutorial] Started - Positions saved");
+        Debug.Log($"[RemoveWagonsTutorial] Started - Waiting for AbilityTutorialButton to trigger animations");
     }
     
     /// <summary>
@@ -308,7 +308,8 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
         if (parkedCar != null)
         {
             parkedCar.localPosition = parkedCarStartPos;
-            parkedCar.localRotation = Quaternion.identity;
+            // Reset to -90 degrees (facing left, parked state) instead of 0 (facing up)
+            parkedCar.localRotation = Quaternion.Euler(0, 0, -90f);
         }
         
         if (parkImage != null)
@@ -333,12 +334,17 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
     }
     
     /// <summary>
-    /// Ability kullanıldığında (manuel - kullanılmıyor, otomatik çalışıyor)
+    /// Ability kullanıldığında (AbilityTutorialButton tarafından çağrılır)
+    /// Typewriter bitip 2 saniye bekledikten sonra burası çağrılır
     /// </summary>
     public void OnAbilityUsed()
     {
-        // Bu tutorial otomatik çalışır, manuel kullanım yok
-        Debug.Log("[RemoveWagonsTutorial] OnAbilityUsed called (auto mode, ignored)");
+        // Start main loop if not already started
+        if (mainLoop == null)
+        {
+            Debug.Log("[RemoveWagonsTutorial] OnAbilityUsed - Starting main loop");
+            StartMainLoop();
+        }
     }
     
     /// <summary>

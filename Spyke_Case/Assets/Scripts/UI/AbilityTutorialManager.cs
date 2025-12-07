@@ -18,22 +18,15 @@ public class AbilityTutorialManager : MonoBehaviour
     [Header("Spawn Parent")]
     [SerializeField] private Transform panelContainer; // Prefab'ların spawn edileceği parent (Canvas)
     
-    [Header("Navigation Buttons")]
-    [SerializeField] private Button nextButton; // Sonraki/Devam butonu
-    [SerializeField] private Button skipButton; // "Atla" butonu (opsiyonel)
-    
-    [Header("Auto Skip")]
-    [SerializeField] private float autoSkipDelay = 5f; // Tutorial bitince kaç saniye sonra otomatik geçsin
+    [Header("Navigation Button")]
+    [SerializeField] private Button continueButton; // Continue/Skip butonu (level'a geçiş için)
     
     [Header("UI Elements")]
-    [SerializeField] private TextMeshProUGUI timerText; // Geri sayım göstergesi (opsiyonel)
     [SerializeField] private TextMeshProUGUI selectionText; // Tutorial açıklama metni (AbilityTutorialButton'a verilecek)
     [SerializeField] private TypewriterEffect typewriterEffect; // Typewriter efekti (AbilityTutorialButton'a verilecek)
     
     private GameObject spawnedPanel; // Spawn edilen panel
     private AbilityType currentAbilityType;
-    private bool tutorialCompleted = false;
-    private Coroutine autoSkipCoroutine;
     
     private void Start()
     {
@@ -52,12 +45,11 @@ public class AbilityTutorialManager : MonoBehaviour
             Debug.LogError("[AbilityTutorialManager] GameDataManager or SaveData is null!");
         }
         
-        // Initialize buttons
-        if (nextButton != null)
-            nextButton.onClick.AddListener(OnNextButtonClicked);
-            
-        if (skipButton != null)
-            skipButton.onClick.AddListener(OnSkipButtonClicked);
+        // Initialize continue button
+        if (continueButton != null)
+        {
+            continueButton.onClick.AddListener(OnContinueButtonClicked);
+        }
     }
     
     /// <summary>
@@ -150,79 +142,15 @@ public class AbilityTutorialManager : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// Tutorial tamamlandığında çağrılır (3 tıklama sonrası)
-    /// </summary>
-    public void OnTutorialCompleted()
-    {
-        if (tutorialCompleted) return;
-        
-        tutorialCompleted = true;
-        
-        Debug.Log("[AbilityTutorialManager] Tutorial completed, starting auto-skip timer");
-        
-        // Start auto-skip countdown
-        if (autoSkipCoroutine != null)
-            StopCoroutine(autoSkipCoroutine);
-            
-        autoSkipCoroutine = StartCoroutine(AutoSkipCountdown());
-    }
+    // OnTutorialCompleted and AutoSkipCountdown removed - no auto-skip
+    // User must click Continue button to proceed to level
     
     /// <summary>
-    /// Auto-skip countdown (5 saniye)
+    /// Continue button tıklandığında - tutorial'ı tamamla ve level'ı yükle
     /// </summary>
-    private IEnumerator AutoSkipCountdown()
+    private void OnContinueButtonClicked()
     {
-        float remainingTime = autoSkipDelay;
-        
-        while (remainingTime > 0)
-        {
-            // Update timer text
-            if (timerText != null)
-            {
-                timerText.text = $"Devam ediliyor... {Mathf.CeilToInt(remainingTime)}";
-            }
-            
-            yield return new WaitForSeconds(1f);
-            remainingTime -= 1f;
-        }
-        
-        // Auto-skip
-        Debug.Log("[AbilityTutorialManager] Auto-skip triggered");
-        CompleteTutorialAndLoadLevel();
-    }
-    
-    /// <summary>
-    /// Next button tıklandığında
-    /// </summary>
-    private void OnNextButtonClicked()
-    {
-        Debug.Log("[AbilityTutorialManager] Next button clicked");
-        
-        // Stop auto-skip if running
-        if (autoSkipCoroutine != null)
-        {
-            StopCoroutine(autoSkipCoroutine);
-            autoSkipCoroutine = null;
-        }
-        
-        CompleteTutorialAndLoadLevel();
-    }
-    
-    /// <summary>
-    /// Skip button tıklandığında
-    /// </summary>
-    private void OnSkipButtonClicked()
-    {
-        Debug.Log("[AbilityTutorialManager] Skip button clicked");
-        
-        // Stop auto-skip if running
-        if (autoSkipCoroutine != null)
-        {
-            StopCoroutine(autoSkipCoroutine);
-            autoSkipCoroutine = null;
-        }
-        
+        Debug.Log("[AbilityTutorialManager] Continue button clicked");
         CompleteTutorialAndLoadLevel();
     }
     
@@ -275,16 +203,9 @@ public class AbilityTutorialManager : MonoBehaviour
     
     private void OnDestroy()
     {
-        // Clean up button listeners
-        if (nextButton != null)
-            nextButton.onClick.RemoveListener(OnNextButtonClicked);
-            
-        if (skipButton != null)
-            skipButton.onClick.RemoveListener(OnSkipButtonClicked);
-            
-        // Stop coroutine
-        if (autoSkipCoroutine != null)
-            StopCoroutine(autoSkipCoroutine);
+        // Clean up button listener
+        if (continueButton != null)
+            continueButton.onClick.RemoveListener(OnContinueButtonClicked);
             
         // Destroy spawned panel
         if (spawnedPanel != null)

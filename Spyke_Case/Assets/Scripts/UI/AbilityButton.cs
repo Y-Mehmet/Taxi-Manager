@@ -16,8 +16,11 @@ public class AbilityButton : MonoBehaviour
     [Header("UI ReferanslarÄ±")]
     [SerializeField] private TextMeshProUGUI costText; // Maliyeti gÃ¶steren text (ability adÄ± yerine)
     [SerializeField] private TextMeshProUGUI abilityNameText;  // YeteneÄŸin adÄ±nÄ± gÃ¶steren text (opsiyonel)
+    [SerializeField] private Image abilityIconImage; // Ability icon image
 
     private Button button;
+    private Sprite originalIconSprite; // Original icon sprite
+    private Vector2 originalIconSize; // Original icon size (to restore after SetNativeSize)
 
     private void Awake()
     {
@@ -46,6 +49,13 @@ public class AbilityButton : MonoBehaviour
         if (abilityType == AbilityType.AddNewStop)
         {
              StopManager.OnStopRegistered += OnStopRegistered;
+        }
+        
+        // Save original icon sprite and size
+        if (abilityIconImage != null)
+        {
+            originalIconSprite = abilityIconImage.sprite;
+            originalIconSize = abilityIconImage.rectTransform.sizeDelta;
         }
 
         InitializeButtonState();
@@ -88,6 +98,25 @@ public class AbilityButton : MonoBehaviour
         {
             Debug.LogError($"[AbilityButton:{abilityType}] Cannot initialize, a manager is missing.");
             return;
+        }
+        
+        // Check if we're in AllLevel scene (build index 1)
+        int currentSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+        
+        if (currentSceneIndex == 1) // AllLevel scene
+        {
+            // Check if ability is unlocked
+            if (AbilityUnlockManager.Instance != null)
+            {
+                bool isUnlocked = AbilityUnlockManager.Instance.IsAbilityUnlocked(abilityType);
+                
+                if (!isUnlocked)
+                {
+                    // Ability is locked - show unlock level and disable button
+                    SetLockedState();
+                    return;
+                }
+            }
         }
 
         int currentCoins = GameEconomy.Instance.GetMainCoins();
@@ -193,6 +222,34 @@ public class AbilityButton : MonoBehaviour
           //  Debug.LogError($"[AbilityButton:{abilityType}] CostText reference is not set in the inspector!");
             return;
         }
+        
+        // Check if we're in AllLevel scene (build index 1)
+        int currentSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+        
+        if (currentSceneIndex == 1) // AllLevel scene
+        {
+            // Check if ability is unlocked
+            if (AbilityUnlockManager.Instance != null)
+            {
+                bool isUnlocked = AbilityUnlockManager.Instance.IsAbilityUnlocked(abilityType);
+                
+                if (!isUnlocked)
+                {
+                    // Ability is locked - keep locked state
+                    SetLockedState();
+                    return;
+                }
+                else
+                {
+                    // Ability is unlocked - restore original icon and size
+                    if (abilityIconImage != null && originalIconSprite != null)
+                    {
+                        abilityIconImage.sprite = originalIconSprite;
+                        abilityIconImage.rectTransform.sizeDelta = originalIconSize;
+                    }
+                }
+            }
+        }
 
         // Check if ability is available (e.g., max stops not reached)
         bool isAvailable = AbilityManager.Instance.IsAbilityAvailable(abilityType);
@@ -222,5 +279,35 @@ public class AbilityButton : MonoBehaviour
             costText.color = Color.red; // Cannot afford - red
             button.interactable = false;
         }
+    }
+    
+    /// <summary>
+    /// Locked durumunu ayarlar (icon, text, interactable)
+    /// </summary>
+    private void SetLockedState()
+    {
+        if (AbilityUnlockManager.Instance == null) return;
+        
+        // Set unlock level text
+        string unlockText = AbilityUnlockManager.Instance.GetUnlockLevelText(abilityType);
+        costText.text = unlockText;
+        // Don't change text color - keep original color
+        
+        // Change icon to locked sprite
+        if (abilityIconImage != null)
+        {
+            Sprite lockedSprite = AbilityUnlockManager.Instance.GetLockedIconSprite();
+            if (lockedSprite != null)
+            {
+                abilityIconImage.sprite = lockedSprite;
+                // Use locked icon's native size instead of stretching
+                abilityIconImage.SetNativeSize();
+            }
+        }
+        
+        // Disable button
+        button.interactable = false;
+        
+        Debug.Log($"[AbilityButton] {abilityType} is LOCKED - {unlockText}");
     }
 }

@@ -140,6 +140,7 @@ MonoBehaviour:
   abilityType: 0
   costText: {fileID: 637647261554797348}
   abilityNameText: {fileID: 4071200128751382899}
+  abilityIconImage: {fileID: 6108129729289543368}
 --- !u!1 &1308491709362961882
 GameObject:
   m_ObjectHideFlags: 0

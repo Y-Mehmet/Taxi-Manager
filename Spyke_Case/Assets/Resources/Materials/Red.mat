@@ -242,7 +242,7 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.28490567, b: 0.28490567, a: 1}
+    - _BaseColor: {r: 1, g: 0, b: 0, a: 1}
     - _Color: {r: 0.93962264, g: 0.2960697, b: 0.2960697, a: 1}
     - _ColorDim: {r: 0.6981132, g: 0.19889641, b: 0.19889641, a: 1}
     - _ColorDimCurve: {r: 0.85023, g: 0.85034, b: 0.85045, a: 0.85056}
@@ -258,7 +258,7 @@ Material:
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _ReflectionColor: {r: 1, g: 1, b: 1, a: 1}
     - _RimColor: {r: 0.8, g: 0.8, b: 0.8, a: 0.5}
-    - _SColor: {r: 1, g: 0, b: 0.042372704, a: 1}
+    - _SColor: {r: 0.5698112, g: 0.14514053, b: 0.1634598, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _SpecularColor: {r: 0.6528301, g: 0.6195727, b: 0.6195727, a: 1}
     - _UnityShadowColor: {r: 0.85023, g: 0.85034, b: 0.85045, a: 0.85056}

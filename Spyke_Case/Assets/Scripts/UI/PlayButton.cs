@@ -21,26 +21,19 @@ public class PlayButton : MonoBehaviour
     private void OnEnable()
     {
         // Subscribe to level selection events
-        LevelSelectionManager.OnLevelSelected += UpdateLevelText;
+        LevelSelectManager.OnLevelSelected += UpdateLevelText;
         
-        // Force select max opened level when returning to main menu
-        if (LevelSelectionManager.Instance != null && ResourceManager.Instance != null)
+        // Update text with current selection if available
+        if (LevelSelectManager.Instance != null)
         {
-            int maxLevel = ResourceManager.Instance.MaxOpenedLevel;
-            Debug.Log($"[PlayButton] OnEnable - Forcing selection to max level: {maxLevel}");
-            LevelSelectionManager.Instance.SelectLevel(maxLevel);
-        }
-        else if (LevelSelectionManager.Instance != null)
-        {
-            // Fallback: just update text with current selection
-            UpdateLevelText(LevelSelectionManager.Instance.SelectedLevelIndex);
+            UpdateLevelText(LevelSelectManager.Instance.SelectedLevelIndex);
         }
     }
 
     private void OnDisable()
     {
         // Unsubscribe from events
-        LevelSelectionManager.OnLevelSelected -= UpdateLevelText;
+        LevelSelectManager.OnLevelSelected -= UpdateLevelText;
     }
 
     /// <summary>
@@ -60,13 +53,13 @@ public class PlayButton : MonoBehaviour
     /// </summary>
     public void LoadSelectedLevel()
     {
-        if (LevelSelectionManager.Instance != null)
+        if (LevelSelectManager.Instance != null)
         {
-            LevelSelectionManager.Instance.PlaySelectedLevel();
+            LevelSelectManager.Instance.PlaySelectedLevel();
         }
         else
         {
-            Debug.LogError("[PlayButton] LevelSelectionManager not found!");
+            Debug.LogError("[PlayButton] LevelSelectManager not found!");
         }
     }
 
@@ -80,6 +73,6 @@ public class PlayButton : MonoBehaviour
         }
         
         // Unsubscribe from events
-        LevelSelectionManager.OnLevelSelected -= UpdateLevelText;
+        LevelSelectManager.OnLevelSelected -= UpdateLevelText;
     }
 }

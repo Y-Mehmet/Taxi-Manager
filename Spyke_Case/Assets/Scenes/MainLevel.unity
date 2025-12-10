@@ -912,18 +912,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aff7b81ad451d946b7588028803fabf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1008219103
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1008219088}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c45db2b0d9207ca45ba956fb8c8fd022, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1035893122 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6357342238772882990, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
@@ -6401,9 +6389,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6447006177696718528, guid: 65ca2d79237803041a7d344342070736, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1008219097}
-    - targetCorrespondingSourceObject: {fileID: 6447006177696718528, guid: 65ca2d79237803041a7d344342070736, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1008219103}
   m_SourcePrefab: {fileID: 100100000, guid: 65ca2d79237803041a7d344342070736, type: 3}
 --- !u!1001 &8298063729301874613
 PrefabInstance:
@@ -6532,6 +6517,10 @@ PrefabInstance:
     - target: {fileID: 1053610859676471942, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_SizeDelta.x
       value: 99
+      objectReference: {fileID: 0}
+    - target: {fileID: 1130292866869028369, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
+      propertyPath: m_Name
+      value: Button_Perks
       objectReference: {fileID: 0}
     - target: {fileID: 1130292866869028369, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_IsActive
@@ -7228,6 +7217,10 @@ PrefabInstance:
     - target: {fileID: 8145129858504974121, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8216000351826489811, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
+      propertyPath: m_Name
+      value: Button_Play
       objectReference: {fileID: 0}
     - target: {fileID: 8216000351826489811, guid: 73c01b213e4ad7549b9b52e02bdf1817, type: 3}
       propertyPath: m_IsActive

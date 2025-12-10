@@ -61,7 +61,7 @@ public class PanelManager : Singleton<PanelManager>
                 if (behavior == PanelShowBehavior.HIDE_PREVISE && GetAmountPanelInList() > 0)
                 {
                     var lastPanel = GetLastPanel();
-                    if (lastPanel != null)
+                    if (lastPanel != null && lastPanel.PanelInstance != null)
                     {
                         lastPanel.PanelInstance.SetActive(false);
                     }
@@ -97,7 +97,10 @@ public class PanelManager : Singleton<PanelManager>
         bool wasLastPanel = GetLastPanel() == panelToHide;
 
         // PaneliGameObject'ini ObjectPool'a geri gï¿½nder.
-        _objectPool.PoolObject(panelToHide.PanelInstance);
+        if (panelToHide.PanelInstance != null)
+        {
+            _objectPool.PoolObject(panelToHide.PanelInstance);
+        }
         // Paneli aktif panel listesinden kaldï¿½r.
         _listInstance.Remove(panelToHide);
 
@@ -106,7 +109,7 @@ public class PanelManager : Singleton<PanelManager>
         if (wasLastPanel && AnyPanelIsShowing()&& panelShowBehavior==PanelShowBehavior.SHOW_PREVISE)
         {
             var newLastPanel = GetLastPanel();
-            if (newLastPanel != null && !newLastPanel.PanelInstance.activeInHierarchy)
+            if (newLastPanel != null && newLastPanel.PanelInstance != null && !newLastPanel.PanelInstance.activeInHierarchy)
             {
                 newLastPanel.PanelInstance.SetActive(true);
             }
@@ -121,14 +124,17 @@ public class PanelManager : Singleton<PanelManager>
             var lastPanel = GetLastPanel();
            // Debug.LogWarning("panelï¿½d hide last panel " + lastPanel.ToString());
             _listInstance.Remove(lastPanel);
-            _objectPool.PoolObject(lastPanel.PanelInstance);
+            if (lastPanel.PanelInstance != null)
+            {
+                _objectPool.PoolObject(lastPanel.PanelInstance);
+            }
 
             // If there's still a panel left in the list, show it
             if (GetAmountPanelInList() > 0)
             {
                 lastPanel = GetLastPanel();
 
-                if (lastPanel != null && !lastPanel.PanelInstance.activeInHierarchy)
+                if (lastPanel != null && lastPanel.PanelInstance != null && !lastPanel.PanelInstance.activeInHierarchy)
                 {
                     lastPanel.PanelInstance.SetActive(true);
                 }
@@ -147,7 +153,10 @@ public class PanelManager : Singleton<PanelManager>
         {
             var lastPanel = GetLastPanel();
             _listInstance.Remove(lastPanel);
-            _objectPool.PoolObject(lastPanel.PanelInstance);
+            if (lastPanel.PanelInstance != null)
+            {
+                _objectPool.PoolObject(lastPanel.PanelInstance);
+            }
         }
     }
 

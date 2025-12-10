@@ -27,13 +27,13 @@ public class LevelButton : MonoBehaviour
         UpdateStarDisplay();
         
         // Subscribe to level selection events
-        LevelSelectionManager.OnLevelSelected += HandleLevelSelected;
+        LevelSelectManager.OnLevelSelected += HandleLevelSelected;
     }
     
     private void OnDisable()
     {
         // Unsubscribe from level selection events
-        LevelSelectionManager.OnLevelSelected -= HandleLevelSelected;
+        LevelSelectManager.OnLevelSelected -= HandleLevelSelected;
     }
     
     /// <summary>
@@ -115,14 +115,14 @@ public class LevelButton : MonoBehaviour
 
         Debug.Log($"[LevelButton] Level {levelIndex} selected (not loaded yet)");
 
-        // LevelSelectionManager'a seÃ§ili level'i bildir
-        if (LevelSelectionManager.Instance != null)
+        // LevelSelectManager'a seÃ§ili level'i bildir
+        if (LevelSelectManager.Instance != null)
         {
-            LevelSelectionManager.Instance.SelectLevel(levelIndex);
+            LevelSelectManager.Instance.SelectLevel(levelIndex);
         }
         else
         {
-            Debug.LogError("[LevelButton] LevelSelectionManager not found!");
+            Debug.LogError("[LevelButton] LevelSelectManager not found!");
         }
     }
 

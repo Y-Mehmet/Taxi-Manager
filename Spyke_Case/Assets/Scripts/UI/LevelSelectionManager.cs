@@ -15,6 +15,7 @@ public class LevelSelectionManager : MonoBehaviour
     // Currently selected level index
     private int selectedLevelIndex = 0;
     private bool isInitializing = false; // Prevent multiple simultaneous initializations
+    private bool hasStarted = false; // Track if Start has been called
 
     public int SelectedLevelIndex => selectedLevelIndex;
 
@@ -33,8 +34,19 @@ public class LevelSelectionManager : MonoBehaviour
     
     private void Start()
     {
-        // Initialize selection on start
+        hasStarted = true;
+        // Initialize/refresh selection on start
         RefreshSelection();
+    }
+
+    private void OnEnable()
+    {
+        // Only run if Start has already been called (prevents double initialization)
+        if (hasStarted)
+        {
+            // Initialize/refresh selection every time this becomes active
+            RefreshSelection();
+        }
     }
 
     /// <summary>

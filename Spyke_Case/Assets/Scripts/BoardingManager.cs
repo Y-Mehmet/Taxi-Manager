@@ -146,16 +146,18 @@ public class BoardingManager : MonoBehaviour
 
     /// <summary>
     /// Duraklarda bekleyen yolcuları, uygun vagonlarla eşleştirmeyi dener.
+    /// Yolcular gelme zamanına göre sıralanır (ilk gelen önce işlenir).
     /// </summary>
     private void TryBoardPassengers()
     {
         if (isTrainAdjusting) return; 
         if (availableWagonColors.Count == 0) return;
 
-        var waitingPassengers = StopManager.Instance.GetOccupiedStops();
+        // Get passengers sorted by arrival time (oldest first)
+        var waitingPassengers = StopManager.Instance.GetOccupiedStopsSortedByArrivalTime();
         if (waitingPassengers.Count == 0) return;
 
-        foreach (var passengerEntry in waitingPassengers.ToList())
+        foreach (var passengerEntry in waitingPassengers)
         {
             PassengerGroup passenger = passengerEntry.Value;
             int stopIndex = passengerEntry.Key;

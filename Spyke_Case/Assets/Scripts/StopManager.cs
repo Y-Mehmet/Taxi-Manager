@@ -16,6 +16,7 @@ public class StopManager : MonoBehaviour
     public List<Stop> AllStops { get; private set; } = new List<Stop>();
     private Dictionary<int, PassengerGroup> reservedStops = new Dictionary<int, PassengerGroup>();
     private Dictionary<int, PassengerGroup> occupiedStops = new Dictionary<int, PassengerGroup>();
+    private Dictionary<int, float> passengerArrivalTimes = new Dictionary<int, float>(); // Tracks when each passenger arrived at their stop
 
     private void Awake()
     {
@@ -41,6 +42,7 @@ public class StopManager : MonoBehaviour
         AllStops.Clear();
         occupiedStops.Clear();
         reservedStops.Clear();
+        passengerArrivalTimes.Clear();
 
         if (AllPossibleStops == null || AllPossibleStops.Count == 0)
         {
@@ -117,6 +119,17 @@ public class StopManager : MonoBehaviour
         return occupiedStops;
     }
 
+    /// <summary>
+    /// Returns occupied stops sorted by arrival time (oldest first).
+    /// This ensures that the first passenger to arrive gets priority for boarding.
+    /// </summary>
+    public List<KeyValuePair<int, PassengerGroup>> GetOccupiedStopsSortedByArrivalTime()
+    {
+        return occupiedStops
+            .OrderBy(kvp => passengerArrivalTimes.ContainsKey(kvp.Key) ? passengerArrivalTimes[kvp.Key] : float.MaxValue)
+            .ToList();
+    }
+
     public void FreeStop(int stopIndex)
     {
         if (stopIndex < 0 || stopIndex >= AllStops.Count) return;
@@ -140,6 +153,7 @@ public class StopManager : MonoBehaviour
 
             occupiedStops.Remove(stopIndex);
             reservedStops.Remove(stopIndex);
+            passengerArrivalTimes.Remove(stopIndex);
         }
     }
 
@@ -227,7 +241,8 @@ public class StopManager : MonoBehaviour
         if (!occupiedStops.ContainsKey(stopIndex))
         {
             occupiedStops.Add(stopIndex, passengerGroup);
-            Debug.Log($"<color=green>[StopManager] Stop {stopIndex} OCCUPIED by {passengerGroup.name}.</color>");
+            passengerArrivalTimes[stopIndex] = Time.time; // Record arrival time
+            Debug.Log($"<color=green>[StopManager] Stop {stopIndex} OCCUPIED by {passengerGroup.name} at time {Time.time}.</color>");
 
             // --- GEMINI-MODIFIED: Link passenger to Stop UI ---
             Stop stop = AllStops[stopIndex];
@@ -282,6 +297,7 @@ public class StopManager : MonoBehaviour
             // --- END GEMINI-MODIFIED ---
 
             occupiedStops.Remove(stopToFree);
+            passengerArrivalTimes.Remove(stopToFree);
             Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name} EVICTED from occupied stop {stopToFree}. Stop is now free.</color>");
             return; // Found and handled
         }

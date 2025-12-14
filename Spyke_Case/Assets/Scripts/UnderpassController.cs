@@ -37,24 +37,33 @@ public class UnderpassController : MonoBehaviour
         this.myGridPosition = gridPosition;
         if (objectToRotate != null)
         {
+            // New rotation system:
+            // X = -90 (fixed), Z = 0 (fixed), Y varies by direction
             float yRotation = 0f;
-            if (startCellOffset.x == -1) // Left
-            {
-                yRotation = -90f;
-            }
-            else if (startCellOffset.x == 1) // Right
+            
+            if (startCellOffset.x == 1) // Right
             {
                 yRotation = 90f;
             }
+            else if (startCellOffset.x == -1) // Left
+            {
+                yRotation = -90f;
+            }
             else if (startCellOffset.y == 1) // Up
             {
-                yRotation = 0;
+                yRotation = 0f;
             }
             else if (startCellOffset.y == -1) // Down
             {
-                yRotation = 180;
+                yRotation = 180f;
             }
-            objectToRotate.transform.rotation = Quaternion.Euler(-25, yRotation, 90);
+            
+            objectToRotate.transform.rotation = Quaternion.Euler(-90, yRotation, 0);
+            
+            // Set Z position to 0
+            Vector3 pos = objectToRotate.transform.localPosition;
+            pos.z = 0f;
+            objectToRotate.transform.localPosition = pos;
         }
         int groupIndex = 0;
         foreach (var color in sequence)

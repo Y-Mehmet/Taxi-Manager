@@ -121,7 +121,11 @@ public class BoardingManager : MonoBehaviour
 
     private void HandlePassengerOrWagonChange(PassengerGroup passenger, int stopIndex)
     {
-        Debug.Log($"<color=lightblue>Yeni Yolcu Geldi:</color> Eşleştirme kontrolü tetiklendi.");
+        Debug.LogWarning($"🚶 <color=lightblue>PASSENGER ARRIVED AT STOP {stopIndex}:</color> Color={passenger.groupColor}, GroupSize={passenger.GroupSize}, Position={passenger.transform.position}");
+        Debug.LogWarning($"🚂 <color=orange>Train Adjusting:</color> {isTrainAdjusting}");
+        
+        // Force immediate wagon check
+        CheckAvailableWagons();
         TryBoardPassengers();
     }
     
@@ -133,7 +137,7 @@ public class BoardingManager : MonoBehaviour
     
     private void HandleSpeedChanged(string newSpeedText)
     {
-        Debug.Log($"<color=yellow>Hız Değişti: {newSpeedText}</color> Eşleştirme kontrolü tetiklendi.");
+        Debug.LogWarning($"⚡ <color=yellow>HIZ DEĞİŞTİ: {newSpeedText}</color> - Wagon listesi temizleniyor ve yeniden kontrol ediliyor.");
         // Clear the list to force a re-check
         availableWagonColors.Clear();
         CheckAvailableWagons();
@@ -150,23 +154,46 @@ public class BoardingManager : MonoBehaviour
     /// </summary>
     private void TryBoardPassengers()
     {
-        if (isTrainAdjusting) return; 
-        if (availableWagonColors.Count == 0) return;
+        if (isTrainAdjusting)
+        {
+            Debug.LogWarning("⏸️ <color=red>TryBoardPassengers SKIPPED:</color> Train is adjusting!");
+            return;
+        }
+        
+        if (availableWagonColors.Count == 0)
+        {
+            Debug.LogWarning("⚠️ <color=orange>TryBoardPassengers SKIPPED:</color> No available wagon colors in boarding zone!");
+            return;
+        }
+
+        Debug.LogWarning($"🎯 <color=cyan>TryBoardPassengers CALLED:</color> Available colors in zone: [{string.Join(", ", availableWagonColors)}]");
 
         // Get passengers sorted by arrival time (oldest first)
         var waitingPassengers = StopManager.Instance.GetOccupiedStopsSortedByArrivalTime();
-        if (waitingPassengers.Count == 0) return;
+        if (waitingPassengers.Count == 0)
+        {
+            Debug.LogWarning("ℹ️ <color=gray>No waiting passengers at stops.</color>");
+            return;
+        }
+
+        Debug.LogWarning($"👥 <color=lightblue>Waiting passengers count:</color> {waitingPassengers.Count}");
 
         foreach (var passengerEntry in waitingPassengers)
         {
             PassengerGroup passenger = passengerEntry.Value;
             int stopIndex = passengerEntry.Key;
 
+            Debug.LogWarning($"🔍 <color=white>Checking passenger at stop {stopIndex}:</color> Color={passenger.groupColor}, GroupSize={passenger.GroupSize}");
+
             if (availableWagonColors.Contains(passenger.groupColor))
             {
+                Debug.LogWarning($"✅ <color=green>Color MATCH found!</color> Searching for {passenger.groupColor} wagon in boarding zone (start index: {boardingZoneStart})...");
+                
                 MetroWagon availableWagon = WagonManager.Instance.FindWagon(passenger.groupColor, 1, boardingZoneStart);
+                
                 if (availableWagon != null)
                 {
+                    Debug.LogWarning($"🎉 <color=cyan>WAGON FOUND!</color> {availableWagon.wagonColor} wagon at checkpoint {availableWagon.GetCurrentCheckpointIndex()}, IsFull={availableWagon.IsFull}");
                     Debug.Log($"<color=cyan>EŞLEŞME BULUNDU:</color> {availableWagon.wagonColor} renkli yük, {passenger.groupColor} renkli işçi tarafından alınıyor.");
 
                     // Yükü (vagonu) oyundan kaldır.
@@ -224,6 +251,22 @@ public class BoardingManager : MonoBehaviour
                     // This allows multiple passengers to be matched in the same call
                     continue; 
                 }
+                else
+                {
+                    Debug.LogError($"❌ <color=red>WAGON NOT FOUND!</color> Color {passenger.groupColor} is in available list but FindWagon returned null! BoardingZoneStart={boardingZoneStart}");
+                    
+                    // Debug: List all active wagons
+                    var allWagons = WagonManager.Instance.GetActiveWagons();
+                    Debug.LogError($"📊 <color=yellow>Active wagons count:</color> {allWagons.Count}");
+                    foreach (var w in allWagons)
+                    {
+                        Debug.LogError($"  - Wagon: Color={w.wagonColor}, Checkpoint={w.GetCurrentCheckpointIndex()}, IsFull={w.IsFull}, InBoardingZone={w.GetCurrentCheckpointIndex() >= boardingZoneStart}");
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log($"⏭️ <color=gray>Passenger color {passenger.groupColor} not in available colors. Skipping.</color>");
             }
         }
     }

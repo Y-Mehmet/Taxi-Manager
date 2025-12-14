@@ -34,7 +34,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d3a84e60412339a45838ef70b6b87839, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CelCurveTexture:
@@ -241,7 +241,7 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.89261454, g: 1, b: 0.84339625, a: 1}
+    - _BaseColor: {r: 0.77870333, g: 1, b: 0.6698113, a: 1}
     - _Color: {r: 0.93962264, g: 0.2960697, b: 0.2960697, a: 1}
     - _ColorDim: {r: 0.6981132, g: 0.19889641, b: 0.19889641, a: 1}
     - _ColorDimCurve: {r: 0.85023, g: 0.85034, b: 0.85045, a: 0.85056}
@@ -262,6 +262,7 @@ Material:
     - _SpecularColor: {r: 0.93207544, g: 0.919765, b: 0.919765, a: 1}
     - _UnityShadowColor: {r: 0.85023, g: 0.85034, b: 0.85045, a: 0.85056}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &6636670188879399508
 MonoBehaviour:
   m_ObjectHideFlags: 11

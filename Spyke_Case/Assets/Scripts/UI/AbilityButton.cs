@@ -146,6 +146,12 @@ public class AbilityButton : MonoBehaviour
         // Spend coins from main resource
         if (GameEconomy.Instance.SpendMainCoins(currentCost))
         {
+            // Notify invoice about booster usage
+            if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
+            {
+                GameManager.Instance.CurrentInvoice.OnBoosterUsed(currentCost);
+            }
+
             // Show spending animation with shake effect (only for abilities)
             if (CoinAnimationManager.Instance != null)
             {

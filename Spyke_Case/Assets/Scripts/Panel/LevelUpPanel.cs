@@ -3,10 +3,12 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class LevelUpPanel : MonoBehaviour
 {
     [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI levelCompletedText; // Shows "Level X Completed!"
     [SerializeField] private TextMeshProUGUI earningsText;
     [SerializeField] private List<Image> starImages;
     [SerializeField] private Button continueButton;
@@ -39,6 +41,17 @@ public class LevelUpPanel : MonoBehaviour
 
     public void Show(int stars, int earnings)
     {
+        // Show level number with animation
+        if (levelCompletedText != null)
+        {
+            int currentLevel = ResourceManager.Instance != null ? ResourceManager.Instance.CurrentLevel : 0;
+            levelCompletedText.text = $"{currentLevel + 1}";
+            
+            // Scale animation
+            levelCompletedText.transform.localScale = Vector3.zero;
+            levelCompletedText.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack);
+        }
+
         // Show stars
         for (int i = 0; i < starImages.Count; i++)
         {
@@ -87,17 +100,17 @@ public class LevelUpPanel : MonoBehaviour
         Transform descColumn = innerPanel.GetChild(1);     // Column 1: Description
         Transform amountColumn = innerPanel.GetChild(2);   // Column 2: Amount
 
-        // Verify each column has 9 TextMeshPro children
-        if (qtyColumn.childCount < 9 || descColumn.childCount < 9 || amountColumn.childCount < 9)
+        // Verify each column has 10 TextMeshPro children
+        if (qtyColumn.childCount < 10 || descColumn.childCount < 10 || amountColumn.childCount < 10)
         {
-            Debug.LogError($"[LevelUpPanel] Each column should have 9 TextMeshPro children! QTY:{qtyColumn.childCount}, Desc:{descColumn.childCount}, Amount:{amountColumn.childCount}");
+            Debug.LogError($"[LevelUpPanel] Each column should have 10 TextMeshPro children! QTY:{qtyColumn.childCount}, Desc:{descColumn.childCount}, Amount:{amountColumn.childCount}");
             return;
         }
 
         // Calculate all values
         int income = invoice.CalculateTotalIncome();
-        invoice.CalculateTotalExpenses(); // This updates crashPenalty, uberPenalty, taxAmount
-        int subtotal = income - invoice.crashPenalty - invoice.uberPenalty;
+        invoice.CalculateTotalExpenses(); // This updates crashPenalty, uberPenalty, boosterCost, taxAmount
+        int subtotal = income - invoice.crashPenalty - invoice.uberPenalty - invoice.boosterCost;
         int netEarnings = invoice.CalculateNetEarnings();
 
         // Row 0, 1, 2: Skip (decorative lines and headers - already set in Unity)
@@ -151,8 +164,15 @@ public class LevelUpPanel : MonoBehaviour
             "Uber Penalty",
             uberAmount);
 
-        // Row 6: Subtotal
+        // Row 6: Booster Cost
+        string boosterAmount = invoice.boosterCost > 0 ? $"-{invoice.boosterCost}" : "0";
         SetTableRow(qtyColumn, descColumn, amountColumn, 6,
+            "",
+            "Booster Cost",
+            boosterAmount);
+
+        // Row 7: Subtotal
+        SetTableRow(qtyColumn, descColumn, amountColumn, 7,
             "",
             "Subtotal",
             subtotal >= 0 ? $"+{subtotal}" : $"{subtotal}");
@@ -189,11 +209,11 @@ public class LevelUpPanel : MonoBehaviour
             taxAmount = "0";
         }
         
-        SetTableRow(qtyColumn, descColumn, amountColumn, 7, "", taxDesc, taxAmount);
+        SetTableRow(qtyColumn, descColumn, amountColumn, 8, "", taxDesc, taxAmount);
 
 
-        // Row 8: Net Earnings
-        SetTableRow(qtyColumn, descColumn, amountColumn, 8,
+        // Row 9: Net Earnings
+        SetTableRow(qtyColumn, descColumn, amountColumn, 9,
             "",
             "NET EARNINGS",
             netEarnings >= 0 ? $"+{netEarnings}" : $"{netEarnings}");
@@ -247,13 +267,14 @@ public class LevelUpPanel : MonoBehaviour
 
     private void OnContinueButtonClicked()
     {
-        // Transfer coins from temp to main BEFORE leaving
+        // Transfer coins from temp to main (apply net balance)
+        // Level is COMPLETED, so booster cost is NOT refunded
         if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
         {
             if (GameEconomy.Instance != null)
             {
                 GameEconomy.Instance.TransferTempToMain(GameManager.Instance.CurrentInvoice);
-                Debug.Log("[LevelUpPanel] Coins transferred to main account.");
+                Debug.Log("[LevelUpPanel] Net balance applied to main account (Continue).");
             }
         }
 
@@ -273,13 +294,15 @@ public class LevelUpPanel : MonoBehaviour
 
     private void OnRetryButtonClicked()
     {
-        // Transfer coins from temp to main BEFORE retrying
+        // DO NOT transfer net balance (level not completed)
+        // Only refund booster cost (player wants to retry)
         if (GameManager.Instance != null && GameManager.Instance.CurrentInvoice != null)
         {
-            if (GameEconomy.Instance != null)
+            int boosterCost = GameManager.Instance.CurrentInvoice.boosterCost;
+            if (boosterCost > 0 && GameEconomy.Instance != null)
             {
-                GameEconomy.Instance.TransferTempToMain(GameManager.Instance.CurrentInvoice);
-                Debug.Log("[LevelUpPanel] Coins transferred to main account.");
+                GameEconomy.Instance.AddMainCoins(boosterCost);
+                Debug.Log($"[LevelUpPanel] Refunded {boosterCost} coins for booster usage (Retry).");
             }
         }
 

@@ -76,12 +76,12 @@ public class JokerCard : MonoBehaviour
                 // Active joker
                 if (remaining == -1)
                 {
-                    statusText.text = "ACTIVE (Unlimited)";
+                    statusText.text = "(Unlimited)";
                     statusText.color = ownedColor;
                 }
                 else if (remaining > 0)
                 {
-                    statusText.text = $"ACTIVE: {remaining} games";
+                    statusText.text = $"{remaining} games";
                     statusText.color = ownedColor;
                 }
             }
@@ -95,7 +95,7 @@ public class JokerCard : MonoBehaviour
             {
                 // Not owned
                 statusText.text = "Not Owned";
-                statusText.color = Color.gray;
+                statusText.color = Color.white;
             }
         }
 

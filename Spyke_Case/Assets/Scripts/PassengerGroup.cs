@@ -1048,6 +1048,10 @@ public class PassengerGroup : MonoBehaviour
         if (StopManager.Instance != null && !StopManager.Instance.HasAvailableStops())
         {
 //             Debug.LogWarning($"[{name}] Cannot move from conveyor: All stops are full or reserved.");
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowFloatingText("All Stops Full", transform.position);
+            }
             return;
         }
 
@@ -1091,37 +1095,73 @@ public class PassengerGroup : MonoBehaviour
         if (PassengerGrid.Instance.IsOccupied(closestCell.position))
         {
 //             Debug.LogWarning($"[{name}] Aborting move: The closest waiting area cell {closestCell.position} is occupied by another group.");
-            LogPathNotFound();
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowFloatingText("Blocked by Vehicles!", transform.position);
+            }
+            if (modelTransform != null) modelTransform.DOShakePosition(0.3f, 0.15f);
             return;
         }
 
-        // New pre-check: Scan the entire column for obstructions before committing to the move.
-        int targetColumnX = closestCell.position.x;
-        for (int y = closestCell.position.y; y < PassengerGrid.Instance.gridData.height; y++)
+
+        // Physics-based pre-check: Use BoxCast to detect obstacles in the exit path
+        
+        // X-axis boundary check: Only process if within grid columns 1-5 (with 1.0 padding)
+        float cellSize = PassengerGrid.Instance.gridData.cellSize;
+        Vector3 grid1WorldPos = PassengerGrid.Instance.GetWorldPosition(new Vector2Int(1, 0));
+        Vector3 grid5WorldPos = PassengerGrid.Instance.GetWorldPosition(new Vector2Int(5, 0));
+        
+        float minX = grid1WorldPos.x - 1.0f;
+        float maxX = grid5WorldPos.x + 1.0f;
+        float currentX = transform.position.x;
+        
+        if (currentX < minX || currentX > maxX)
         {
-            Vector2Int cellToTest = new Vector2Int(targetColumnX, y);
-            var gridCell = PassengerGrid.Instance.GetCell(cellToTest.x, cellToTest.y);
-
-            // Check for terrain blocks
-            if (gridCell != null && gridCell.cellType == GridCellType.Blocked)
+            Debug.LogWarning($"[{name}] Outside valid X range ({minX} to {maxX}). Current X: {currentX}");
+            return;
+        }
+        
+        // Calculate the cast parameters
+        Vector3 startPos = transform.position;
+        Vector3 direction = Vector3.forward; // +Z direction (assuming grid layout)
+        
+        // Calculate max distance based on grid height
+        int gridHeight = PassengerGrid.Instance.gridData.height;
+        float maxDistance = (gridHeight - closestCell.position.y) * cellSize;
+        
+        // BoxCast dimensions (adjust to match vehicle size)
+        Vector3 boxHalfExtents = new Vector3(0.4f, 0.5f, 0.4f);
+        
+        // Visualize the BoxCast in Scene view
+        Debug.DrawRay(startPos, direction * maxDistance, Color.red, 2f);
+        Debug.DrawRay(startPos + new Vector3(boxHalfExtents.x, 0, 0), direction * maxDistance, Color.yellow, 2f);
+        Debug.DrawRay(startPos - new Vector3(boxHalfExtents.x, 0, 0), direction * maxDistance, Color.yellow, 2f);
+        Debug.DrawRay(startPos + new Vector3(0, boxHalfExtents.y, 0), direction * maxDistance, Color.green, 2f);
+        Debug.DrawRay(startPos - new Vector3(0, boxHalfExtents.y, 0), direction * maxDistance, Color.green, 2f);
+        
+        // Perform the BoxCast
+        RaycastHit[] hits = Physics.BoxCastAll(startPos, boxHalfExtents, direction, Quaternion.identity, maxDistance);
+        
+        // Check if we hit any PassengerGroup obstacles
+        foreach (var hit in hits)
+        {
+            if (hit.collider != null)
             {
-//                 Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by terrain at {cellToTest}.");
-                if (modelTransform != null) modelTransform.DOShakePosition(0.3f, 0.15f);
-                return;
-            }
-
-            // Check for other passengers
-            if (PassengerGrid.Instance.IsOccupied(cellToTest))
-            {
-                var occupant = PassengerGrid.Instance.GetOccupant(cellToTest);
-                if (occupant != null)
+                PassengerGroup obstacle = hit.collider.GetComponent<PassengerGroup>();
+                if (obstacle != null && obstacle != this)
                 {
-//                     Debug.LogWarning($"[{name}] Aborting move from conveyor: Path in column {targetColumnX} is blocked by '{occupant.name}' at {cellToTest}.");
+//                     Debug.LogWarning($"[{name}] Aborting move from conveyor: Path is blocked by '{obstacle.name}' at distance {hit.distance}.");
+                    if (UIManager.Instance != null)
+                    {
+                        UIManager.Instance.ShowFloatingText("Blocked by Vehicles!", transform.position);
+                    }
                     if (modelTransform != null) modelTransform.DOShakePosition(0.3f, 0.15f);
                     return;
                 }
             }
         }
+
+
 
 //         Debug.LogWarning($"[{name}] Closest waiting area cell {closestCell.position} is free. Teleporting and starting pathfind.");
 

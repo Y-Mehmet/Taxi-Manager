@@ -3,7 +3,32 @@ guid: 429b3e119fca10245a5031229d891a3c
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Fabric
+    second: {fileID: 2100000, guid: 1ecba15ec1ef9104c8949c4b6768c1df, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Glass
+    second: {fileID: 2100000, guid: c0033e0f20f88fc469426679b8883ca5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Plastic Tertiary
+    second: {fileID: 2100000, guid: 7aa96bff4a3c09a40b71f05dbe415fc0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Plastic_Primary
+    second: {fileID: 2100000, guid: 73ee98cede823e840a87da9d68ac63bb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Plastic_Secondary
+    second: {fileID: 2100000, guid: 727e3b68cad5433438259483ce6acff6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -109,6 +109,30 @@ public class MetroManager : MonoBehaviour
         Debug.Log($"MetroManager: Wagon speeds set to {currentSpeedMultiplier}x.");
     }
 
+    public void PauseAllWagons()
+    {
+        foreach (var wagon in masterWagonList)
+        {
+            if (wagon != null)
+            {
+                wagon.enabled = false;
+            }
+        }
+        Debug.Log("[MetroManager] All wagons paused");
+    }
+
+    public void ResumeAllWagons()
+    {
+        foreach (var wagon in masterWagonList)
+        {
+            if (wagon != null)
+            {
+                wagon.enabled = true;
+            }
+        }
+        Debug.Log("[MetroManager] All wagons resumed");
+    }
+
     void Start()
     {
         if (checkpointPath == null || checkpointPath.checkpoints == null || checkpointPath.checkpoints.Count == 0)

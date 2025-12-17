@@ -28,8 +28,24 @@ public class ConveyorBelt : MonoBehaviour
         Debug.Log($"[ConveyorBelt] Respawn X coordinate set to: {respawnX}");
     }
 
+    private bool isPaused = false;
+
+    public void Pause()
+    {
+        isPaused = true;
+        Debug.Log("[ConveyorBelt] Paused");
+    }
+
+    public void Resume()
+    {
+        isPaused = false;
+        Debug.Log("[ConveyorBelt] Resumed");
+    }
+
+
     void Update()
     {
+        if (isPaused) return;
         if (passengerGroupsOnBelt.Count == 0) return;
 
         for (int i = passengerGroupsOnBelt.Count - 1; i >= 0; i--)

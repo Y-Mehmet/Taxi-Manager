@@ -129,4 +129,14 @@ public class SceneManager : Singleton<SceneManager>
         // TODO: Asenkron yükleme ve bir loading ekranı gösterme mantığı buraya eklenebilir.
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneBuildIndex);
     }
+
+    /// <summary>
+    /// Şu anki sahneyi yeniden yükler (Restart için).
+    /// </summary>
+    public void LoadCurrentScene()
+    {
+        int currentSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
+        Debug.Log($"[SceneManager] Reloading current scene (Build Index: {currentSceneIndex})");
+        LoadSceneByIndex(currentSceneIndex);
+    }
 }

@@ -3,19 +3,20 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Oyun içindeki sahne geçişlerini yöneten merkezi sistem.
-/// Tüm level'lar aynı sahneden (AllLevel - Build Index 1) yüklenir.
+/// Build Order: Splash(0) -> MainMenu(1) -> AllLevel(2) -> AbilityTutorial(3)
 /// </summary>
 public class SceneManager : Singleton<SceneManager>
 {
     [Header("Scene Build Indices")]
     [Tooltip("Ana Menü sahnesinin Build Settings'deki index'i")]
-    [SerializeField] private int mainMenuBuildIndex = 0;
+    [SerializeField] private int _mainMenuIndex = 1;
 
     [Tooltip("Tüm levellerin yüklendiği sahne (AllLevel scene)")]
-    [SerializeField] private int allLevelSceneBuildIndex = 1;
+    [SerializeField] private int _allLevelIndex = 2;
 
     [Tooltip("Ability öğretici sahnesinin Build Settings'deki index'i")]
-    [SerializeField] private int abilityTutorialBuildIndex = 2;
+    [SerializeField] private int _tutorialIndex = 3;
+
 
     /// <summary>
     /// ResourceManager'dan alınan mevcut seviyeyi yükler.
@@ -36,7 +37,7 @@ public class SceneManager : Singleton<SceneManager>
                 Debug.Log($"[SceneManager] Level {currentLevel} - Loading Add Stop Tutorial");
                 saveData.currentAbilityTutorial = "AddStop";
                 GameDataManager.Instance.SaveGame();
-                LoadSceneByIndex(abilityTutorialBuildIndex);
+                LoadSceneByIndex(_tutorialIndex);
                 return;
             }
             
@@ -46,7 +47,7 @@ public class SceneManager : Singleton<SceneManager>
                 Debug.Log($"[SceneManager] Level {currentLevel} - Loading Universal Pathfinding Tutorial");
                 saveData.currentAbilityTutorial = "UniversalPathfinding";
                 GameDataManager.Instance.SaveGame();
-                LoadSceneByIndex(abilityTutorialBuildIndex);
+                LoadSceneByIndex(_tutorialIndex);
                 return;
             }
             
@@ -56,7 +57,7 @@ public class SceneManager : Singleton<SceneManager>
                 Debug.Log($"[SceneManager] Level {currentLevel} - Loading Flasher Tutorial");
                 saveData.currentAbilityTutorial = "Flasher";
                 GameDataManager.Instance.SaveGame();
-                LoadSceneByIndex(abilityTutorialBuildIndex);
+                LoadSceneByIndex(_tutorialIndex);
                 return;
             }
             
@@ -66,14 +67,14 @@ public class SceneManager : Singleton<SceneManager>
                 Debug.Log($"[SceneManager] Level {currentLevel} - Loading Shuffle Tutorial");
                 saveData.currentAbilityTutorial = "Shuffle";
                 GameDataManager.Instance.SaveGame();
-                LoadSceneByIndex(abilityTutorialBuildIndex);
+                LoadSceneByIndex(_tutorialIndex);
                 return;
             }
         }
         
         // No tutorial needed, load level directly
-        Debug.Log($"[SceneManager] Loading Level {currentLevel} directly (no tutorial)");
-        LoadSceneByIndex(allLevelSceneBuildIndex);
+        Debug.Log($"[SceneManager] Loading Level {currentLevel} directly");
+        LoadSceneByIndex(_allLevelIndex);
     }
 
     /// <summary>
@@ -93,8 +94,8 @@ public class SceneManager : Singleton<SceneManager>
 
         // Always load the same scene (AllLevel - build index 1)
         // The level data will be loaded based on ResourceManager.CurrentLevel
-        Debug.Log($"[SceneManager] Loading AllLevel scene (build index {allLevelSceneBuildIndex}) for level {levelIndex}");
-        LoadSceneByIndex(allLevelSceneBuildIndex);
+        Debug.Log($"[SceneManager] Loading AllLevel scene (build index {_allLevelIndex}) for level {levelIndex}");
+        LoadSceneByIndex(_allLevelIndex);
     }
 
     /// <summary>
@@ -110,8 +111,8 @@ public class SceneManager : Singleton<SceneManager>
             Debug.Log($"[SceneManager] Set CurrentLevel to MaxOpenedLevel: {ResourceManager.Instance.MaxOpenedLevel}");
         }
         
-        Debug.Log($"Loading Main Menu. Build Index: {mainMenuBuildIndex}");
-        LoadSceneByIndex(mainMenuBuildIndex);
+        Debug.Log($"Loading Main Menu. Build Index: {_mainMenuIndex}");
+        LoadSceneByIndex(_mainMenuIndex);
     }
 
     /// <summary>
@@ -129,6 +130,7 @@ public class SceneManager : Singleton<SceneManager>
         // TODO: Asenkron yükleme ve bir loading ekranı gösterme mantığı buraya eklenebilir.
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneBuildIndex);
     }
+
 
     /// <summary>
     /// Şu anki sahneyi yeniden yükler (Restart için).

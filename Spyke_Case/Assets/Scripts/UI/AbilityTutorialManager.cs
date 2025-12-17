@@ -198,7 +198,7 @@ public class AbilityTutorialManager : MonoBehaviour
     {
         Debug.Log("[AbilityTutorialManager] Loading AllLevel scene (build index 1)");
         // Directly load AllLevel scene (build index 1)
-        UnityEngine.SceneManagement.SceneManager.LoadScene(1);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(2); // Go back to AllLevel
     }
     
     private void OnDestroy()

@@ -22,6 +22,7 @@ public enum PanelID
     InventoryPanel,
     PerksPanel,
     PausePanel,
+    LoadingPanel,
 
 
 }

@@ -103,7 +103,7 @@ public class AbilityButton : MonoBehaviour
         // Check if we're in AllLevel scene (build index 1)
         int currentSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
         
-        if (currentSceneIndex == 1) // AllLevel scene
+        if (currentSceneIndex == 2) // AllLevel scene
         {
             // Check if ability is unlocked
             if (AbilityUnlockManager.Instance != null)
@@ -232,7 +232,7 @@ public class AbilityButton : MonoBehaviour
         // Check if we're in AllLevel scene (build index 1)
         int currentSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
         
-        if (currentSceneIndex == 1) // AllLevel scene
+        if (currentSceneIndex == 2) // AllLevel scene
         {
             // Check if ability is unlocked
             if (AbilityUnlockManager.Instance != null)

@@ -287,7 +287,7 @@ public class LevelUpPanel : MonoBehaviour
         else
         {
             // Fallback: Load build index 0 directly
-            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(1); // Load MainMenu
             Debug.Log("[LevelUpPanel] Continue clicked. Loading Main Scene (build index 0).");
         }
     }

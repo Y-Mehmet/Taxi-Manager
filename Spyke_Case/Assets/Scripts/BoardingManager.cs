@@ -46,6 +46,10 @@ public class BoardingManager : MonoBehaviour
             return;
         }
 
+        // Reset the train adjusting flag at start
+        isTrainAdjusting = false;
+        Debug.LogWarning($"🎬 <color=green>BoardingManager START:</color> isTrainAdjusting reset to FALSE");
+
         // Yolcu alma bölgesinin başlangıç indeksini hesapla.
         boardingZoneStart = checkpointPath.checkpoints.Count - ResourceManager.Instance.boardingStartIndex;
 
@@ -73,14 +77,18 @@ public class BoardingManager : MonoBehaviour
     private static void HandleTrainAdjustmentStateChanged(bool isAdjusting)
     {
         isTrainAdjusting = isAdjusting;
-        Debug.Log($"<color=orange>BoardingManager notified: Train adjusting is now {isTrainAdjusting}</color>");
+        Debug.LogWarning($"🔔 <color=orange>BoardingManager: Train adjusting changed to {isTrainAdjusting}</color>");
+        
         // If we are no longer adjusting, immediately check for new matches.
         if (!isAdjusting && Instance != null)
         {
+            Debug.LogWarning($"🔄 <color=cyan>Train adjustment FINISHED:</color> Clearing wagon list and re-checking...");
             // By clearing the list, we force CheckAvailableWagons to detect a change
             // and re-evaluate boarding, even if the set of colors in the zone is coincidentally the same.
             Instance.availableWagonColors.Clear();
             Instance.CheckAvailableWagons();
+            // Also try to board any waiting passengers that arrived during adjustment
+            Instance.TryBoardPassengers();
         }
     }
 
@@ -113,6 +121,7 @@ public class BoardingManager : MonoBehaviour
 
         if (hasChanged)
         {
+            Debug.LogWarning($"🔄 <color=cyan>WAGON LIST CHANGED:</color> Old=[{string.Join(", ", availableWagonColors)}] → New=[{string.Join(", ", currentColorsInZone)}]");
             availableWagonColors = currentColorsInZone;
             OnAvailableColorsChanged?.Invoke(availableWagonColors);
             TryBoardPassengers();
@@ -122,9 +131,11 @@ public class BoardingManager : MonoBehaviour
     private void HandlePassengerOrWagonChange(PassengerGroup passenger, int stopIndex)
     {
         Debug.LogWarning($"🚶 <color=lightblue>PASSENGER ARRIVED AT STOP {stopIndex}:</color> Color={passenger.groupColor}, GroupSize={passenger.GroupSize}, Position={passenger.transform.position}");
-        Debug.LogWarning($"🚂 <color=orange>Train Adjusting:</color> {isTrainAdjusting}");
+        Debug.LogWarning($"🚂 <color=orange>Train Adjusting:</color> {isTrainAdjusting}, Available Colors: [{string.Join(", ", availableWagonColors)}]");
         
-        // Force immediate wagon check
+        // Force immediate wagon check and boarding attempt
+        // Even if train is adjusting, we check wagons (it will be skipped internally)
+        // When adjustment finishes, HandleTrainAdjustmentStateChanged will retry
         CheckAvailableWagons();
         TryBoardPassengers();
     }
@@ -137,9 +148,9 @@ public class BoardingManager : MonoBehaviour
     
     private void HandleSpeedChanged(string newSpeedText)
     {
-        Debug.LogWarning($"⚡ <color=yellow>HIZ DEĞİŞTİ: {newSpeedText}</color> - Wagon listesi temizleniyor ve yeniden kontrol ediliyor.");
-        // Clear the list to force a re-check
-        availableWagonColors.Clear();
+        Debug.LogWarning($"⚡ <color=yellow>HIZ DEĞİŞTİ: {newSpeedText}</color> - Wagon listesi yeniden kontrol ediliyor.");
+        // Don't clear the list - just force a re-check
+        // Clearing can cause race conditions when passengers arrive during speed changes
         CheckAvailableWagons();
     }
     

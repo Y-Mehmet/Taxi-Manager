@@ -184,7 +184,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -390, y: 138.33188}
+  m_AnchoredPosition: {x: -390, y: 104}
   m_SizeDelta: {x: 511.99994, y: 512}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4043500690143589885
@@ -1230,8 +1230,6 @@ MonoBehaviour:
   buttonText: {fileID: 1129633613918866608}
   costText: {fileID: 4542986287077971687}
   enableAutoClick: 1
-  autoClickCount: 0
-  autoClickDelay: 0
   tutorialManager: {fileID: 0}
   clickParticleEffectPrefab: {fileID: 480523372446004433, guid: ebfda8d7beb6f274a91f7bcca0a515b7, type: 3}
   particleDisplayDuration: 1

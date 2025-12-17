@@ -122,6 +122,12 @@ public class MetroManager : MonoBehaviour
             return;
         }
 
+        // Reset adjustment state
+        isAdjusting = false;
+        pendingRemovedTransforms.Clear();
+        pendingRemovalCoroutine = null;
+        Debug.LogWarning($"🎬 <color=green>MetroManager START:</color> isAdjusting reset to FALSE, pending removals cleared");
+
         IsMovementStopped = false;
         masterWagonList.Clear();
         activeWagons.Clear();
@@ -204,14 +210,18 @@ public class MetroManager : MonoBehaviour
 
     private System.Collections.IEnumerator ProcessPendingRemovals()
     {
+        Debug.LogWarning($"🔧 <color=cyan>ProcessPendingRemovals STARTED:</color> isAdjusting={isAdjusting}, pendingCount={pendingRemovedTransforms.Count}");
+        
         if (isAdjusting || pendingRemovedTransforms.Count == 0)
         {
+            Debug.LogWarning($"⏭️ <color=yellow>ProcessPendingRemovals SKIPPED:</color> isAdjusting={isAdjusting}, pendingCount={pendingRemovedTransforms.Count}");
             pendingRemovalCoroutine = null;
             yield break;
         }
 
         isAdjusting = true;
         OnTrainAdjustmentStateChanged?.Invoke(true);
+        Debug.LogWarning($"🚂 <color=orange>TRAIN ADJUSTMENT STARTED</color> (isAdjusting set to TRUE)");
 
         var removedTransform = pendingRemovedTransforms[0];
         pendingRemovedTransforms.RemoveAt(0);
@@ -299,13 +309,16 @@ public class MetroManager : MonoBehaviour
 
         if (movePairs.Count == 0)
         {
+            Debug.LogWarning($"⚠️ <color=yellow>NO WAGONS TO MOVE:</color> Setting isAdjusting to FALSE");
             isAdjusting = false;
             if (pendingRemovedTransforms.Count > 0)
             {
+                Debug.LogWarning($"📋 <color=cyan>More removals pending:</color> {pendingRemovedTransforms.Count}");
                 pendingRemovalCoroutine = StartCoroutine(ProcessPendingRemovals());
             }
             else
             {
+                Debug.LogWarning($"✅ <color=green>ALL REMOVALS COMPLETE:</color> Invoking OnTrainAdjustmentStateChanged(false)");
                 pendingRemovalCoroutine = null;
                 OnTrainAdjustmentStateChanged?.Invoke(false);
             }
@@ -323,7 +336,7 @@ public class MetroManager : MonoBehaviour
         }
 
         seq.OnComplete(() => {
-            Debug.Log($"Single wagon adjustment complete for: {removedTransform.name}");
+            Debug.LogWarning($"✅ <color=green>WAGON ADJUSTMENT ANIMATION COMPLETE:</color> {removedTransform.name}");
             foreach (var mp in movePairs)
             {
                 if (mp.wagon == null) continue;
@@ -333,12 +346,12 @@ public class MetroManager : MonoBehaviour
             isAdjusting = false;
             if (pendingRemovedTransforms.Count > 0)
             {
-                Debug.Log($"More removals pending ({pendingRemovedTransforms.Count}), processing next.");
+                Debug.LogWarning($"📋 <color=cyan>More removals pending:</color> {pendingRemovedTransforms.Count}, processing next.");
                 pendingRemovalCoroutine = StartCoroutine(ProcessPendingRemovals());
             }
             else
             {
-                Debug.Log("All wagon removals processed.");
+                Debug.LogWarning($"✅ <color=green>ALL WAGON REMOVALS PROCESSED:</color> Invoking OnTrainAdjustmentStateChanged(false)");
                 pendingRemovalCoroutine = null;
                 OnTrainAdjustmentStateChanged?.Invoke(false);
             }

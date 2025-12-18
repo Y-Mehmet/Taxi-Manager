@@ -539,6 +539,33 @@ public class PassengerGroup : MonoBehaviour
 
     System.Collections.IEnumerator ExecuteContinuousPath(List<Vector2Int> fullPath, int stopIndex, Vector3 stopWorldPos, int ascendIndex = -1)
     {
+        // Check for Corner Exits (Shortcuts)
+        // If the path touches the top-left (0, maxY) or top-right (maxX, maxY) corners, 
+        // we force the grid movement to end there and fly directly to the stop.
+        if (stopIndex != -1 && PassengerGrid.Instance != null && PassengerGrid.Instance.gridData != null)
+        {
+            int gridH = PassengerGrid.Instance.gridData.height;
+            int gridW = PassengerGrid.Instance.gridData.width;
+            int maxY = gridH - 1;
+            
+            for (int i = 0; i < fullPath.Count; i++)
+            {
+                Vector2Int pos = fullPath[i];
+                // Check if this position is a top-left or top-right corner
+                if (pos.y == maxY && (pos.x == 0 || pos.x == gridW - 1))
+                {
+                    // Found a corner exit point!
+                    // If the path continues beyond this point, truncate it.
+                    if (i < fullPath.Count - 1)
+                    {
+                        // Debug.Log($"[ExecuteContinuousPath] Shortcut detected! Truncated path at {pos}.");
+                        fullPath.RemoveRange(i + 1, fullPath.Count - (i + 1));
+                    }
+                    break; 
+                }
+            }
+        }
+
         isMoving = true;
         Vector2Int overallOrigin = gridPos;
         int pathIdx = 0;
@@ -630,7 +657,7 @@ public class PassengerGroup : MonoBehaviour
                 if (isFinalSegment)
                 {
                     // Move to the stop position
-                    float finalMoveDuration = Vector3.Distance(transform.position, stopWorldPos) / moveSpeed;
+                    float finalMoveDuration = (Vector3.Distance(transform.position, stopWorldPos) / moveSpeed) * 0.5f;
                     Sequence finalMoveSequence = DOTween.Sequence();
                     Vector3 directionToStop = (stopWorldPos - transform.position).normalized;
                     directionToStop.y = 0;

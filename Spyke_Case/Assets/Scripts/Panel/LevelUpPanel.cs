@@ -39,13 +39,22 @@ public class LevelUpPanel : MonoBehaviour
         retryButton.onClick.AddListener(OnRetryButtonClicked);
     }
 
-    public void Show(int stars, int earnings)
+    public void Show(int stars, int earnings, int completedLevelIndex = -1)
     {
         // Show level number with animation
         if (levelCompletedText != null)
         {
-            int currentLevel = ResourceManager.Instance != null ? ResourceManager.Instance.CurrentLevel : 0;
-            levelCompletedText.text = $"{currentLevel + 1}";
+            int displayIdx = 0;
+            if (completedLevelIndex != -1)
+            {
+                displayIdx = completedLevelIndex;
+            }
+            else
+            {
+                displayIdx = ResourceManager.Instance != null ? ResourceManager.Instance.CurrentLevel : 0;
+            }
+
+            levelCompletedText.text = $"{displayIdx + 1}";
             
             // Scale animation
             levelCompletedText.transform.localScale = Vector3.zero;

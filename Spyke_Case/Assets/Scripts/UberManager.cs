@@ -138,6 +138,13 @@ public class UberManager : MonoBehaviour
             // Vagonu deaktif et
             // wagonToCollect.gameObject.SetActive(false); // Replaced with animation
 
+            // STOP METRO WAGONS
+            if (MetroManager.Instance != null)
+            {
+                MetroManager.Instance.PauseAllWagons();
+                MetroManager.StopMovement();
+            }
+
             // Animate the wagon moving to the Uber, then deactivate it.
             Transform wagonTransform = wagonToCollect.transform;
             Transform uberTransform = uber1_mission.transform;
@@ -154,6 +161,13 @@ public class UberManager : MonoBehaviour
 
             // Wait for the animation to complete before continuing the Uber sequence
             yield return collectSequence.WaitForCompletion();
+
+            // RESUME METRO WAGONS
+            if (MetroManager.Instance != null)
+            {
+                MetroManager.Instance.ResumeAllWagons();
+                MetroManager.StartMovement();
+            }
 
             // AnimasyonlarÄ± oluÅŸtur
             Sequence sequence = DOTween.Sequence();

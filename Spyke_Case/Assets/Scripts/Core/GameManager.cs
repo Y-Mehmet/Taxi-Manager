@@ -111,10 +111,13 @@ public class GameManager : MonoBehaviour
             // }
         }
 
+        int justCompletedLevel = -1;
+
         // Save stars (only if higher than previous)
         if (ResourceManager.Instance != null)
         {
             int currentLevel = ResourceManager.Instance.CurrentLevel;
+            justCompletedLevel = currentLevel;
             
             // Get previous star count for this level
             int previousStars = 0;
@@ -137,7 +140,6 @@ public class GameManager : MonoBehaviour
             
             // IMPORTANT: Only increment level if we're playing the CURRENT highest unlocked level
             // This prevents re-locking levels when replaying old levels
-            int justCompletedLevel = currentLevel;
             int highestUnlockedLevel = ResourceManager.Instance.MaxOpenedLevel;
             
             if (justCompletedLevel >= highestUnlockedLevel)
@@ -152,11 +154,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        StartCoroutine(ShowLevelUpPanelRoutine(stars));
+        StartCoroutine(ShowLevelUpPanelRoutine(stars, justCompletedLevel));
     }
 
 
-    private System.Collections.IEnumerator ShowLevelUpPanelRoutine(int stars)
+    private System.Collections.IEnumerator ShowLevelUpPanelRoutine(int stars, int completedLevelIndex)
     {
         yield return new WaitForSeconds(2f);
 
@@ -169,7 +171,7 @@ public class GameManager : MonoBehaviour
             if (levelUpPanel != null)
             {
                 int finalCoins = GameEconomy.Instance != null ? GameEconomy.Instance.GetCurrentCoins() : 0;
-                levelUpPanel.Show(stars, finalCoins);
+                levelUpPanel.Show(stars, finalCoins, completedLevelIndex);
             }
         }
         /* Debug.Log("Loading next level..."); */

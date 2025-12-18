@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
         if (JokerSystem.Instance != null)
         {
             JokerSystem.Instance.OnGameStarted();
-            Debug.Log($"[GameManager] Invoice initialized with active jokers");
+            /* Debug.Log($"[GameManager] Invoice initialized with active jokers"); */
         }
         
         // Reset ability usage tracker
@@ -128,11 +128,11 @@ public class GameManager : MonoBehaviour
             if (stars > previousStars)
             {
                 ResourceManager.Instance.SetLevelStarCount(currentLevel, stars);
-                Debug.Log($"[GameManager] New star record! {previousStars} -> {stars}");
+                /* Debug.Log($"[GameManager] New star record! {previousStars} -> {stars}"); */
             }
             else
             {
-                Debug.Log($"[GameManager] Stars not saved. Previous: {previousStars}, Current: {stars}");
+                /* Debug.Log($"[GameManager] Stars not saved. Previous: {previousStars}, Current: {stars}"); */
             }
             
             // IMPORTANT: Only increment level if we're playing the CURRENT highest unlocked level
@@ -144,11 +144,11 @@ public class GameManager : MonoBehaviour
             {
                 // We completed the highest unlocked level or beyond, unlock the next one
                 ResourceManager.Instance.IncrementLevel();
-                Debug.Log($"[GameManager] Level progression: {highestUnlockedLevel} -> {highestUnlockedLevel + 1}");
+                /* Debug.Log($"[GameManager] Level progression: {highestUnlockedLevel} -> {highestUnlockedLevel + 1}"); */
             }
             else
             {
-                Debug.Log($"[GameManager] Replaying old level {justCompletedLevel}. Highest unlocked: {highestUnlockedLevel}. No progression.");
+                /* Debug.Log($"[GameManager] Replaying old level {justCompletedLevel}. Highest unlocked: {highestUnlockedLevel}. No progression."); */
             }
         }
 
@@ -172,7 +172,7 @@ public class GameManager : MonoBehaviour
                 levelUpPanel.Show(stars, finalCoins);
             }
         }
-        Debug.Log("Loading next level...");
+        /* Debug.Log("Loading next level..."); */
     }
 
     private void HandleGameOver()

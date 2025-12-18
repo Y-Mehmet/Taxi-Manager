@@ -141,7 +141,7 @@ public class AbilityButton : MonoBehaviour
         // Convert UI position to world position for animation
         Vector3 worldPosition = GetWorldPositionFromUI();
         
-        Debug.Log($"[AbilityButton] Buying ability from position: {worldPosition}, Cost: {currentCost}");
+        /* Debug.Log($"[AbilityButton] Buying ability from position: {worldPosition}, Cost: {currentCost}"); */
         
         // Spend coins from main resource
         if (GameEconomy.Instance.SpendMainCoins(currentCost))
@@ -164,7 +164,7 @@ public class AbilityButton : MonoBehaviour
             // Execute ability
             AbilityManager.Instance.ExecuteAbilityDirect(abilityType);
 
-            Debug.Log($"[AbilityButton] Successfully purchased and used {abilityType}.");
+            /* Debug.Log($"[AbilityButton] Successfully purchased and used {abilityType}."); */
             
             // Update UI immediately
             UpdateButtonUI(GameEconomy.Instance.GetMainCoins());
@@ -198,7 +198,7 @@ public class AbilityButton : MonoBehaviour
             worldPosition = rectTransform.position;
         }
 
-        Debug.Log($"[AbilityButton] UI Position: {rectTransform.position}, World Position: {worldPosition}");
+        /* Debug.Log($"[AbilityButton] UI Position: {rectTransform.position}, World Position: {worldPosition}"); */
         return worldPosition;
     }
 
@@ -314,6 +314,6 @@ public class AbilityButton : MonoBehaviour
         // Disable button
         button.interactable = false;
         
-        Debug.Log($"[AbilityButton] {abilityType} is LOCKED - {unlockText}");
+        /* Debug.Log($"[AbilityButton] {abilityType} is LOCKED - {unlockText}"); */
     }
 }

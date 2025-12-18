@@ -59,7 +59,7 @@ public class CoinObjectPool : MonoBehaviour
             CreateNewFloatingText();
         }
 
-        Debug.Log($"[CoinObjectPool] Initialized with {initialCoinSpritePoolSize} coin sprites and {initialTextPoolSize} texts");
+        /* Debug.Log($"[CoinObjectPool] Initialized with {initialCoinSpritePoolSize} coin sprites and {initialTextPoolSize} texts"); */
     }
 
     private GameObject CreateNewCoinSprite()

@@ -36,13 +36,28 @@ public class LevelButton : MonoBehaviour
         LevelSelectManager.OnLevelSelected -= HandleLevelSelected;
     }
     
+    private int _assignedLevelIndex = -1;
+
+    public void SetLevelIndex(int index)
+    {
+        _assignedLevelIndex = index;
+    }
+
+    private int GetLevelIndex()
+    {
+        if (_assignedLevelIndex != -1) return _assignedLevelIndex;
+        return transform.GetSiblingIndex();
+    }
+
     /// <summary>
     /// Handle level selection event - start/stop wheel rotation
     /// </summary>
     private void HandleLevelSelected(int selectedLevelIndex)
     {
-        int myLevelIndex = transform.GetSiblingIndex();
+        int myLevelIndex = GetLevelIndex();
         
+        // Debug.Log($"[DEBUG_WHEEL] LevelButton {myLevelIndex} received OnLevelSelected({selectedLevelIndex})");
+
         if (wheelRotator != null)
         {
             if (selectedLevelIndex == myLevelIndex)
@@ -53,8 +68,13 @@ public class LevelButton : MonoBehaviour
             else
             {
                 // This is not the selected level, stop rotation
+                // Debug.Log($"[DEBUG_WHEEL] LevelButton {myLevelIndex} does not match. Stopping rotation.");
                 wheelRotator.StopRotation();
             }
+        }
+        else
+        {
+            Debug.LogError($"[DEBUG_WHEEL] LevelButton {myLevelIndex} has NO wheelRotator assigned!");
         }
     }
 
@@ -66,7 +86,7 @@ public class LevelButton : MonoBehaviour
         if (starPanel == null) return;
         
         // Get level index from sibling index
-        int levelIndex = transform.GetSiblingIndex();
+        int levelIndex = GetLevelIndex();
         
         // Get stars for this level from save data
         int stars = 0;
@@ -111,9 +131,7 @@ public class LevelButton : MonoBehaviour
         if (!button.interactable) return;
 
         // HiyerarÅŸideki sÄ±rayÄ± al (bu bizim level index'imiz olacak)
-        int levelIndex = transform.GetSiblingIndex();
-
-        Debug.Log($"[LevelButton] Level {levelIndex} selected (not loaded yet)");
+        int levelIndex = GetLevelIndex();
 
         // LevelSelectManager'a seÃ§ili level'i bildir
         if (LevelSelectManager.Instance != null)

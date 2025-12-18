@@ -29,7 +29,7 @@ public class TiledBackgroundScroller : MonoBehaviour
         // UV Rect'i al (başlangıç değeri)
         uvRect = rawImage.uvRect;
         
-        Debug.Log($"[TiledBackgroundScroller] Initialized - Scroll Speed: {scrollSpeed}");
+        /* Debug.Log($"[TiledBackgroundScroller] Initialized - Scroll Speed: {scrollSpeed}"); */
     }
     
     private void Update()

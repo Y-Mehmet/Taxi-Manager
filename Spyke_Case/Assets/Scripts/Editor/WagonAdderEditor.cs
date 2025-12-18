@@ -282,7 +282,7 @@ public class WagonAdderEditor : EditorWindow
         int totalCars = targetLevelData.initialPassengerGroups.Count;
         int totalWagons = colorDataList.Sum(c => c.passengerCount);
         
-        Debug.Log($"✅ {totalCars} araba (PassengerGroup) analiz edildi → {totalWagons} wagon (yolcu) gerekli, {colorDataList.Count} farklı renk bulundu.");
+        /* Debug.Log($"✅ {totalCars} araba (PassengerGroup) analiz edildi → {totalWagons} wagon (yolcu) gerekli, {colorDataList.Count} farklı renk bulundu."); */
     }
 
     private void AddWagons()
@@ -315,7 +315,7 @@ public class WagonAdderEditor : EditorWindow
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         
-        Debug.Log($"✅ {wagonSequence.Count} wagon eklendi: {targetLevelData.name}");
+        /* Debug.Log($"✅ {wagonSequence.Count} wagon eklendi: {targetLevelData.name}"); */
         
         EditorUtility.DisplayDialog("Başarılı!", 
             $"Wagon'lar eklendi!\n\n{targetLevelData.name}\n\n{targetLevelData.initialPassengerGroups.Count} araba\n{wagonSequence.Count} wagon", 
@@ -332,16 +332,16 @@ public class WagonAdderEditor : EditorWindow
         foreach (var colorData in colorDataList)
         {
             wagonCounts[colorData.color] = colorData.passengerCount;
-            Debug.Log($"📊 {colorData.color}: {colorData.passengerCount} wagon gerekli");
+            /* Debug.Log($"📊 {colorData.color}: {colorData.passengerCount} wagon gerekli"); */
         }
         
         int totalExpected = wagonCounts.Values.Sum();
-        Debug.Log($"📊 Toplam beklenen wagon: {totalExpected}");
+        /* Debug.Log($"📊 Toplam beklenen wagon: {totalExpected}"); */
         
         // Dağıtılmış sıralama ile wagon listesi oluştur
         List<HyperCasualColor> sequence = CreateDistributedSequence(wagonCounts, int.MaxValue);
         
-        Debug.Log($"📊 Oluşturulan wagon: {sequence.Count}");
+        /* Debug.Log($"📊 Oluşturulan wagon: {sequence.Count}"); */
         
         return sequence;
     }

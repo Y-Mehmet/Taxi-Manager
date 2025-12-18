@@ -71,18 +71,18 @@ public class AbilityTutorialButton : MonoBehaviour
             instantiatedParticle.transform.localPosition = Vector3.zero;
             instantiatedParticle.gameObject.SetActive(false); // Başlangıçta gizli
             
-            Debug.Log($"[AbilityTutorialButton] Particle effect instantiated: {instantiatedParticle.name}");
+            /* Debug.Log($"[AbilityTutorialButton] Particle effect instantiated: {instantiatedParticle.name}"); */
         }
         else
         {
-            Debug.LogWarning("[AbilityTutorialButton] No particle prefab assigned!");
+            /* Debug.LogWarning("[AbilityTutorialButton] No particle prefab assigned!"); */
         }
         
         // Setup hand image
         if (handImage != null)
         {
             handImage.SetActive(false); // Başlangıçta gizli
-            Debug.Log("[AbilityTutorialButton] Hand image initialized (hidden)");
+            /* Debug.Log("[AbilityTutorialButton] Hand image initialized (hidden)"); */
         }
         
         // Setup AudioSource for button click sound
@@ -92,11 +92,11 @@ public class AbilityTutorialButton : MonoBehaviour
             audioSource.playOnAwake = false;
             audioSource.clip = buttonClickSound;
             
-            Debug.Log($"[AbilityTutorialButton] AudioSource added with clip: {buttonClickSound.name}");
+            /* Debug.Log($"[AbilityTutorialButton] AudioSource added with clip: {buttonClickSound.name}"); */
         }
         else
         {
-            Debug.LogWarning("[AbilityTutorialButton] No button click sound assigned!");
+            /* Debug.LogWarning("[AbilityTutorialButton] No button click sound assigned!"); */
         }
     }
     
@@ -115,7 +115,7 @@ public class AbilityTutorialButton : MonoBehaviour
             // Start typing
             typewriterEffect.StartTyping(description);
             
-            Debug.Log("[AbilityTutorialButton] Started typewriter effect");
+            /* Debug.Log("[AbilityTutorialButton] Started typewriter effect"); */
         }
     }
     
@@ -124,7 +124,7 @@ public class AbilityTutorialButton : MonoBehaviour
     /// </summary>
     private void OnTypingComplete()
     {
-        Debug.Log("[AbilityTutorialButton] Typewriter complete, waiting 2 seconds before starting animations");
+        /* Debug.Log("[AbilityTutorialButton] Typewriter complete, waiting 2 seconds before starting animations"); */
         
         // Start auto-click sequence after 2 second delay
         if (enableAutoClick && !hasStartedAutoClick)
@@ -142,7 +142,7 @@ public class AbilityTutorialButton : MonoBehaviour
         // Wait 2 seconds after typewriter completes
         yield return new WaitForSeconds(2f);
         
-        Debug.Log("[AbilityTutorialButton] Auto-clicking button once to start tutorial animations");
+        /* Debug.Log("[AbilityTutorialButton] Auto-clicking button once to start tutorial animations"); */
         
         // Single click to trigger OnAbilityUsed
         if (!tutorial.IsCompleted)
@@ -150,7 +150,7 @@ public class AbilityTutorialButton : MonoBehaviour
             OnButtonClicked();
         }
         
-        Debug.Log("[AbilityTutorialButton] Auto-click complete. Tutorial animations started. Waiting for user to click Continue button.");
+        /* Debug.Log("[AbilityTutorialButton] Auto-click complete. Tutorial animations started. Waiting for user to click Continue button."); */
     }
     
     /// <summary>
@@ -159,7 +159,7 @@ public class AbilityTutorialButton : MonoBehaviour
     public void SetTutorialManager(AbilityTutorialManager manager)
     {
         tutorialManager = manager;
-        Debug.Log("[AbilityTutorialButton] Tutorial manager set");
+        /* Debug.Log("[AbilityTutorialButton] Tutorial manager set"); */
     }
     
     /// <summary>
@@ -170,7 +170,7 @@ public class AbilityTutorialButton : MonoBehaviour
         descriptionText = selectionText;
         typewriterEffect = typewriter;
         
-        Debug.Log($"[AbilityTutorialButton] UI components set - SelectionText: {selectionText != null}, TypewriterEffect: {typewriter != null}");
+        /* Debug.Log($"[AbilityTutorialButton] UI components set - SelectionText: {selectionText != null}, TypewriterEffect: {typewriter != null}"); */
     }
     
     /// <summary>
@@ -178,7 +178,7 @@ public class AbilityTutorialButton : MonoBehaviour
     /// </summary>
     private void OnButtonClicked()
     {
-        Debug.Log("[AbilityTutorialButton] OnButtonClicked called");
+        /* Debug.Log("[AbilityTutorialButton] OnButtonClicked called"); */
         
         if (tutorial == null)
         {
@@ -186,15 +186,15 @@ public class AbilityTutorialButton : MonoBehaviour
             return;
         }
         
-        Debug.Log($"[AbilityTutorialButton] Tutorial IsCompleted: {tutorial.IsCompleted}");
+        /* Debug.Log($"[AbilityTutorialButton] Tutorial IsCompleted: {tutorial.IsCompleted}"); */
         
         if (tutorial.IsCompleted)
         {
-            Debug.Log($"[AbilityTutorialButton] {tutorial.GetAbilityName()} tutorial already completed!");
+            /* Debug.Log($"[AbilityTutorialButton] {tutorial.GetAbilityName()} tutorial already completed!"); */
             return;
         }
         
-        Debug.Log($"[AbilityTutorialButton] Calling tutorial.OnAbilityUsed()");
+        /* Debug.Log($"[AbilityTutorialButton] Calling tutorial.OnAbilityUsed()"); */
         
         // Ability'yi kullan
         tutorial.OnAbilityUsed();
@@ -209,7 +209,7 @@ public class AbilityTutorialButton : MonoBehaviour
         if (tutorial.IsCompleted)
         {
             button.interactable = false;
-            Debug.Log($"[AbilityTutorialButton] {tutorial.GetAbilityName()} tutorial completed, button disabled");
+            /* Debug.Log($"[AbilityTutorialButton] {tutorial.GetAbilityName()} tutorial completed, button disabled"); */
         }
     }
     
@@ -218,7 +218,7 @@ public class AbilityTutorialButton : MonoBehaviour
     /// </summary>
     private void PlayClickEffect()
     {
-        Debug.Log("[AbilityTutorialButton] PlayClickEffect called");
+        /* Debug.Log("[AbilityTutorialButton] PlayClickEffect called"); */
         
         // Play particle effect (1 saniye görünsün)
         if (instantiatedParticle != null)
@@ -227,7 +227,7 @@ public class AbilityTutorialButton : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[AbilityTutorialButton] instantiatedParticle is NULL!");
+            /* Debug.LogWarning("[AbilityTutorialButton] instantiatedParticle is NULL!"); */
         }
         
         // Play hand click animation
@@ -246,15 +246,19 @@ public class AbilityTutorialButton : MonoBehaviour
         // Play sound effect
         if (audioSource != null && buttonClickSound != null)
         {
-            Debug.Log($"[AbilityTutorialButton] Playing sound: {buttonClickSound.name}, Volume: {audioSource.volume}");
+            /* Debug.Log($"[AbilityTutorialButton] Playing sound: {buttonClickSound.name}, Volume: {audioSource.volume}"); */
             audioSource.PlayOneShot(buttonClickSound);
         }
         else
         {
             if (audioSource == null)
-                Debug.LogWarning("[AbilityTutorialButton] audioSource is NULL!");
+            {
+                /* Debug.LogWarning("[AbilityTutorialButton] audioSource is NULL!"); */
+            }
             if (buttonClickSound == null)
-                Debug.LogWarning("[AbilityTutorialButton] buttonClickSound is NULL!");
+            {
+                /* Debug.LogWarning("[AbilityTutorialButton] buttonClickSound is NULL!"); */
+            }
         }
     }
     
@@ -264,12 +268,12 @@ public class AbilityTutorialButton : MonoBehaviour
     private System.Collections.IEnumerator ShowParticleForDuration()
     {
         instantiatedParticle.gameObject.SetActive(true);
-        Debug.Log("[AbilityTutorialButton] Particle shown");
+        /* Debug.Log("[AbilityTutorialButton] Particle shown"); */
         
         yield return new WaitForSeconds(particleDisplayDuration);
         
         instantiatedParticle.gameObject.SetActive(false);
-        Debug.Log("[AbilityTutorialButton] Particle hidden");
+        /* Debug.Log("[AbilityTutorialButton] Particle hidden"); */
     }
     
     /// <summary>
@@ -318,7 +322,7 @@ public class AbilityTutorialButton : MonoBehaviour
         if (handImage != null)
         {
             handImage.SetActive(false);
-            Debug.Log("[AbilityTutorialButton] Hand hidden after 3 clicks");
+            /* Debug.Log("[AbilityTutorialButton] Hand hidden after 3 clicks"); */
         }
     }
     

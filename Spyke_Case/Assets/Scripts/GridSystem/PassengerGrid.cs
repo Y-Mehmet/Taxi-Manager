@@ -76,7 +76,7 @@ namespace GridSystem
             if (gridData != null && !gridData.stopSlots.Contains(stopGridPosition))
             {
                 gridData.stopSlots.Add(stopGridPosition);
-                Debug.Log($"[PassengerGrid] Added new stop slot at {stopGridPosition}. Total stop slots: {gridData.stopSlots.Count}");
+                /* Debug.Log($"[PassengerGrid] Added new stop slot at {stopGridPosition}. Total stop slots: {gridData.stopSlots.Count}"); */
             }
         }
 
@@ -118,7 +118,7 @@ namespace GridSystem
         // Returns a list of grid positions (including the target Stop), or null if none found.
     public List<Vector2Int> FindNearestStopPath(Vector2Int from, PassengerGroup requester = null)
     {
-        Debug.Log($"[Pathfinder] Starting FindNearestStopPath from {from}");
+        /* Debug.Log($"[Pathfinder] Starting FindNearestStopPath from {from}"); */
         if (gridData == null) 
         {
             Debug.LogError("[Pathfinder] Aborted: gridData is null.");

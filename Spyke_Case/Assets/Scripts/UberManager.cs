@@ -78,7 +78,7 @@ public class UberManager : MonoBehaviour
     {
         if (wagon == null || wagonQueue.Contains(wagon)) return;
 
-        Debug.Log($"<color=magenta>UBER:</color> Wagon '{wagon.name}' requested an Uber and is now in queue.");
+        /* Debug.Log($"<color=magenta>UBER:</color> Wagon '{wagon.name}' requested an Uber and is now in queue."); */
         SoundManager.instance.PlaySfx(SoundType.Slurp);
         wagonQueue.Enqueue(wagon);
 
@@ -120,7 +120,7 @@ public class UberManager : MonoBehaviour
                 }
             }
             
-            Debug.Log($"<color=magenta>UBER:</color> Mission started. Total count: {UberCount}");
+            /* Debug.Log($"<color=magenta>UBER:</color> Mission started. Total count: {UberCount}"); */
 
             bool isLastMission = UberCount >= maxUberCount;
 

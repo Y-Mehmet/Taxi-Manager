@@ -40,7 +40,7 @@ public class AbilityUsageTracker : MonoBehaviour
     public void ResetUsageCounts()
     {
         usageCount.Clear();
-        Debug.Log("[AbilityUsageTracker] Usage counts reset for new level");
+        /* Debug.Log("[AbilityUsageTracker] Usage counts reset for new level"); */
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public class AbilityUsageTracker : MonoBehaviour
 
         usageCount[type]++;
         
-        Debug.Log($"[AbilityUsageTracker] {type} used {usageCount[type]} times. Next cost: {GetAbilityCost(type)}");
+        /* Debug.Log($"[AbilityUsageTracker] {type} used {usageCount[type]} times. Next cost: {GetAbilityCost(type)}"); */
     }
 
     /// <summary>

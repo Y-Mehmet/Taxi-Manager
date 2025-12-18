@@ -79,7 +79,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
         // Start main loop
         StartMainLoop();
         
-        Debug.Log($"[UniversalPathfindingTutorial] Started - Positions saved: Bottom={bottomCarStartPos}, Top={topCarStartPos}, Stop={stopStartPos}");
+        /* Debug.Log($"[UniversalPathfindingTutorial] Started - Positions saved: Bottom={bottomCarStartPos}, Top={topCarStartPos}, Stop={stopStartPos}"); */
     }
     
     /// <summary>
@@ -119,13 +119,13 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
             // 6. Cost'u 2 katına çıkar ve güncelle
             currentCost *= 2;
             UpdateCostDisplay();
-            Debug.Log($"[UniversalPathfindingTutorial] Cost doubled to: {currentCost}");
+            /* Debug.Log($"[UniversalPathfindingTutorial] Cost doubled to: {currentCost}"); */
             
             // 7. Tekrar başlamadan önce kısa bekle
             yield return new WaitForSeconds(1f);
         }
         
-        Debug.Log("[UniversalPathfindingTutorial] Loop stopped (skipped)");
+        /* Debug.Log("[UniversalPathfindingTutorial] Loop stopped (skipped)"); */
     }
     
     /// <summary>
@@ -133,7 +133,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
     /// </summary>
     private IEnumerator CollisionAnimation()
     {
-        Debug.Log("========== ÇARPIŞMA BAŞLIYOR ==========");
+        /* Debug.Log("========== ÇARPIŞMA BAŞLIYOR =========="); */
         
         // Araç boyutlarını al
         RectTransform bottomRect = bottomCar.GetComponent<RectTransform>();
@@ -144,47 +144,47 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
         float bottomCarHeight = bottomRect != null ? bottomRect.rect.height : 50f;
         float topCarHeight = topRect != null ? topRect.rect.width : 50f; // YATAY: width kullan!
         
-        Debug.Log($"[1] ARAÇ BOYUTLARI:");
-        Debug.Log($"    Bottom Car Height: {bottomCarHeight}");
-        Debug.Log($"    Top Car Width (yatay): {topCarHeight}");
+        /* Debug.Log($"[1] ARAÇ BOYUTLARI:"); */
+        /* Debug.Log($"    Bottom Car Height: {bottomCarHeight}"); */
+        /* Debug.Log($"    Top Car Width (yatay): {topCarHeight}"); */
         
-        Debug.Log($"[2] BAŞLANGIÇ POZİSYONLARI:");
-        Debug.Log($"    Bottom Car Start (merkez): {bottomCarStartPos}");
-        Debug.Log($"    Top Car Start (merkez): {topCarStartPos}");
+        /* Debug.Log($"[2] BAŞLANGIÇ POZİSYONLARI:"); */
+        /* Debug.Log($"    Bottom Car Start (merkez): {bottomCarStartPos}"); */
+        /* Debug.Log($"    Top Car Start (merkez): {topCarStartPos}"); */
         
         // KENAR POZİSYONLARI
         float bottomCarTopEdge = bottomCarStartPos.y + (bottomCarHeight / 2f);
         float topCarBottomEdge = topCarStartPos.y - (topCarHeight / 2f);
         
-        Debug.Log($"[3] KENAR POZİSYONLARI:");
-        Debug.Log($"    Bottom Car ÜST KENAR: {bottomCarTopEdge}");
-        Debug.Log($"    Top Car ALT KENAR: {topCarBottomEdge}");
+        /* Debug.Log($"[3] KENAR POZİSYONLARI:"); */
+        /* Debug.Log($"    Bottom Car ÜST KENAR: {bottomCarTopEdge}"); */
+        /* Debug.Log($"    Top Car ALT KENAR: {topCarBottomEdge}"); */
         
         // Kenarlar arası gap (doğru hesaplama!)
         float gapBetweenEdges = topCarBottomEdge - bottomCarTopEdge;
         
-        Debug.Log($"[4] KENARLAR ARASI GAP:");
-        Debug.Log($"    Gap = Top alt kenar - Bottom üst kenar");
-        Debug.Log($"    Gap = {topCarBottomEdge} - {bottomCarTopEdge}");
-        Debug.Log($"    Gap = {gapBetweenEdges}");
+        /* Debug.Log($"[4] KENARLAR ARASI GAP:"); */
+        /* Debug.Log($"    Gap = Top alt kenar - Bottom üst kenar"); */
+        /* Debug.Log($"    Gap = {topCarBottomEdge} - {bottomCarTopEdge}"); */
+        /* Debug.Log($"    Gap = {gapBetweenEdges}"); */
         
         // Overlap hesabı
         float overlap = gapBetweenEdges * collisionDistance;
         float remainingGap = gapBetweenEdges - overlap;
         
-        Debug.Log($"[5] OVERLAP HESABI:");
-        Debug.Log($"    Collision Distance: {collisionDistance} ({collisionDistance * 100}%)");
-        Debug.Log($"    Overlap miktarı: {overlap}");
-        Debug.Log($"    Kalan gap: {remainingGap}");
+        /* Debug.Log($"[5] OVERLAP HESABI:"); */
+        /* Debug.Log($"    Collision Distance: {collisionDistance} ({collisionDistance * 100}%)"); */
+        /* Debug.Log($"    Overlap miktarı: {overlap}"); */
+        /* Debug.Log($"    Kalan gap: {remainingGap}"); */
         
         // Bottom car'ın hedef Y pozisyonu (üst kenarı hedef gap kadar yaklaşacak)
         float targetTopEdge = topCarBottomEdge - remainingGap;
         float targetY = targetTopEdge - (bottomCarHeight / 2f);
         
-        Debug.Log($"[6] HEDEF POZİSYON HESABI:");
-        Debug.Log($"    Bottom üst kenar hedefi: {targetTopEdge}");
-        Debug.Log($"    Bottom merkez hedefi: {targetY}");
-        Debug.Log($"    (Hedef = üst kenar - yarı yükseklik)");
+        /* Debug.Log($"[6] HEDEF POZİSYON HESABI:"); */
+        /* Debug.Log($"    Bottom üst kenar hedefi: {targetTopEdge}"); */
+        /* Debug.Log($"    Bottom merkez hedefi: {targetY}"); */
+        /* Debug.Log($"    (Hedef = üst kenar - yarı yükseklik)"); */
         
         Vector3 targetPos = new Vector3(
             bottomCarStartPos.x,
@@ -192,9 +192,9 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
             bottomCarStartPos.z
         );
         
-        Debug.Log($"[7] HEDEF POZİSYON: {targetPos}");
-        Debug.Log($"[8] GİDİLECEK MESAFE: {Vector3.Distance(bottomCar.localPosition, targetPos)}");
-        Debug.Log("========================================");
+        /* Debug.Log($"[7] HEDEF POZİSYON: {targetPos}"); */
+        /* Debug.Log($"[8] GİDİLECEK MESAFE: {Vector3.Distance(bottomCar.localPosition, targetPos)}"); */
+        /* Debug.Log("========================================"); */
         
         while (Vector3.Distance(bottomCar.localPosition, targetPos) > 1f)
         {
@@ -206,8 +206,8 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
             yield return null;
         }
         
-        Debug.Log($"[ÇARPIŞMA] Bottom car hedef pozisyona ulaştı: {bottomCar.localPosition}");
-        Debug.Log($"[ÇARPIŞMA] Bottom üst kenar final: {bottomCar.localPosition.y + (bottomCarHeight / 2f)}");
+        /* Debug.Log($"[ÇARPIŞMA] Bottom car hedef pozisyona ulaştı: {bottomCar.localPosition}"); */
+        /* Debug.Log($"[ÇARPIŞMA] Bottom üst kenar final: {bottomCar.localPosition.y + (bottomCarHeight / 2f)}"); */
         
         // Çarpışma sesi çal
         if (audioSource != null && collisionSound != null)
@@ -455,7 +455,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
     public void OnAbilityUsed()
     {
         // Bu tutorial otomatik çalışır, manuel kullanım yok
-        Debug.Log("[UniversalPathfindingTutorial] OnAbilityUsed called (auto mode, ignored)");
+        /* Debug.Log("[UniversalPathfindingTutorial] OnAbilityUsed called (auto mode, ignored)"); */
     }
     
     /// <summary>
@@ -471,7 +471,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
             mainLoop = null;
         }
         
-        Debug.Log("[UniversalPathfindingTutorial] Skipped");
+        /* Debug.Log("[UniversalPathfindingTutorial] Skipped"); */
     }
     
     /// <summary>
@@ -496,7 +496,7 @@ public class UniversalPathfindingTutorial : MonoBehaviour, IAbilityTutorial
         UpdateCostDisplay();
         StartMainLoop();
         
-        Debug.Log("[UniversalPathfindingTutorial] Tutorial reset");
+        /* Debug.Log("[UniversalPathfindingTutorial] Tutorial reset"); */
     }
     
     public int GetCost() => currentCost;

@@ -6,7 +6,7 @@ public class PassengerSpawnManager : MonoBehaviour
 {
     public void Initialize(List<PassengerSpawnData> spawnData, PassengerGroup prefab, GridManager gridManager)
     {
-        Debug.Log("[PassengerSpawnManager] Initializing...");
+        /* Debug.Log("[PassengerSpawnManager] Initializing..."); */
 
         if (prefab == null)
         {
@@ -26,7 +26,7 @@ public class PassengerSpawnManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[PassengerSpawnManager] Received {spawnData.Count} passenger groups to spawn.");
+        /* Debug.Log($"[PassengerSpawnManager] Received {spawnData.Count} passenger groups to spawn."); */
 
         foreach (var data in spawnData)
         {
@@ -40,7 +40,7 @@ public class PassengerSpawnManager : MonoBehaviour
             newGroup.useGridPosition = true; // Grid pozisyonunu kullanmasÄ±nÄ± saÄŸla
 
             newGroup.name = $"PassengerGroup_{data.position.x}_{data.position.y}";
-            Debug.Log($"[PassengerSpawnManager] Spawned passenger group at {data.position}");
+            /* Debug.Log($"[PassengerSpawnManager] Spawned passenger group at {data.position}"); */
         }
     }
 }

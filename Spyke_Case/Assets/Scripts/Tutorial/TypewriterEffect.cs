@@ -83,7 +83,7 @@ public class TypewriterEffect : MonoBehaviour
         isTyping = false;
         isComplete = true;
         
-        Debug.Log("[TypewriterEffect] Skipped to end");
+        /* Debug.Log("[TypewriterEffect] Skipped to end"); */
         
         OnTypingComplete?.Invoke();
     }
@@ -115,7 +115,7 @@ public class TypewriterEffect : MonoBehaviour
         isTyping = false;
         isComplete = true;
         
-        Debug.Log("[TypewriterEffect] Typing complete");
+        /* Debug.Log("[TypewriterEffect] Typing complete"); */
         
         OnTypingComplete?.Invoke();
     }

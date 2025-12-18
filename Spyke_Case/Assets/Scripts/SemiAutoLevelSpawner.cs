@@ -99,7 +99,7 @@ public class SemiAutoLevelSpawner : MonoBehaviour
         }
 
         spawnedWagons.Clear();
-        Debug.Log("[SemiAutoLevelSpawner] Mevcut vagonlar temizlendi.");
+        /* Debug.Log("[SemiAutoLevelSpawner] Mevcut vagonlar temizlendi."); */
     }
 
     private bool ValidateSetup()
@@ -170,7 +170,7 @@ public class SemiAutoLevelSpawner : MonoBehaviour
             if (showDebugInfo)
             {
                 string tag = isChallenge ? "<color=red>[CHALLENGE]</color>" : "<color=green>[NORMAL]</color>";
-                Debug.Log($"{tag} {passengerInfo.color}: {passengerInfo.passengerCount} yolcu → İlk 20'de {first20Count} wagon, Toplam {totalForColor} wagon");
+                /* Debug.Log($"{tag} {passengerInfo.color}: {passengerInfo.passengerCount} yolcu → İlk 20'de {first20Count} wagon, Toplam {totalForColor} wagon"); */
             }
         }
 
@@ -295,7 +295,7 @@ public class SemiAutoLevelSpawner : MonoBehaviour
             }
         }
 
-        Debug.Log($"<color=cyan>[SemiAutoLevelSpawner]</color> {wagonSequence.Count} wagon başarıyla yerleştirildi!");
+        /* Debug.Log($"<color=cyan>[SemiAutoLevelSpawner]</color> {wagonSequence.Count} wagon başarıyla yerleştirildi!"); */
     }
 
     private Vector3 GetPositionOnPath(int checkpointIndex, float offset)
@@ -333,42 +333,42 @@ public class SemiAutoLevelSpawner : MonoBehaviour
 
     private void PrintWagonSummary(List<HyperCasualColor> wagonSequence)
     {
-        Debug.Log("═══════════════════════════════════════════");
-        Debug.Log("<color=cyan><b>WAGON DISTRIBUTION SUMMARY</b></color>");
-        Debug.Log("═══════════════════════════════════════════");
+        /* Debug.Log("═══════════════════════════════════════════"); */
+        /* Debug.Log("<color=cyan><b>WAGON DISTRIBUTION SUMMARY</b></color>"); */
+        /* Debug.Log("═══════════════════════════════════════════"); */
 
         // İlk 20 wagon analizi
         var first20 = wagonSequence.Take(challengeWagonCount).ToList();
         var colorGroups = first20.GroupBy(c => c).OrderByDescending(g => g.Count());
 
-        Debug.Log($"<color=yellow>İLK {challengeWagonCount} WAGON:</color>");
+        /* Debug.Log($"<color=yellow>İLK {challengeWagonCount} WAGON:</color>"); */
         foreach (var group in colorGroups)
         {
             bool isChallenge = challengeColors.Contains(group.Key);
             string tag = isChallenge ? "<color=red>[CHALLENGE]</color>" : "";
-            Debug.Log($"  {tag} {group.Key}: {group.Count()} wagon");
+            /* Debug.Log($"  {tag} {group.Key}: {group.Count()} wagon"); */
         }
 
-        Debug.Log("───────────────────────────────────────────");
+        /* Debug.Log("───────────────────────────────────────────"); */
 
         // Toplam analiz
         var allColorGroups = wagonSequence.GroupBy(c => c).OrderByDescending(g => g.Count());
-        Debug.Log($"<color=yellow>TOPLAM {wagonSequence.Count} WAGON:</color>");
+        /* Debug.Log($"<color=yellow>TOPLAM {wagonSequence.Count} WAGON:</color>"); */
         foreach (var group in allColorGroups)
         {
             var passengerInfo = passengerColors.Find(p => p.color == group.Key);
             int passengerCount = passengerInfo != null ? passengerInfo.passengerCount : 0;
-            Debug.Log($"  {group.Key}: {group.Count()} wagon ({passengerCount} yolcu)");
+            /* Debug.Log($"  {group.Key}: {group.Count()} wagon ({passengerCount} yolcu)"); */
         }
 
-        Debug.Log("───────────────────────────────────────────");
+        /* Debug.Log("───────────────────────────────────────────"); */
         
         // İlk 30 wagon sırası
         string sequencePreview = string.Join("-", wagonSequence.Take(30).Select(c => c.ToString().Substring(0, 1)));
-        Debug.Log($"<color=yellow>İLK 30 WAGON SIRASI:</color>");
-        Debug.Log($"  {sequencePreview}...");
+        /* Debug.Log($"<color=yellow>İLK 30 WAGON SIRASI:</color>"); */
+        /* Debug.Log($"  {sequencePreview}..."); */
         
-        Debug.Log("═══════════════════════════════════════════");
+        /* Debug.Log("═══════════════════════════════════════════"); */
     }
 
     void OnDrawGizmosSelected()

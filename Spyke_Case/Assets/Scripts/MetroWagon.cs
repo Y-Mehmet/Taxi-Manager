@@ -82,7 +82,7 @@ public class MetroWagon : MonoBehaviour
     public void BoardPassengers(int count)
     {
         passengerCount += count;
-        Debug.Log($"<color={wagonColor.ToString().ToLower()}>{wagonColor} vagonuna</color> {count} yolcu bindi. Toplam: {passengerCount}", this.gameObject);
+        /* Debug.Log($"<color={wagonColor.ToString().ToLower()}>{wagonColor} vagonuna</color> {count} yolcu bindi. Toplam: {passengerCount}", this.gameObject); */
 
         // EÄŸer vagon dolduysa, durumu WagonManager'a bildir.
         if (IsFull)
@@ -137,13 +137,13 @@ public class MetroWagon : MonoBehaviour
             if (colorMaterial != null)
             {
                 // Material found in Resources/Materials - use it
-                Debug.Log($"[MetroWagon] Using custom material from Resources: {materialPath}");
+                /* Debug.Log($"[MetroWagon] Using custom material from Resources: {materialPath}"); */
                 renderer.material = colorMaterial;
             }
             else
             {
                 // No custom material found - use old system (set color property)
-                Debug.Log($"[MetroWagon] No custom material found for {newColor}, using color property");
+                /* Debug.Log($"[MetroWagon] No custom material found for {newColor}, using color property"); */
                 renderer.material.color = newColor.ToColor();
             }
         }

@@ -23,7 +23,7 @@ public class StopSlotTextUpdater : MonoBehaviour
         // If we were tracking an old group, unsubscribe from its events.
         if (passengerGroup != null)
         {
-            Debug.Log($"[StopSlotTextUpdater] Unsubscribing from {passengerGroup.name}");
+            /* Debug.Log($"[StopSlotTextUpdater] Unsubscribing from {passengerGroup.name}"); */
             passengerGroup.OnCapacityChanged -= UpdateSlotText;
         }
 
@@ -32,7 +32,7 @@ public class StopSlotTextUpdater : MonoBehaviour
         // If a new group is assigned, subscribe to its event and update the text immediately.
         if (passengerGroup != null)
         {
-            Debug.Log($"[StopSlotTextUpdater] SetPassengerGroup: Now tracking {passengerGroup.name}. Initial capacity: {passengerGroup.GroupSize}");
+            /* Debug.Log($"[StopSlotTextUpdater] SetPassengerGroup: Now tracking {passengerGroup.name}. Initial capacity: {passengerGroup.GroupSize}"); */
             passengerGroup.OnCapacityChanged += UpdateSlotText;
             // Perform an initial update with the current capacity.
             UpdateSlotText(passengerGroup.GroupSize);
@@ -40,7 +40,7 @@ public class StopSlotTextUpdater : MonoBehaviour
         else if (slotText != null)
         {
             // If the group is cleared (e.g., it departed), clear the text.
-            Debug.Log("[StopSlotTextUpdater] SetPassengerGroup: Passenger group cleared.");
+            /* Debug.Log("[StopSlotTextUpdater] SetPassengerGroup: Passenger group cleared."); */
             slotText.text = "";
         }
     }

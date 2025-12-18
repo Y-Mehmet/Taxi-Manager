@@ -128,7 +128,7 @@ public class UnderpassController : MonoBehaviour
                 var occupant = GridSystem.PassengerGrid.Instance.GetOccupant(waitingSpot);
                 if (occupant != null)
                 {
-                    Debug.Log($"[UnderpassController] Last passenger departed. Clearing occupant {occupant.name} from waiting spot {waitingSpot}.");
+                    /* Debug.Log($"[UnderpassController] Last passenger departed. Clearing occupant {occupant.name} from waiting spot {waitingSpot}."); */
                     GridSystem.PassengerGrid.Instance.UnregisterOccupant(waitingSpot, occupant);
                 }
             }
@@ -172,7 +172,7 @@ public class UnderpassController : MonoBehaviour
         // If the queue was empty, this new passenger is now the active one.
         if (queueWasEmpty)
         {
-            Debug.Log($"[UnderpassController] Queue was empty. Activating {returnedPassenger.name} as the new lead.");
+            /* Debug.Log($"[UnderpassController] Queue was empty. Activating {returnedPassenger.name} as the new lead."); */
             AnimateNextPassengerToStart();
         }
     }
@@ -191,7 +191,7 @@ public class UnderpassController : MonoBehaviour
             }
             firstGroup.gridPos = startCellGridPos;
             firstGroup.homeGridPos = startCellGridPos;
-            Debug.Log($"[UnderpassController] Set homeGridPos for {firstGroup.name} to {startCellGridPos}");
+            /* Debug.Log($"[UnderpassController] Set homeGridPos for {firstGroup.name} to {startCellGridPos}"); */
 
             firstGroup.transform.position = gridManager.GetWorldPosition(startCellGridPos);
             firstGroup.GetComponent<Collider>().enabled = true;
@@ -219,7 +219,7 @@ public class UnderpassController : MonoBehaviour
         }
         nextGroup.gridPos = startCellGridPos;
         nextGroup.homeGridPos = startCellGridPos;
-        Debug.Log($"[UnderpassController] Set homeGridPos for {nextGroup.name} to {startCellGridPos}");
+        /* Debug.Log($"[UnderpassController] Set homeGridPos for {nextGroup.name} to {startCellGridPos}"); */
 
         // ✅ Önce hareket başlasın (invisible)
         activeQueueAnimation = nextGroup.transform.DOMove(targetPos, 0.5f)
@@ -273,7 +273,7 @@ public class UnderpassController : MonoBehaviour
                 sb.Append($"{passenger.name} ({(passenger == activePassenger ? "Active" : "Passive")}), ");
             }
         }
-        Debug.Log(sb.ToString());
+        /* Debug.Log(sb.ToString()); */
     }
 
     public Queue<PassengerGroup> GetQueue()

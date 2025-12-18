@@ -84,7 +84,7 @@ public class AbilityManager : MonoBehaviour
         // Show animation if position is provided
         if (worldPosition.HasValue && GameEconomy.Instance != null)
         {
-            Debug.Log($"[AbilityManager] BuyAndUseAbility called with animation. Position: {worldPosition.Value}, Cost: {cost}");
+            /* Debug.Log($"[AbilityManager] BuyAndUseAbility called with animation. Position: {worldPosition.Value}, Cost: {cost}"); */
             
             // Use GameEconomy's SpendCoins which includes animation
             if (GameEconomy.Instance.GetCurrentCoins() >= cost)
@@ -142,7 +142,7 @@ public class AbilityManager : MonoBehaviour
             abilityInventory.Add(type, count);
         }
         OnAbilityCountChanged?.Invoke(type, abilityInventory[type]);
-        Debug.Log($"Added {count} of {type}. You now have {abilityInventory[type]}.");
+        /* Debug.Log($"Added {count} of {type}. You now have {abilityInventory[type]}."); */
     }
 
     public void UseAbility(AbilityType type)
@@ -201,7 +201,7 @@ public class AbilityManager : MonoBehaviour
         {
             abilityInventory[type]--;
             OnAbilityCountChanged?.Invoke(type, abilityInventory[type]);
-            Debug.Log($"[AbilityManager] ABILITY CONSUMED: {type}. Remaining: {abilityInventory[type]}.");
+            /* Debug.Log($"[AbilityManager] ABILITY CONSUMED: {type}. Remaining: {abilityInventory[type]}."); */
         }
         else
         {
@@ -221,12 +221,12 @@ public class AbilityManager : MonoBehaviour
         IsUniversalPathfindingModeActive = true;
         InputManager.OnPassengerGroupTapped += OnPassengerSelectedForUniversalPathfinding;
         OnUniversalPathfindingModeChanged?.Invoke(true);
-        Debug.Log("[AbilityManager] Universal Pathfinding mode ACTIVE. Select a passenger.");
+        /* Debug.Log("[AbilityManager] Universal Pathfinding mode ACTIVE. Select a passenger."); */
     }
 
     private void OnPassengerSelectedForUniversalPathfinding(PassengerGroup selectedPassenger)
     {
-        Debug.Log($"Passenger '{selectedPassenger.name}' selected for Universal Pathfinding.");
+        /* Debug.Log($"Passenger '{selectedPassenger.name}' selected for Universal Pathfinding."); */
         // Deactivate the mode first so listeners know we're leaving the selection state
         CancelAbilityMode();
         // Notify listeners that the ability was used on this passenger
@@ -240,7 +240,7 @@ public class AbilityManager : MonoBehaviour
         CancelAbilityMode(); // Cancel any other active modes first
         IsCraneModeActive = true;
         InputManager.OnPassengerGroupTapped += OnPassengerSelectedForCrane;
-        Debug.Log("[AbilityManager] Crane mode ACTIVE. Select a passenger group at a stop.");
+        /* Debug.Log("[AbilityManager] Crane mode ACTIVE. Select a passenger group at a stop."); */
     }
 
     private void OnPassengerSelectedForCrane(PassengerGroup selectedPassenger)
@@ -263,14 +263,14 @@ public class AbilityManager : MonoBehaviour
             // Scenario 1: Passenger is from an Underpass
             if (selectedPassenger.OriginUnderpass != null)
             {
-                Debug.Log($"[AbilityManager] Recalling passenger '{selectedPassenger.name}' to its Underpass.");
+                /* Debug.Log($"[AbilityManager] Recalling passenger '{selectedPassenger.name}' to its Underpass."); */
                 selectedPassenger.OriginUnderpass.ReturnPassengerToEndOfQueue(selectedPassenger);
                 handled = true;
             }
             // Scenario 2: Passenger is from a Conveyor
             else if (selectedPassenger.fromConveyor)
             {
-                Debug.Log($"[AbilityManager] Recalling passenger '{selectedPassenger.name}' to the Conveyor Belt.");
+                /* Debug.Log($"[AbilityManager] Recalling passenger '{selectedPassenger.name}' to the Conveyor Belt."); */
                 if (ConveyorBelt.Instance != null)
                 {
                     ConveyorBelt.Instance.AddPassengerToEmptySlot(selectedPassenger);
@@ -306,14 +306,14 @@ public class AbilityManager : MonoBehaviour
         {
             IsUniversalPathfindingModeActive = false;
             InputManager.OnPassengerGroupTapped -= OnPassengerSelectedForUniversalPathfinding;
-            Debug.Log("[AbilityManager] Universal Pathfinding mode CANCELED.");
+            /* Debug.Log("[AbilityManager] Universal Pathfinding mode CANCELED."); */
             OnUniversalPathfindingModeChanged?.Invoke(false);
         }
         if (IsCraneModeActive)
         {
             IsCraneModeActive = false;
             InputManager.OnPassengerGroupTapped -= OnPassengerSelectedForCrane;
-            Debug.Log("[AbilityManager] Crane mode CANCELED.");
+            /* Debug.Log("[AbilityManager] Crane mode CANCELED."); */
         }
     }
 
@@ -326,7 +326,7 @@ public class AbilityManager : MonoBehaviour
             // Check if the max number of stops has been reached
             if (StopManager.Instance.AllStops.Count >= StopManager.Instance.AllPossibleStops.Count)
             {
-                Debug.Log("[AbilityManager] Max stops reached. Disabling AddNewStop ability.");
+                /* Debug.Log("[AbilityManager] Max stops reached. Disabling AddNewStop ability."); */
                 // Set count to 0 to signal UI to disable the button
                 if (abilityInventory.ContainsKey(AbilityType.AddNewStop))
                 {

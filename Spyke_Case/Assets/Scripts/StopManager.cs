@@ -52,7 +52,7 @@ public class StopManager : MonoBehaviour
 
         var sortedMasterList = AllPossibleStops.Where(s => s != null).OrderBy(s => s.name).ToList();
         
-        Debug.Log($"[StopManager] Found {sortedMasterList.Count} stops in master list. Will activate the first 1.");
+        /* Debug.Log($"[StopManager] Found {sortedMasterList.Count} stops in master list. Will activate the first 1."); */
 
         for (int i = 0; i < sortedMasterList.Count; i++)
         {
@@ -72,10 +72,10 @@ public class StopManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"[StopManager] Initialization complete. Active stops: {AllStops.Count}");
+        /* Debug.Log($"[StopManager] Initialization complete. Active stops: {AllStops.Count}"); */
         for(int i = 0; i < AllStops.Count; i++)
         {
-            Debug.Log($"  -> Active Stop Index [{i}]: {AllStops[i].name}");
+            /* Debug.Log($"  -> Active Stop Index [{i}]: {AllStops[i].name}"); */
         }
     }
 
@@ -87,7 +87,7 @@ public class StopManager : MonoBehaviour
 
         if (nextStop != null)
         {
-            Debug.Log($"[StopManager] Activating next stop via ability: {nextStop.name}");
+            /* Debug.Log($"[StopManager] Activating next stop via ability: {nextStop.name}"); */
             nextStop.gameObject.SetActive(true);
 
             if (GridSystem.PassengerGrid.Instance != null)
@@ -109,7 +109,7 @@ public class StopManager : MonoBehaviour
         if (newStop != null && !AllStops.Contains(newStop))
         {
             AllStops.Add(newStop);
-            Debug.Log($"[StopManager] A new stop '{newStop.name}' was registered. Total active stops: {AllStops.Count}");
+            /* Debug.Log($"[StopManager] A new stop '{newStop.name}' was registered. Total active stops: {AllStops.Count}"); */
             OnStopRegistered?.Invoke();
         }
     }
@@ -136,7 +136,7 @@ public class StopManager : MonoBehaviour
 
         if (occupiedStops.ContainsKey(stopIndex) || reservedStops.ContainsKey(stopIndex))
         {
-            Debug.Log($"<color=red>[StopManager] Stop {stopIndex} is now FREE.</color>");
+            /* Debug.Log($"<color=red>[StopManager] Stop {stopIndex} is now FREE.</color>"); */
 
             // --- GEMINI-MODIFIED: Clear Stop UI ---
             Stop stop = AllStops[stopIndex];
@@ -145,7 +145,7 @@ public class StopManager : MonoBehaviour
                 var textUpdater = stop.GetComponentInChildren<StopSlotTextUpdater>();
                 if (textUpdater != null)
                 {
-                    Debug.Log($"[StopManager] Clearing UI for stop {stopIndex}.");
+                    /* Debug.Log($"[StopManager] Clearing UI for stop {stopIndex}."); */
                     textUpdater.SetPassengerGroup(null);
                 }
             }
@@ -191,22 +191,22 @@ public class StopManager : MonoBehaviour
 
     public (Vector3 stopWorldPos, int stopIndex)? ReserveFirstFreeStop(PassengerGroup passengerGroup)
     {
-        Debug.Log($"[StopManager] Attempting to reserve a stop for {passengerGroup.name}. " +
-                  $"TotalStops: {AllStops.Count}, Occupied: {occupiedStops.Count}, Reserved: {reservedStops.Count}");
+        /* Debug.Log($"[StopManager] Attempting to reserve a stop for {passengerGroup.name}. " +
+                  $"TotalStops: {AllStops.Count}, Occupied: {occupiedStops.Count}, Reserved: {reservedStops.Count}"); */
 
         for (int i = 0; i < AllStops.Count; i++)
         {
             if (!occupiedStops.ContainsKey(i) && !reservedStops.ContainsKey(i))
             {
                 reservedStops.Add(i, passengerGroup);
-                Debug.Log($"<color=yellow>[StopManager] Stop {i} RESERVED by {passengerGroup.name}.</color>");
+                /* Debug.Log($"<color=yellow>[StopManager] Stop {i} RESERVED by {passengerGroup.name}.</color>"); */
                 return (AllStops[i].transform.position, i);
             }
             else
             {
                 string status = occupiedStops.ContainsKey(i) ? "OCCUPIED" : "RESERVED";
                 PassengerGroup pg = occupiedStops.ContainsKey(i) ? occupiedStops[i] : reservedStops[i];
-                Debug.Log($"[StopManager] Checking Stop {i}: SKIPPED ({status} by {pg.name})");
+                /* Debug.Log($"[StopManager] Checking Stop {i}: SKIPPED ({status} by {pg.name})"); */
             }
         }
 
@@ -228,7 +228,7 @@ public class StopManager : MonoBehaviour
     {
         if (reservedStops.ContainsKey(stopIndex) && reservedStops[stopIndex] == passengerGroup)
         {
-            Debug.Log($"<color=orange>[StopManager] Reservation for Stop {stopIndex} by {passengerGroup.name} CANCELLED.</color>");
+            /* Debug.Log($"<color=orange>[StopManager] Reservation for Stop {stopIndex} by {passengerGroup.name} CANCELLED.</color>"); */
             reservedStops.Remove(stopIndex);
         }
     }
@@ -242,7 +242,7 @@ public class StopManager : MonoBehaviour
         {
             occupiedStops.Add(stopIndex, passengerGroup);
             passengerArrivalTimes[stopIndex] = Time.time; // Record arrival time
-            Debug.Log($"<color=green>[StopManager] Stop {stopIndex} OCCUPIED by {passengerGroup.name} at time {Time.time}.</color>");
+            /* Debug.Log($"<color=green>[StopManager] Stop {stopIndex} OCCUPIED by {passengerGroup.name} at time {Time.time}.</color>"); */
 
             // --- GEMINI-MODIFIED: Link passenger to Stop UI ---
             Stop stop = AllStops[stopIndex];
@@ -251,7 +251,7 @@ public class StopManager : MonoBehaviour
                 var textUpdater = stop.GetComponentInChildren<StopSlotTextUpdater>();
                 if (textUpdater != null)
                 {
-                    Debug.Log($"[StopManager] Linking {passengerGroup.name} to UI for stop {stopIndex}.");
+                    /* Debug.Log($"[StopManager] Linking {passengerGroup.name} to UI for stop {stopIndex}."); */
                     textUpdater.SetPassengerGroup(passengerGroup);
                 }
                 else
@@ -290,7 +290,7 @@ public class StopManager : MonoBehaviour
                 var textUpdater = stop.GetComponentInChildren<StopSlotTextUpdater>();
                 if (textUpdater != null)
                 {
-                    Debug.Log($"[StopManager] Clearing UI for stop {stopToFree} due to eviction.");
+                    /* Debug.Log($"[StopManager] Clearing UI for stop {stopToFree} due to eviction."); */
                     textUpdater.SetPassengerGroup(null);
                 }
             }
@@ -298,7 +298,7 @@ public class StopManager : MonoBehaviour
 
             occupiedStops.Remove(stopToFree);
             passengerArrivalTimes.Remove(stopToFree);
-            Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name} EVICTED from occupied stop {stopToFree}. Stop is now free.</color>");
+            /* Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name} EVICTED from occupied stop {stopToFree}. Stop is now free.</color>"); */
             return; // Found and handled
         }
 
@@ -316,7 +316,7 @@ public class StopManager : MonoBehaviour
         {
             // No need to clear UI for a reservation cancellation as it was never occupied.
             reservedStops.Remove(stopToFree);
-            Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name}'s reservation for stop {stopToFree} CANCELLED due to eviction.</color>");
+            /* Debug.Log($"<color=blue>[StopManager] Passenger {passengerToEvict.name}'s reservation for stop {stopToFree} CANCELLED due to eviction.</color>"); */
         }
     }
 }

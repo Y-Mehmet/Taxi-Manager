@@ -21,6 +21,7 @@ public class RotateZAxis : MonoBehaviour
     /// </summary>
     public void StopRotation()
     {
+        // Debug.Log($"[DEBUG_WHEEL] RotateZAxis.StopRotation called on {gameObject.name}");
         isRotating = false;
     }
     

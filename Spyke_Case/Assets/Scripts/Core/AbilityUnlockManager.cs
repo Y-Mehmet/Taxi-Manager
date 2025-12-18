@@ -33,7 +33,7 @@ public class AbilityUnlockManager : MonoBehaviour
     {
         if (GameDataManager.Instance == null || GameDataManager.Instance.GetSaveData() == null)
         {
-            Debug.LogWarning("[AbilityUnlockManager] GameDataManager or SaveData is null!");
+            /* Debug.LogWarning("[AbilityUnlockManager] GameDataManager or SaveData is null!"); */
             return false;
         }
         
@@ -43,7 +43,7 @@ public class AbilityUnlockManager : MonoBehaviour
         
         bool isUnlocked = currentMaxLevel >= unlockLevel;
         
-        Debug.Log($"[AbilityUnlockManager] {abilityType} - MaxLevel: {currentMaxLevel}, UnlockLevel: {unlockLevel}, IsUnlocked: {isUnlocked}");
+        /* Debug.Log($"[AbilityUnlockManager] {abilityType} - MaxLevel: {currentMaxLevel}, UnlockLevel: {unlockLevel}, IsUnlocked: {isUnlocked}"); */
         
         return isUnlocked;
     }
@@ -55,7 +55,7 @@ public class AbilityUnlockManager : MonoBehaviour
     {
         if (GameDataManager.Instance == null || GameDataManager.Instance.GetSaveData() == null)
         {
-            Debug.LogWarning("[AbilityUnlockManager] GameDataManager or SaveData is null!");
+            /* Debug.LogWarning("[AbilityUnlockManager] GameDataManager or SaveData is null!"); */
             return 999; // Very high level to prevent unlock
         }
         
@@ -76,7 +76,7 @@ public class AbilityUnlockManager : MonoBehaviour
                 return saveData.abilityShuffleWagonColorsUnlockLevel;
             
             default:
-                Debug.LogWarning($"[AbilityUnlockManager] Unknown ability type: {abilityType}");
+                /* Debug.LogWarning($"[AbilityUnlockManager] Unknown ability type: {abilityType}"); */
                 return 0; // Default: unlocked from start
         }
     }

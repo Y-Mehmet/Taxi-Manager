@@ -53,7 +53,7 @@ public class PausePanel : MonoBehaviour
             if (boosterCost > 0 && GameEconomy.Instance != null)
             {
                 GameEconomy.Instance.AddMainCoins(boosterCost);
-                Debug.Log($"[PausePanel] Refunded {boosterCost} coins for booster usage (Restart).");
+                /* Debug.Log($"[PausePanel] Refunded {boosterCost} coins for booster usage (Restart)."); */
             }
         }
         

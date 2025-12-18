@@ -55,6 +55,9 @@ public class LevelSelectManager : MonoBehaviour
 
     void Start()
     {
+        // Enforce timeScale is 1 when entering MainMenu to fix stuck animations
+        Time.timeScale = 1f;
+
         StartCoroutine(InitializeOnEnable());
     }
 
@@ -73,7 +76,7 @@ public class LevelSelectManager : MonoBehaviour
       
         if (isInitializing)
         {
-            Debug.LogWarning("[LevelSelectManager] InitializeOnEnable called while already initializing");
+            /* Debug.LogWarning("[LevelSelectManager] InitializeOnEnable called while already initializing"); */
             yield break;
         }
         isInitializing = true;
@@ -90,7 +93,7 @@ public class LevelSelectManager : MonoBehaviour
             // Always select the max opened level when entering main menu
             selectedLevelIndex = maxOpenedLevel;
             
-            Debug.Log($"[LevelSelectManager] CurrentLevel: {currentLevel}, MaxOpenedLevel: {maxOpenedLevel}, Selected: {selectedLevelIndex}");
+            /* Debug.Log($"[LevelSelectManager] CurrentLevel: {currentLevel}, MaxOpenedLevel: {maxOpenedLevel}, Selected: {selectedLevelIndex}"); */
         }
 
         GenerateLevelItems();
@@ -133,6 +136,13 @@ public class LevelSelectManager : MonoBehaviour
                 levelItemGO = Instantiate(darkLevelPrefab, WhelePanel);
 
             generatedLevelItems.Add(levelItemGO);
+
+            // Set explicit level index to avoid SiblingIndex issues during regeneration
+            LevelButton levelBtnScript = levelItemGO.GetComponent<LevelButton>();
+            if (levelBtnScript != null)
+            {
+                levelBtnScript.SetLevelIndex(i);
+            }
             TMP_Text levelText = levelItemGO.GetComponentInChildren<TMP_Text>();
 
             // 2. Eğer TextMeshPro bileşeni bulunduysa işlemleri yap.
@@ -242,7 +252,7 @@ public class LevelSelectManager : MonoBehaviour
                                     .SetEase(Ease.OutCubic)
                                     .SetUpdate(true);
                                 
-                                Debug.Log($"AYARLAMA (ANİMASYONLU) - Level {startLevelIndex + 1} → Level {selectedLevelIndex + 1} (3 saniye)");
+                                /* Debug.Log($"AYARLAMA (ANİMASYONLU) - Level {startLevelIndex + 1} → Level {selectedLevelIndex + 1} (3 saniye)"); */
                             }
                         }
                     }
@@ -251,14 +261,14 @@ public class LevelSelectManager : MonoBehaviour
                         // Direkt pozisyona git (animasyon yok)
                         scrollRect.verticalNormalizedPosition = targetScrollPos;
                         
-                        Debug.Log($"AYARLAMA (DİREKT) - Level {selectedLevelIndex + 1}, ScrollPos: {targetScrollPos}");
+                        /* Debug.Log($"AYARLAMA (DİREKT) - Level {selectedLevelIndex + 1}, ScrollPos: {targetScrollPos}"); */
                     }
                 }
             }
         }
         else
         {
-            Debug.LogWarning("ScrollRect veya seçili wheel bulunamadı!");
+            /* Debug.LogWarning("ScrollRect veya seçili wheel bulunamadı!"); */
         }
     }
 
@@ -268,7 +278,6 @@ public class LevelSelectManager : MonoBehaviour
     public void SelectLevel(int levelIndex)
     {
         selectedLevelIndex = levelIndex;
-        Debug.Log($"[LevelSelectManager] Level {levelIndex} selected");
         
         // Notify all listeners (PlayButton will update its text, wheels will rotate)
         OnLevelSelected?.Invoke(selectedLevelIndex);
@@ -282,7 +291,7 @@ public class LevelSelectManager : MonoBehaviour
         if (ResourceManager.Instance != null)
         {
             ResourceManager.Instance.CurrentLevel = selectedLevelIndex;
-            Debug.Log($"[LevelSelectManager] Playing level {selectedLevelIndex}");
+            /* Debug.Log($"[LevelSelectManager] Playing level {selectedLevelIndex}"); */
         }
 
         if (SceneManager.Instance != null)

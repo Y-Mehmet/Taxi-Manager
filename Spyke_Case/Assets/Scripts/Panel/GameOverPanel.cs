@@ -19,6 +19,6 @@ public class GameOverPanel : MonoBehaviour
     {
         // Reload the current level
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
-        Debug.Log("Retrying current level from Game Over panel...");
+        /* Debug.Log("Retrying current level from Game Over panel..."); */
     }
 }

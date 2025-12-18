@@ -20,7 +20,7 @@ public static class SaveSystem
         {
             string json = JsonUtility.ToJson(data, true); // 'true' for pretty print
             File.WriteAllText(path, json);
-            Debug.Log($"<color=green>Game saved successfully to:</color> {path}");
+            /* Debug.Log($"<color=green>Game saved successfully to:</color> {path}"); */
         }
         catch (System.Exception e)
         {
@@ -41,7 +41,7 @@ public static class SaveSystem
             {
                 string json = File.ReadAllText(path);
                 SaveGameData data = JsonUtility.FromJson<SaveGameData>(json);
-                Debug.Log($"<color=cyan>Game loaded successfully from:</color> {path}");
+                /* Debug.Log($"<color=cyan>Game loaded successfully from:</color> {path}"); */
                 return data;
             }
             catch (System.Exception e)

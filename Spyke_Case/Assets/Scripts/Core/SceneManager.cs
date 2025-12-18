@@ -34,7 +34,7 @@ public class SceneManager : Singleton<SceneManager>
             // Add Stop Tutorial - check against configured unlock level
             if (currentLevel == saveData.abilityAddNewStopUnlockLevel && !saveData.hasSeenAddStopTutorial)
             {
-                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Add Stop Tutorial");
+                /* Debug.Log($"[SceneManager] Level {currentLevel} - Loading Add Stop Tutorial"); */
                 saveData.currentAbilityTutorial = "AddStop";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(_tutorialIndex);
@@ -44,7 +44,7 @@ public class SceneManager : Singleton<SceneManager>
             // Universal Pathfinding Tutorial - check against configured unlock level
             if (currentLevel == saveData.abilityUniversalPathfindingUnlockLevel && !saveData.hasSeenUniversalPathfindingTutorial)
             {
-                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Universal Pathfinding Tutorial");
+                /* Debug.Log($"[SceneManager] Level {currentLevel} - Loading Universal Pathfinding Tutorial"); */
                 saveData.currentAbilityTutorial = "UniversalPathfinding";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(_tutorialIndex);
@@ -54,7 +54,7 @@ public class SceneManager : Singleton<SceneManager>
             // Flasher Tutorial - check against configured unlock level
             if (currentLevel == saveData.abilityRemoveWagonsUnlockLevel && !saveData.hasSeenFlasherTutorial)
             {
-                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Flasher Tutorial");
+                /* Debug.Log($"[SceneManager] Level {currentLevel} - Loading Flasher Tutorial"); */
                 saveData.currentAbilityTutorial = "Flasher";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(_tutorialIndex);
@@ -64,7 +64,7 @@ public class SceneManager : Singleton<SceneManager>
             // Shuffle Tutorial - check against configured unlock level
             if (currentLevel == saveData.abilityShuffleWagonColorsUnlockLevel && !saveData.hasSeenShuffleTutorial)
             {
-                Debug.Log($"[SceneManager] Level {currentLevel} - Loading Shuffle Tutorial");
+                /* Debug.Log($"[SceneManager] Level {currentLevel} - Loading Shuffle Tutorial"); */
                 saveData.currentAbilityTutorial = "Shuffle";
                 GameDataManager.Instance.SaveGame();
                 LoadSceneByIndex(_tutorialIndex);
@@ -73,7 +73,7 @@ public class SceneManager : Singleton<SceneManager>
         }
         
         // No tutorial needed, load level directly
-        Debug.Log($"[SceneManager] Loading Level {currentLevel} directly");
+        /* Debug.Log($"[SceneManager] Loading Level {currentLevel} directly"); */
         LoadSceneByIndex(_allLevelIndex);
     }
 
@@ -89,12 +89,12 @@ public class SceneManager : Singleton<SceneManager>
         if (ResourceManager.Instance != null)
         {
             ResourceManager.Instance.CurrentLevel = levelIndex;
-            Debug.Log($"[SceneManager] Set CurrentLevel to {levelIndex}");
+            /* Debug.Log($"[SceneManager] Set CurrentLevel to {levelIndex}"); */
         }
 
         // Always load the same scene (AllLevel - build index 1)
         // The level data will be loaded based on ResourceManager.CurrentLevel
-        Debug.Log($"[SceneManager] Loading AllLevel scene (build index {_allLevelIndex}) for level {levelIndex}");
+        /* Debug.Log($"[SceneManager] Loading AllLevel scene (build index {_allLevelIndex}) for level {levelIndex}"); */
         LoadSceneByIndex(_allLevelIndex);
     }
 
@@ -108,10 +108,10 @@ public class SceneManager : Singleton<SceneManager>
         if (ResourceManager.Instance != null)
         {
             ResourceManager.Instance.CurrentLevel = ResourceManager.Instance.MaxOpenedLevel;
-            Debug.Log($"[SceneManager] Set CurrentLevel to MaxOpenedLevel: {ResourceManager.Instance.MaxOpenedLevel}");
+            /* Debug.Log($"[SceneManager] Set CurrentLevel to MaxOpenedLevel: {ResourceManager.Instance.MaxOpenedLevel}"); */
         }
         
-        Debug.Log($"Loading Main Menu. Build Index: {_mainMenuIndex}");
+        /* Debug.Log($"Loading Main Menu. Build Index: {_mainMenuIndex}"); */
         LoadSceneByIndex(_mainMenuIndex);
     }
 
@@ -138,7 +138,7 @@ public class SceneManager : Singleton<SceneManager>
     public void LoadCurrentScene()
     {
         int currentSceneIndex = UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex;
-        Debug.Log($"[SceneManager] Reloading current scene (Build Index: {currentSceneIndex})");
+        /* Debug.Log($"[SceneManager] Reloading current scene (Build Index: {currentSceneIndex})"); */
         LoadSceneByIndex(currentSceneIndex);
     }
 }

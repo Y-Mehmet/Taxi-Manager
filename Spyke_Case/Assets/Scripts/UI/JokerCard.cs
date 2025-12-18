@@ -151,7 +151,7 @@ public class JokerCard : MonoBehaviour
 
         if (JokerSystem.Instance.BuyJoker(jokerType))
         {
-            Debug.Log($"[JokerCard] Successfully purchased {jokerType}");
+            /* Debug.Log($"[JokerCard] Successfully purchased {jokerType}"); */
             UpdateStatus();
             
             // Notify parent panel

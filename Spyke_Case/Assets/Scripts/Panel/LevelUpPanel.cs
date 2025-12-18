@@ -274,7 +274,7 @@ public class LevelUpPanel : MonoBehaviour
             if (GameEconomy.Instance != null)
             {
                 GameEconomy.Instance.TransferTempToMain(GameManager.Instance.CurrentInvoice);
-                Debug.Log("[LevelUpPanel] Net balance applied to main account (Continue).");
+                /* Debug.Log("[LevelUpPanel] Net balance applied to main account (Continue)."); */
             }
         }
 
@@ -282,13 +282,13 @@ public class LevelUpPanel : MonoBehaviour
         if (SceneManager.Instance != null)
         {
             SceneManager.Instance.LoadMainMenu();
-            Debug.Log("[LevelUpPanel] Continue clicked. Loading Main Scene (Level Select).");
+            /* Debug.Log("[LevelUpPanel] Continue clicked. Loading Main Scene (Level Select)."); */
         }
         else
         {
             // Fallback: Load build index 0 directly
             UnityEngine.SceneManagement.SceneManager.LoadScene(1); // Load MainMenu
-            Debug.Log("[LevelUpPanel] Continue clicked. Loading Main Scene (build index 0).");
+            /* Debug.Log("[LevelUpPanel] Continue clicked. Loading Main Scene (build index 0)."); */
         }
     }
 
@@ -302,12 +302,12 @@ public class LevelUpPanel : MonoBehaviour
             if (boosterCost > 0 && GameEconomy.Instance != null)
             {
                 GameEconomy.Instance.AddMainCoins(boosterCost);
-                Debug.Log($"[LevelUpPanel] Refunded {boosterCost} coins for booster usage (Retry).");
+                /* Debug.Log($"[LevelUpPanel] Refunded {boosterCost} coins for booster usage (Retry)."); */
             }
         }
 
         // Reload current level (AllLevel scene with same level data)
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
-        Debug.Log("Retrying current level...");
+        /* Debug.Log("Retrying current level..."); */
     }
 }

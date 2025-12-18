@@ -67,7 +67,7 @@ public static class LevelGenerator
             return null; // Signal failure
         }
 
-        Debug.Log($"--- Level {levelNumber} validation PASSED. Finalizing... ---");
+        /* Debug.Log($"--- Level {levelNumber} validation PASSED. Finalizing... ---"); */
         
         // Detect rare color (least used color in initial passengers)
         HyperCasualColor? rareColor = DetectRareColor(levelDef, difficultyParams);
@@ -340,7 +340,7 @@ public static class LevelGenerator
             lastUnderpass.passengerSequence[index] = rareColor;
         }
         
-        Debug.Log($"Placed {rareCount} {rareColor} passengers in last underpass sequence");
+        /* Debug.Log($"Placed {rareCount} {rareColor} passengers in last underpass sequence"); */
     }
     
     // Calculate accessibility score for each underpass (lower = harder to reach)
@@ -415,7 +415,7 @@ public static class LevelGenerator
             score -= blockingPassengers; // More blocking passengers = harder to reach
             
             accessibility[i] = score;
-            Debug.Log($"Underpass {i} at {underpass.position} dir={underpass.direction}: accessibility score = {score}");
+            /* Debug.Log($"Underpass {i} at {underpass.position} dir={underpass.direction}: accessibility score = {score}"); */
         }
         
         return accessibility;
@@ -549,7 +549,7 @@ public static class LevelGenerator
         
         p.NumColors = Mathf.Min(p.NumColors, System.Enum.GetValues(typeof(HyperCasualColor)).Length); 
         
-        Debug.Log($"Level {levelNumber} (Tier {tier}, InTier {levelInTier}): Passengers={p.NumInitialPassengers}, Underpasses={p.NumUnderpasses}, Conveyor={p.numConveyorPassengers}, Colors={p.NumColors}, IsBoss={p.IsBossLevel}");
+        /* Debug.Log($"Level {levelNumber} (Tier {tier}, InTier {levelInTier}): Passengers={p.NumInitialPassengers}, Underpasses={p.NumUnderpasses}, Conveyor={p.numConveyorPassengers}, Colors={p.NumColors}, IsBoss={p.IsBossLevel}"); */
         
         return p; 
     }

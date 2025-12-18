@@ -26,7 +26,7 @@ public class PassengerGroup : MonoBehaviour
             _groupSize = value;
 
             // This is the new, clear event for capacity changes.
-            Debug.Log($"[PassengerGroup] {name} GroupSize changed from {oldGroupSize} to {_groupSize}. Invoking OnCapacityChanged.");
+            /* Debug.Log($"[PassengerGroup] {name} GroupSize changed from {oldGroupSize} to {_groupSize}. Invoking OnCapacityChanged."); */
             OnCapacityChanged?.Invoke(_groupSize);
 
             // --- Keep old events for compatibility with other systems that might be using them ---
@@ -114,7 +114,7 @@ public class PassengerGroup : MonoBehaviour
     void Start()
     {
         originalPosition = transform.position;
-        OnAvailableSlotsChanged += (slots) => Debug.Log($"[PassengerGroup] {name} kalan slot: {slots}");
+        OnAvailableSlotsChanged += (slots) => /* Debug.Log($"[PassengerGroup] {name} kalan slot: {slots}"); */
         _lastAvailableSlots = AvailableSlots;
         OnAvailableSlotsChanged?.Invoke(_lastAvailableSlots);
 
@@ -161,18 +161,18 @@ public class PassengerGroup : MonoBehaviour
         if (AbilityManager.Instance != null && AbilityManager.Instance.IsAbilityModeActive)
         {
             // The tap will be handled by the AbilityManager's subscriber. Do nothing here.
-            Debug.Log($"[PassengerGroup] Tap on {name} is being handled by an active ability.");
+            /* Debug.Log($"[PassengerGroup] Tap on {name} is being handled by an active ability."); */
             return;
         }
 
         // If the passenger is already at a stop, do not allow it to move again.
         if (StopManager.Instance != null && StopManager.Instance.GetOccupiedStops().ContainsValue(this))
         {
-            Debug.Log($"[PassengerGroup] Tap on {name} ignored because it is already at a stop.");
+            /* Debug.Log($"[PassengerGroup] Tap on {name} ignored because it is already at a stop."); */
             return;
         }
 
-        Debug.Log($"[PassengerGroup] Tap detected on {name} via event, initiating normal move.");
+        /* Debug.Log($"[PassengerGroup] Tap detected on {name} via event, initiating normal move."); */
         OnGroupClicked?.Invoke();
         TryMoveForwardWithLog();
     }
@@ -220,7 +220,7 @@ public class PassengerGroup : MonoBehaviour
         var cell = PassengerGrid.Instance.GetCell(nextPos.x, nextPos.y);
         if (cell == null || cell.cellType == GridCellType.Blocked || cell.cellType == GridCellType.Empty)
         {
-            Debug.Log($"PassengerGroup hareket edemedi. Engel veya grid dÄ±ÅŸÄ±: {nextPos}");
+            /* Debug.Log($"PassengerGroup hareket edemedi. Engel veya grid dÄ±ÅŸÄ±: {nextPos}"); */
             StartCoroutine(BounceVisual());
             return;
         }
@@ -320,7 +320,7 @@ public class PassengerGroup : MonoBehaviour
         initialPathSegment = bestPath;
         pathfindingStartPoint = bestPath[bestPath.Count - 1];
         
-        Debug.LogWarning($"[UniversalMove] Found path to Walkable at {pathfindingStartPoint}, length: {bestPath.Count}");
+        /* Debug.LogWarning($"[UniversalMove] Found path to Walkable at {pathfindingStartPoint}, length: {bestPath.Count}"); */
     }
 
     AttemptPathfinding(pathfindingStartPoint, initialPathSegment);
@@ -409,7 +409,7 @@ public class PassengerGroup : MonoBehaviour
         if (colorMaterial != null)
         {
             // Material found in Resources/Materials - use it
-            Debug.Log($"[PassengerGroup] Using custom material from Resources: {materialPath}");
+            /* Debug.Log($"[PassengerGroup] Using custom material from Resources: {materialPath}"); */
             
             foreach (Transform child in transform)
             {
@@ -426,7 +426,7 @@ public class PassengerGroup : MonoBehaviour
         else
         {
             // No custom material found - use old system (set color property)
-            Debug.Log($"[PassengerGroup] No custom material found for {color}, using color property");
+            /* Debug.Log($"[PassengerGroup] No custom material found for {color}, using color property"); */
             
             foreach (Transform child in transform)
             {
@@ -620,8 +620,8 @@ public class PassengerGroup : MonoBehaviour
 
                 var segmentLog = new List<string>();
                 foreach(var pos in gridSegment) segmentLog.Add($"{pos}:{PassengerGrid.Instance.GetCell(pos.x, pos.y)?.cellType}");
-                Debug.Log("[ContinuousPath] Segment: " + string.Join(" -> ", segmentLog.ToArray()));
-                Debug.Log($"[ContinuousPath] Moving along segment of {worldSegment.Count} world points.");
+                /* Debug.Log("[ContinuousPath] Segment: " + string.Join(" -> ", segmentLog.ToArray())); */
+                /* Debug.Log($"[ContinuousPath] Moving along segment of {worldSegment.Count} world points."); */
                 
                 Transform transformToRotate = modelTransform != null ? modelTransform : transform;
 
@@ -756,7 +756,7 @@ public class PassengerGroup : MonoBehaviour
             targetPos = OriginUnderpass.GetWaitingSpotGridPosition();
         }
 
-        Debug.Log($"[GoHome] {name} returning to homeGridPos: {targetPos}");
+        /* Debug.Log($"[GoHome] {name} returning to homeGridPos: {targetPos}"); */
         isMoving = true;
         yield return StartCoroutine(MoveToCoroutine(targetPos));
         Vector3 finalDirVector = new Vector3(moveDirection.x, 0, moveDirection.y);
@@ -945,7 +945,7 @@ public class PassengerGroup : MonoBehaviour
 
     public void ReturnToOrigin()
     {
-        Debug.Log($"[PassengerGroup] {name} is being recalled to origin.");
+        /* Debug.Log($"[PassengerGroup] {name} is being recalled to origin."); */
 
         // Stop any current movement to avoid conflicts
         if (isMoving && activeMovementTween != null && activeMovementTween.IsActive())
@@ -1005,7 +1005,7 @@ public class PassengerGroup : MonoBehaviour
 
             transformToRotate.rotation = finalRotation;
 
-            Debug.Log($"[PassengerGroup] {name} has successfully returned to its origin point and reoriented.");
+            /* Debug.Log($"[PassengerGroup] {name} has successfully returned to its origin point and reoriented."); */
         }
         else
         {
@@ -1030,7 +1030,7 @@ public class PassengerGroup : MonoBehaviour
 
     private void LogPathNotFound()
     {
-        Debug.Log("Yol bulunamadÄ±");
+        /* Debug.Log("Yol bulunamadÄ±"); */
         // We can add a visual feedback for the player here later.
     }
 
@@ -1144,7 +1144,7 @@ public class PassengerGroup : MonoBehaviour
         
         if (currentX < minX || currentX > maxX)
         {
-            Debug.LogWarning($"[{name}] Outside valid X range ({minX} to {maxX}). Current X: {currentX}");
+            /* Debug.LogWarning($"[{name}] Outside valid X range ({minX} to {maxX}). Current X: {currentX}"); */
             return;
         }
         

@@ -96,7 +96,7 @@ public class JokerSystem : MonoBehaviour
         data.totalStarsEarned = newTotal;
         OnTotalStarsChanged?.Invoke(newTotal);
         
-        Debug.Log($"[JokerSystem] Recalculated totalStarsEarned: {newTotal}");
+        /* Debug.Log($"[JokerSystem] Recalculated totalStarsEarned: {newTotal}"); */
     }
 
     /// <summary>
@@ -129,14 +129,14 @@ public class JokerSystem : MonoBehaviour
         // DEACTIVATE previous joker in the same category
         if (isTaxJoker && activeTaxJoker != JokerType.None)
         {
-            Debug.Log($"[JokerSystem] Deactivating previous tax joker: {activeTaxJoker}");
+            /* Debug.Log($"[JokerSystem] Deactivating previous tax joker: {activeTaxJoker}"); */
             jokerRemainingGames[activeTaxJoker] = 0;
             OnJokerCountChanged?.Invoke(activeTaxJoker, 0);
         }
 
         if (isRepairJoker && activeRepairJoker != JokerType.None)
         {
-            Debug.Log($"[JokerSystem] Deactivating previous repair joker: {activeRepairJoker}");
+            /* Debug.Log($"[JokerSystem] Deactivating previous repair joker: {activeRepairJoker}"); */
             jokerRemainingGames[activeRepairJoker] = 0;
             OnJokerCountChanged?.Invoke(activeRepairJoker, 0);
         }
@@ -145,13 +145,13 @@ public class JokerSystem : MonoBehaviour
         if (IsUnlimitedJoker(type))
         {
             jokerRemainingGames[type] = -1; // -1 means unlimited
-            Debug.Log($"[JokerSystem] Purchased unlimited joker: {type}");
+            /* Debug.Log($"[JokerSystem] Purchased unlimited joker: {type}"); */
         }
         else
         {
             int duration = GetJokerDuration(type);
             jokerRemainingGames[type] = duration;
-            Debug.Log($"[JokerSystem] Purchased {type} for {duration} games");
+            /* Debug.Log($"[JokerSystem] Purchased {type} for {duration} games"); */
         }
 
         // Set as active joker in category
@@ -202,7 +202,7 @@ public class JokerSystem : MonoBehaviour
         data.totalStarsEarned -= amount;
         OnTotalStarsChanged?.Invoke(data.totalStarsEarned);
         
-        Debug.Log($"[JokerSystem] Spent {amount} stars. Remaining: {data.totalStarsEarned}");
+        /* Debug.Log($"[JokerSystem] Spent {amount} stars. Remaining: {data.totalStarsEarned}"); */
         
         return true;
     }
@@ -222,7 +222,7 @@ public class JokerSystem : MonoBehaviour
                 
                 if (jokerRemainingGames[activeTaxJoker] == 0)
                 {
-                    Debug.Log($"[JokerSystem] {activeTaxJoker} has expired!");
+                    /* Debug.Log($"[JokerSystem] {activeTaxJoker} has expired!"); */
                     activeTaxJoker = JokerType.None;
                 }
             }
@@ -238,7 +238,7 @@ public class JokerSystem : MonoBehaviour
                 
                 if (jokerRemainingGames[activeRepairJoker] == 0)
                 {
-                    Debug.Log($"[JokerSystem] {activeRepairJoker} has expired!");
+                    /* Debug.Log($"[JokerSystem] {activeRepairJoker} has expired!"); */
                     activeRepairJoker = JokerType.None;
                 }
             }

@@ -89,7 +89,7 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
             }
         }
         
-        Debug.Log($"[AddStopTutorial] Auto-filled {stopPanels.Length} stop panels from children");
+        /* Debug.Log($"[AddStopTutorial] Auto-filled {stopPanels.Length} stop panels from children"); */
     }
     
     /// <summary>
@@ -121,7 +121,7 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
             }
         }
         
-        Debug.Log($"[AddStopTutorial] Initialized {stopPanels.Length} stop panels");
+        /* Debug.Log($"[AddStopTutorial] Initialized {stopPanels.Length} stop panels"); */
     }
     
     /// <summary>
@@ -131,7 +131,7 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
     {
         if (IsCompleted)
         {
-            Debug.Log("[AddStopTutorial] Tutorial already completed!");
+            /* Debug.Log("[AddStopTutorial] Tutorial already completed!"); */
             return;
         }
         
@@ -145,11 +145,11 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
         // currentStopIndex zaten artırıldı, bu yüzden bir sonraki kullanım maliyetini gösterir
         UpdateCostDisplay();
         
-        Debug.Log($"[AddStopTutorial] Activated stop {currentStopIndex}, Next cost: {GetCost()}");
+        /* Debug.Log($"[AddStopTutorial] Activated stop {currentStopIndex}, Next cost: {GetCost()}"); */
         
         if (IsCompleted)
         {
-            Debug.Log("[AddStopTutorial] Tutorial completed!");
+            /* Debug.Log("[AddStopTutorial] Tutorial completed!"); */
         }
     }
     
@@ -160,7 +160,7 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
     {
         if (index < 0 || index >= stopPanels.Length)
         {
-            Debug.LogWarning($"[AddStopTutorial] Invalid stop index: {index}");
+            /* Debug.LogWarning($"[AddStopTutorial] Invalid stop index: {index}"); */
             return;
         }
         
@@ -169,7 +169,7 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
         // İnaktif göstergeyi kapat, aktif göstergeyi aç
         panel.SetStopActive(true);
         
-        Debug.Log($"[AddStopTutorial] Stop {index + 1} activated");
+        /* Debug.Log($"[AddStopTutorial] Stop {index + 1} activated"); */
     }
     
     /// <summary>
@@ -200,7 +200,7 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
         InitializePanels();
         UpdateCostDisplay();
         
-        Debug.Log("[AddStopTutorial] Tutorial reset");
+        /* Debug.Log("[AddStopTutorial] Tutorial reset"); */
     }
     
     /// <summary>
@@ -219,7 +219,7 @@ public class AddStopTutorial : MonoBehaviour, IAbilityTutorial
             int baseCost = 100; // AbilityUsageTracker.BASE_COST
             int cost = baseCost * (int)Mathf.Pow(2, usageCount);
             
-            Debug.Log($"[AddStopTutorial] GetCost: currentStopIndex={currentStopIndex}, usageCount={usageCount}, cost={cost}");
+            /* Debug.Log($"[AddStopTutorial] GetCost: currentStopIndex={currentStopIndex}, usageCount={usageCount}, cost={cost}"); */
             
             return cost;
         }

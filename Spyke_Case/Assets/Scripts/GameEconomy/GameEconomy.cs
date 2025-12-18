@@ -44,7 +44,7 @@ public class GameEconomy : MonoBehaviour
     {
         tempCoins = 0;
         OnTempCoinsChanged?.Invoke(tempCoins);
-        Debug.Log("[GameEconomy] Temp coins reset to 0");
+        /* Debug.Log("[GameEconomy] Temp coins reset to 0"); */
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class GameEconomy : MonoBehaviour
 
         tempCoins += amount;
         OnTempCoinsChanged?.Invoke(tempCoins);
-        Debug.Log($"[GameEconomy] +{amount} temp coins. Total temp: {tempCoins}");
+        /* Debug.Log($"[GameEconomy] +{amount} temp coins. Total temp: {tempCoins}"); */
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class GameEconomy : MonoBehaviour
 
         tempCoins -= amount;
         OnTempCoinsChanged?.Invoke(tempCoins);
-        Debug.Log($"[GameEconomy] -{amount} temp coins. Total temp: {tempCoins}");
+        /* Debug.Log($"[GameEconomy] -{amount} temp coins. Total temp: {tempCoins}"); */
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class GameEconomy : MonoBehaviour
             if (success)
             {
                 OnMainCoinsChanged?.Invoke(MainCoins);
-                Debug.Log($"[GameEconomy] Spent {amount} main coins. Remaining: {MainCoins}");
+                /* Debug.Log($"[GameEconomy] Spent {amount} main coins. Remaining: {MainCoins}"); */
             }
             return success;
         }
@@ -103,7 +103,7 @@ public class GameEconomy : MonoBehaviour
         {
             ResourceManager.Instance.AddCoins(amount);
             OnMainCoinsChanged?.Invoke(MainCoins);
-            Debug.Log($"[GameEconomy] Added {amount} main coins. Total: {MainCoins}");
+            /* Debug.Log($"[GameEconomy] Added {amount} main coins. Total: {MainCoins}"); */
         }
     }
 
@@ -125,7 +125,7 @@ public class GameEconomy : MonoBehaviour
         {
             // Pozitif kazanÃ§: Main resource'a ekle
             AddMainCoins(netEarnings);
-            Debug.Log($"[GameEconomy] Added {netEarnings} coins to main resource. New balance: {MainCoins}");
+            /* Debug.Log($"[GameEconomy] Added {netEarnings} coins to main resource. New balance: {MainCoins}"); */
         }
         else if (netEarnings < 0)
         {
@@ -159,10 +159,10 @@ public class GameEconomy : MonoBehaviour
         else
         {
             // Net kazanÃ§ 0
-            Debug.Log("[GameEconomy] Net earnings are 0. No change to main resource.");
+            /* Debug.Log("[GameEconomy] Net earnings are 0. No change to main resource."); */
         }
 
-        Debug.Log($"[GameEconomy] Level completed. Net earnings: {netEarnings}. Final main balance: {MainCoins}");
+        /* Debug.Log($"[GameEconomy] Level completed. Net earnings: {netEarnings}. Final main balance: {MainCoins}"); */
         
         // Temp coins sÄ±fÄ±rla
         ResetTempCoins();

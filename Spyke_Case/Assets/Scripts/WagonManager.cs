@@ -88,7 +88,7 @@ public class WagonManager : MonoBehaviour
     public void ReportWagonFilled(MetroWagon wagon)
     {
         // TODO: Bir vagon dolduÄŸunda yapÄ±lacak oyun mantÄ±ÄŸÄ±nÄ± buraya ekle.
-        Debug.Log($"Wagon {wagon.name} is full!", wagon.gameObject);
+        /* Debug.Log($"Wagon {wagon.name} is full!", wagon.gameObject); */
     }
 
     // MetroManager tarafÄ±ndan istenir.

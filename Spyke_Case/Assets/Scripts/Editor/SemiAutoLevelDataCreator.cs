@@ -244,7 +244,7 @@ public class SemiAutoLevelDataCreator : EditorWindow
         
         colorDataList = colorDataList.OrderByDescending(c => c.passengerCount).ToList();
         
-        Debug.Log($"✅ {receivedPassengerData.Count} passenger analiz edildi, {colorDataList.Count} farklı renk bulundu.");
+        /* Debug.Log($"✅ {receivedPassengerData.Count} passenger analiz edildi, {colorDataList.Count} farklı renk bulundu."); */
     }
 
     private void CreateLevelSpawnData()
@@ -296,8 +296,8 @@ public class SemiAutoLevelDataCreator : EditorWindow
         EditorUtility.FocusProjectWindow();
         Selection.activeObject = levelData;
         
-        Debug.Log($"✅ LevelSpawnSO oluşturuldu: {path}");
-        Debug.Log($"📊 {receivedPassengerData.Count} passenger, {wagonSequence.Count} wagon");
+        /* Debug.Log($"✅ LevelSpawnSO oluşturuldu: {path}"); */
+        /* Debug.Log($"📊 {receivedPassengerData.Count} passenger, {wagonSequence.Count} wagon"); */
         
         EditorUtility.DisplayDialog("Başarılı!", $"LevelSpawnSO oluşturuldu!\n\n{path}\n\n{receivedPassengerData.Count} passenger\n{wagonSequence.Count} wagon", "Tamam");
     }

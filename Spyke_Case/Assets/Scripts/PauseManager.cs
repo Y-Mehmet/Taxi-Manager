@@ -64,7 +64,7 @@ public class PauseManager : MonoBehaviour
         // Show pause panel from ObjectPool
         ShowPausePanel();
         
-        Debug.Log("[PauseManager] Game Paused");
+        /* Debug.Log("[PauseManager] Game Paused"); */
     }
     
     public void ResumeGame()
@@ -97,7 +97,7 @@ public class PauseManager : MonoBehaviour
         // Hide pause panel
         HidePausePanel();
         
-        Debug.Log("[PauseManager] Game Resumed");
+        /* Debug.Log("[PauseManager] Game Resumed"); */
     }
     
     private void ShowPausePanel()

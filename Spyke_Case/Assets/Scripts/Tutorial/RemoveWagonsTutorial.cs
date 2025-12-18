@@ -80,7 +80,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
         // Don't start main loop here - AbilityTutorialButton will trigger it
         // via OnAbilityUsed() after typewriter completes
         
-        Debug.Log($"[RemoveWagonsTutorial] Started - Waiting for AbilityTutorialButton to trigger animations");
+        /* Debug.Log($"[RemoveWagonsTutorial] Started - Waiting for AbilityTutorialButton to trigger animations"); */
     }
     
     /// <summary>
@@ -122,13 +122,13 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
             // 7. Cost'u 2 katına çıkar ve güncelle
             currentCost *= 2;
             UpdateCostDisplay();
-            Debug.Log($"[RemoveWagonsTutorial] Cost doubled to: {currentCost}");
+            /* Debug.Log($"[RemoveWagonsTutorial] Cost doubled to: {currentCost}"); */
             
             // 8. Tekrar başlamadan önce kısa bekle
             yield return new WaitForSeconds(1f);
         }
         
-        Debug.Log("[RemoveWagonsTutorial] Loop stopped (skipped)");
+        /* Debug.Log("[RemoveWagonsTutorial] Loop stopped (skipped)"); */
     }
     
     /// <summary>
@@ -151,7 +151,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
             audioSource.PlayOneShot(buttonClickSound);
         }
         
-        Debug.Log("[RemoveWagonsTutorial] Hand clicked on ability button");
+        /* Debug.Log("[RemoveWagonsTutorial] Hand clicked on ability button"); */
     }
     
     /// <summary>
@@ -181,7 +181,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
         // Eli gizle
         handImage.SetActive(false);
         
-        Debug.Log("[RemoveWagonsTutorial] Hand clicked on parked car");
+        /* Debug.Log("[RemoveWagonsTutorial] Hand clicked on parked car"); */
     }
     
     /// <summary>
@@ -297,7 +297,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
             yield return null;
         }
         
-        Debug.Log("[RemoveWagonsTutorial] Pathfinding complete - Car parked!");
+        /* Debug.Log("[RemoveWagonsTutorial] Pathfinding complete - Car parked!"); */
     }
     
     /// <summary>
@@ -342,7 +342,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
         // Start main loop if not already started
         if (mainLoop == null)
         {
-            Debug.Log("[RemoveWagonsTutorial] OnAbilityUsed - Starting main loop");
+            /* Debug.Log("[RemoveWagonsTutorial] OnAbilityUsed - Starting main loop"); */
             StartMainLoop();
         }
     }
@@ -360,7 +360,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
             mainLoop = null;
         }
         
-        Debug.Log("[RemoveWagonsTutorial] Skipped");
+        /* Debug.Log("[RemoveWagonsTutorial] Skipped"); */
     }
     
     /// <summary>
@@ -385,7 +385,7 @@ public class RemoveWagonsTutorial : MonoBehaviour, IAbilityTutorial
         UpdateCostDisplay();
         StartMainLoop();
         
-        Debug.Log("[RemoveWagonsTutorial] Tutorial reset");
+        /* Debug.Log("[RemoveWagonsTutorial] Tutorial reset"); */
     }
     
     public int GetCost() => currentCost;

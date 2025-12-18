@@ -73,7 +73,7 @@ public class ResourceManager : MonoBehaviour
         
         OnCoinsChanged?.Invoke(CurrentCoins);
         
-        Debug.Log($"[ResourceManager] Loaded: CurrentLevel={CurrentLevel}, MaxOpenedLevel={MaxOpenedLevel}");
+        /* Debug.Log($"[ResourceManager] Loaded: CurrentLevel={CurrentLevel}, MaxOpenedLevel={MaxOpenedLevel}"); */
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class ResourceManager : MonoBehaviour
 
         CurrentCoins += amount;
         OnCoinsChanged?.Invoke(CurrentCoins);
-        Debug.Log($"{amount} coins added. Total coins: {CurrentCoins}");
+        /* Debug.Log($"{amount} coins added. Total coins: {CurrentCoins}"); */
     }
 
     public bool SpendCoins(int amount)
@@ -131,10 +131,10 @@ public class ResourceManager : MonoBehaviour
         if (CurrentLevel > MaxOpenedLevel)
         {
             MaxOpenedLevel = CurrentLevel;
-            Debug.Log($"[ResourceManager] New max opened level: {MaxOpenedLevel}");
+            /* Debug.Log($"[ResourceManager] New max opened level: {MaxOpenedLevel}"); */
         }
         
-        Debug.Log($"[ResourceManager] Level incremented to {CurrentLevel}");
+        /* Debug.Log($"[ResourceManager] Level incremented to {CurrentLevel}"); */
         
         if (GameDataManager.Instance != null)
         {
@@ -162,14 +162,14 @@ public class ResourceManager : MonoBehaviour
         {
             int starDifference = stars - previousStars;
             LevelStars[levelIndex] = stars;
-            Debug.Log($"[ResourceManager] Level {levelIndex} stars improved: {previousStars} -> {stars} (+{starDifference})");
+            /* Debug.Log($"[ResourceManager] Level {levelIndex} stars improved: {previousStars} -> {stars} (+{starDifference})"); */
             
             // totalStarsEarned'e sadece FARKI ekle (tÃ¼m toplamÄ± yeniden hesaplama!)
             if (GameDataManager.Instance != null && GameDataManager.Instance.GetSaveData() != null)
             {
                 var data = GameDataManager.Instance.GetSaveData();
                 data.totalStarsEarned += starDifference;
-                Debug.Log($"[ResourceManager] totalStarsEarned updated: +{starDifference} = {data.totalStarsEarned}");
+                /* Debug.Log($"[ResourceManager] totalStarsEarned updated: +{starDifference} = {data.totalStarsEarned}"); */
                 
                 // Event'i tetikle
                 if (JokerSystem.Instance != null)
@@ -182,11 +182,11 @@ public class ResourceManager : MonoBehaviour
         }
         else if (stars == previousStars)
         {
-            Debug.Log($"[ResourceManager] Level {levelIndex} completed with same stars: {stars}");
+            /* Debug.Log($"[ResourceManager] Level {levelIndex} completed with same stars: {stars}"); */
         }
         else
         {
-            Debug.Log($"[ResourceManager] Level {levelIndex} completed with lower stars ({stars}), keeping previous best: {previousStars}");
+            /* Debug.Log($"[ResourceManager] Level {levelIndex} completed with lower stars ({stars}), keeping previous best: {previousStars}"); */
         }
     }
 }

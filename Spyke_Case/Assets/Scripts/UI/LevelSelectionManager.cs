@@ -73,11 +73,11 @@ public class LevelSelectionManager : MonoBehaviour
             int maxLevel = ResourceManager.Instance.MaxOpenedLevel;
             int currentLevel = ResourceManager.Instance.CurrentLevel;
             
-            Debug.Log($"[LevelSelectionManager] INIT - MaxOpenedLevel: {maxLevel}, CurrentLevel: {currentLevel}");
+            /* Debug.Log($"[LevelSelectionManager] INIT - MaxOpenedLevel: {maxLevel}, CurrentLevel: {currentLevel}"); */
             
             // Always select the max opened level when entering main menu
             selectedLevelIndex = maxLevel;
-            Debug.Log($"[LevelSelectionManager] Selected level set to: {selectedLevelIndex}");
+            /* Debug.Log($"[LevelSelectionManager] Selected level set to: {selectedLevelIndex}"); */
             
             // Notify listeners (this will trigger wheel rotation and play button update)
             OnLevelSelected?.Invoke(selectedLevelIndex);
@@ -96,7 +96,7 @@ public class LevelSelectionManager : MonoBehaviour
     public void SelectLevel(int levelIndex)
     {
         selectedLevelIndex = levelIndex;
-        Debug.Log($"[LevelSelectionManager] Level {levelIndex} selected");
+        /* Debug.Log($"[LevelSelectionManager] Level {levelIndex} selected"); */
         
         // Notify all listeners (PlayButton will update its text)
         OnLevelSelected?.Invoke(selectedLevelIndex);
@@ -110,7 +110,7 @@ public class LevelSelectionManager : MonoBehaviour
         if (ResourceManager.Instance != null)
         {
             ResourceManager.Instance.CurrentLevel = selectedLevelIndex;
-            Debug.Log($"[LevelSelectionManager] Playing level {selectedLevelIndex}");
+            /* Debug.Log($"[LevelSelectionManager] Playing level {selectedLevelIndex}"); */
         }
 
         if (SceneManager.Instance != null)

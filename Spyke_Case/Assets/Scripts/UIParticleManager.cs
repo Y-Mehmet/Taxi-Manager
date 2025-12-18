@@ -39,7 +39,7 @@ public class UIParticleManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[UIParticleManager] Initializing pool with size: {initialPoolSize}");
+        /* Debug.Log($"[UIParticleManager] Initializing pool with size: {initialPoolSize}"); */
         for (int i = 0; i < initialPoolSize; i++)
         {
             CreateNewParticleForPool();

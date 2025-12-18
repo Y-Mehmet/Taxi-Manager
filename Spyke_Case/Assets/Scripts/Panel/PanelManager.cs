@@ -45,7 +45,7 @@ public class PanelManager : Singleton<PanelManager>
 
         if (isActive)
         {
-            Debug.Log("panel allredy active "+ panelID.ToString());
+            /* Debug.Log("panel allredy active "+ panelID.ToString()); */
         }else
         {
             // Convert enum to string to get panel

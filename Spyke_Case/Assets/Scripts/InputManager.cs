@@ -90,7 +90,7 @@ public class InputManager : MonoBehaviour
             if (TutorialManager.Instance != null && TutorialManager.Instance.IsInputBlocked())
             {
                 // Tutorial kendi event'lerini yÃ¶netecek, burada normal input'u engelle
-                Debug.Log("[InputManager] Input blocked by tutorial.");
+                /* Debug.Log("[InputManager] Input blocked by tutorial."); */
                 // Ancak raycast'i yine de yap ki tutorial event'i tetiklenebilsin
             }
 
@@ -101,7 +101,7 @@ public class InputManager : MonoBehaviour
                 PassengerGroup tappedGroup = hit.transform.GetComponent<PassengerGroup>();
                 if (tappedGroup != null)
                 {
-                    Debug.Log($"[InputManager] Tapped on {tappedGroup.name}");
+                    /* Debug.Log($"[InputManager] Tapped on {tappedGroup.name}"); */
                     OnPassengerGroupTapped?.Invoke(tappedGroup);
                 }
             }
@@ -149,13 +149,13 @@ public class InputManager : MonoBehaviour
 
     public void DisableInput()
     {
-        Debug.Log("[InputManager] Input has been disabled.");
+        /* Debug.Log("[InputManager] Input has been disabled."); */
         isInputDisabled = true;
     }
 
     public void EnableInput()
     {
-        Debug.Log("[InputManager] Input has been enabled.");
+        /* Debug.Log("[InputManager] Input has been enabled."); */
         isInputDisabled = false;
     }
 

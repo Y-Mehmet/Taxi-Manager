@@ -29,7 +29,7 @@ public class LevelSpawner : MonoBehaviour
             // But level files are named Level_1, Level_2, Level_3...
             // So we add 1 to convert from 0-based to 1-based
             currentLevel = ResourceManager.Instance.CurrentLevel + 1;
-            Debug.Log($"[LevelSpawner] ResourceManager.CurrentLevel = {ResourceManager.Instance.CurrentLevel}, Loading Level_{currentLevel}");
+            /* Debug.Log($"[LevelSpawner] ResourceManager.CurrentLevel = {ResourceManager.Instance.CurrentLevel}, Loading Level_{currentLevel}"); */
         }
         else
         {
@@ -54,7 +54,7 @@ public class LevelSpawner : MonoBehaviour
             }
         }
         
-        Debug.Log($"[LevelSpawner] Successfully loaded: {levelPath}");
+        /* Debug.Log($"[LevelSpawner] Successfully loaded: {levelPath}"); */
         // --- END LEVEL LOADING ---
     }
 
@@ -80,6 +80,6 @@ public class LevelSpawner : MonoBehaviour
             }
         }
 
-        Debug.Log($"'{levelToSpawn.name}' iÃ§in spawn sÃ¼reci baÅŸladÄ±.");
+        /* Debug.Log($"'{levelToSpawn.name}' iÃ§in spawn sÃ¼reci baÅŸladÄ±."); */
     }
 }

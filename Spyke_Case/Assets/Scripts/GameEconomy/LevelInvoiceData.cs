@@ -98,7 +98,7 @@ public class LevelInvoiceData
     public void OnPassengerCompleted()
     {
         completedPassengers++;
-        Debug.Log($"[Invoice] Passenger completed. Total: {completedPassengers}");
+        /* Debug.Log($"[Invoice] Passenger completed. Total: {completedPassengers}"); */
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class LevelInvoiceData
     public void OnCrashOccurred()
     {
         crashCount++;
-        Debug.Log($"[Invoice] Crash occurred. Total crashes: {crashCount}");
+        /* Debug.Log($"[Invoice] Crash occurred. Total crashes: {crashCount}"); */
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class LevelInvoiceData
     public void OnUberPickup()
     {
         uberPickupCount++;
-        Debug.Log($"[Invoice] Uber pickup. Total pickups: {uberPickupCount}");
+        /* Debug.Log($"[Invoice] Uber pickup. Total pickups: {uberPickupCount}"); */
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public class LevelInvoiceData
     public void OnBoosterUsed(int cost)
     {
         boosterCost += cost;
-        Debug.Log($"[Invoice] Booster used. Cost: {cost}, Total booster cost: {boosterCost}");
+        /* Debug.Log($"[Invoice] Booster used. Cost: {cost}, Total booster cost: {boosterCost}"); */
     }
 
     /// <summary>
@@ -133,37 +133,51 @@ public class LevelInvoiceData
     /// </summary>
     public void PrintInvoice()
     {
-        Debug.Log("========== LEVEL INVOICE ==========");
-        Debug.Log($"<color=green>INCOME:</color>");
-        Debug.Log($"  Passenger Income: {completedPassengers} x 20 = +{passengerEarnings} coins");
+        /* Debug.Log("========== LEVEL INVOICE =========="); */
+        /* Debug.Log($"<color=green>INCOME:</color>"); */
+        /* Debug.Log($"  Passenger Income: {completedPassengers} x 20 = +{passengerEarnings} coins"); */
         
-        Debug.Log($"<color=red>EXPENSES:</color>");
+        /* Debug.Log($"<color=red>EXPENSES:</color>"); */
         if (crashCount > 0)
         {
             int basePenalty = crashCount * 500;
             if (crashPenalty == 0)
-                Debug.Log($"  Crash Penalty: {crashCount} x 500 = -{basePenalty} coins (COVERED BY INSURANCE)");
+            {
+                /* Debug.Log($"  Crash Penalty: {crashCount} x 500 = -{basePenalty} coins (COVERED BY INSURANCE)"); */
+            }
             else if (crashPenalty == 100 * crashCount)
-                Debug.Log($"  Crash Penalty: {crashCount} x 100 = -{crashPenalty} coins (OWN REPAIR STATION)");
+            {
+                /* Debug.Log($"  Crash Penalty: {crashCount} x 100 = -{crashPenalty} coins (OWN REPAIR STATION)"); */
+            }
             else
-                Debug.Log($"  Crash Penalty: {crashCount} x 500 = -{crashPenalty} coins");
+            {
+                /* Debug.Log($"  Crash Penalty: {crashCount} x 500 = -{crashPenalty} coins"); */
+            }
         }
         if (uberPickupCount > 0)
-            Debug.Log($"  Uber Penalty: {uberPickupCount} x 100 = -{uberPenalty} coins");
+        {
+            /* Debug.Log($"  Uber Penalty: {uberPickupCount} x 100 = -{uberPenalty} coins"); */
+        }
         if (boosterCost > 0)
-            Debug.Log($"  Booster Cost: -{boosterCost} coins");
+        {
+            /* Debug.Log($"  Booster Cost: -{boosterCost} coins"); */
+        }
         
         // Ara toplam
         int subtotal = passengerEarnings - crashPenalty - uberPenalty - boosterCost;
-        Debug.Log($"<color=yellow>SUBTOTAL (before tax): {subtotal} coins</color>");
+        /* Debug.Log($"<color=yellow>SUBTOTAL (before tax): {subtotal} coins</color>"); */
         
         // Vergi
         if (taxAmount > 0)
-            Debug.Log($"  Tax ({taxRate * 100}%): -{taxAmount} coins");
+        {
+            /* Debug.Log($"  Tax ({taxRate * 100}%): -{taxAmount} coins"); */
+        }
         else
-            Debug.Log($"  Tax: 0 coins (Tax Joker Active or No Profit)");
+        {
+            /* Debug.Log($"  Tax: 0 coins (Tax Joker Active or No Profit)"); */
+        }
         
-        Debug.Log($"<color=yellow>NET EARNINGS: {CalculateNetEarnings()} coins</color>");
-        Debug.Log("===================================");
+        /* Debug.Log($"<color=yellow>NET EARNINGS: {CalculateNetEarnings()} coins</color>"); */
+        /* Debug.Log("==================================="); */
     }
 }

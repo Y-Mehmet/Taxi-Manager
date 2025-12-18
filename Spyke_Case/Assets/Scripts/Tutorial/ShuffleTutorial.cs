@@ -60,7 +60,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
         // Don't start main loop here - AbilityTutorialButton will trigger it
         // via OnAbilityUsed() after typewriter completes
         
-        Debug.Log($"[ShuffleTutorial] Started - Waiting for AbilityTutorialButton to trigger animations");
+        /* Debug.Log($"[ShuffleTutorial] Started - Waiting for AbilityTutorialButton to trigger animations"); */
     }
     
     /// <summary>
@@ -89,12 +89,12 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
             }
             else
             {
-                Debug.LogWarning($"[ShuffleTutorial] Child {i} ({child.name}) has no Image component!");
+                /* Debug.LogWarning($"[ShuffleTutorial] Child {i} ({child.name}) has no Image component!"); */
             }
         }
         
         wagonImages = imageList.ToArray();
-        Debug.Log($"[ShuffleTutorial] Collected {wagonImages.Length} wagon images from container");
+        /* Debug.Log($"[ShuffleTutorial] Collected {wagonImages.Length} wagon images from container"); */
     }
     
     /// <summary>
@@ -108,12 +108,12 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
             return;
         }
         
-        Debug.Log($"[ShuffleTutorial] Wagon images count: {wagonImages.Length}");
+        /* Debug.Log($"[ShuffleTutorial] Wagon images count: {wagonImages.Length}"); */
         
         // If initialColors is not set, generate random colors
         if (initialColors == null || initialColors.Length != wagonImages.Length)
         {
-            Debug.LogWarning($"[ShuffleTutorial] Initial colors length ({initialColors?.Length ?? 0}) doesn't match wagon images ({wagonImages.Length}), using random colors");
+            /* Debug.LogWarning($"[ShuffleTutorial] Initial colors length ({initialColors?.Length ?? 0}) doesn't match wagon images ({wagonImages.Length}), using random colors"); */
             initialColors = new Color[wagonImages.Length];
             Color[] availableColors = { Color.red, Color.blue, Color.yellow, Color.black };
             
@@ -127,7 +127,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
         currentColors = new List<Color>(initialColors);
         ApplyColors(currentColors);
         
-        Debug.Log($"[ShuffleTutorial] Initialized {wagonImages.Length} wagons with colors");
+        /* Debug.Log($"[ShuffleTutorial] Initialized {wagonImages.Length} wagons with colors"); */
     }
     
     /// <summary>
@@ -135,18 +135,18 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
     /// </summary>
     private void ApplyColors(List<Color> colors)
     {
-        Debug.Log($"[ShuffleTutorial] Applying {colors.Count} colors to {wagonImages.Length} images");
+        /* Debug.Log($"[ShuffleTutorial] Applying {colors.Count} colors to {wagonImages.Length} images"); */
         
         for (int i = 0; i < wagonImages.Length && i < colors.Count; i++)
         {
             if (wagonImages[i] != null)
             {
                 wagonImages[i].color = colors[i];
-                Debug.Log($"[ShuffleTutorial] Image {i}: {colors[i]}");
+                /* Debug.Log($"[ShuffleTutorial] Image {i}: {colors[i]}"); */
             }
             else
             {
-                Debug.LogWarning($"[ShuffleTutorial] Image {i} is NULL!");
+                /* Debug.LogWarning($"[ShuffleTutorial] Image {i} is NULL!"); */
             }
         }
     }
@@ -160,7 +160,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
         // Start main loop if not already started
         if (mainLoop == null)
         {
-            Debug.Log("[ShuffleTutorial] OnAbilityUsed - Starting main loop");
+            /* Debug.Log("[ShuffleTutorial] OnAbilityUsed - Starting main loop"); */
             StartMainLoop();
         }
     }
@@ -195,7 +195,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
             yield return new WaitForSeconds(0.5f);
         }
         
-        Debug.Log("[ShuffleTutorial] Loop stopped (skipped)");
+        /* Debug.Log("[ShuffleTutorial] Loop stopped (skipped)"); */
     }
     
     /// <summary>
@@ -209,7 +209,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
             yield break;
         }
         
-        Debug.Log("[ShuffleTutorial] Playing hand animation");
+        /* Debug.Log("[ShuffleTutorial] Playing hand animation"); */
         
         // Show hand at button position
         handImage.SetActive(true);
@@ -227,7 +227,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
     /// </summary>
     private IEnumerator ShuffleAnimation()
     {
-        Debug.Log("[ShuffleTutorial] Starting shuffle animation");
+        /* Debug.Log("[ShuffleTutorial] Starting shuffle animation"); */
         
         // 1. Önce hepsini gri yap
         for (int i = 0; i < wagonImages.Length; i++)
@@ -328,9 +328,9 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
         // 4. Cost'u 2 katına çıkar ve güncelle
         currentCost *= 2;
         UpdateCostDisplay();
-        Debug.Log($"[ShuffleTutorial] Cost doubled to: {currentCost}");
+        /* Debug.Log($"[ShuffleTutorial] Cost doubled to: {currentCost}"); */
         
-        Debug.Log("[ShuffleTutorial] Shuffle animation complete");
+        /* Debug.Log("[ShuffleTutorial] Shuffle animation complete"); */
     }
     
     /// <summary>
@@ -392,7 +392,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
             handImage.SetActive(false);
         }
         
-        Debug.Log("[ShuffleTutorial] Skipped");
+        /* Debug.Log("[ShuffleTutorial] Skipped"); */
     }
     
     /// <summary>
@@ -415,7 +415,7 @@ public class ShuffleTutorial : MonoBehaviour, IAbilityTutorial
             handImage.SetActive(false);
         }
         
-        Debug.Log("[ShuffleTutorial] Reset");
+        /* Debug.Log("[ShuffleTutorial] Reset"); */
     }
     
     /// <summary>

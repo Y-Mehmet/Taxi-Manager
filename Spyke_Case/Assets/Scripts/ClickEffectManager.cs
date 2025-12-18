@@ -43,7 +43,7 @@ public class ClickEffectManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[ClickEffectManager] Initializing pool with size: {initialPoolSize}");
+        /* Debug.Log($"[ClickEffectManager] Initializing pool with size: {initialPoolSize}"); */
         for (int i = 0; i < initialPoolSize; i++)
         {
             CreateNewEffectForPool();

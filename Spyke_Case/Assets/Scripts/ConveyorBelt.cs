@@ -25,7 +25,7 @@ public class ConveyorBelt : MonoBehaviour
     public void SetRespawnX(float x)
     {
         respawnX = x;
-        Debug.Log($"[ConveyorBelt] Respawn X coordinate set to: {respawnX}");
+        /* Debug.Log($"[ConveyorBelt] Respawn X coordinate set to: {respawnX}"); */
     }
 
     private bool isPaused = false;
@@ -33,13 +33,13 @@ public class ConveyorBelt : MonoBehaviour
     public void Pause()
     {
         isPaused = true;
-        Debug.Log("[ConveyorBelt] Paused");
+        /* Debug.Log("[ConveyorBelt] Paused"); */
     }
 
     public void Resume()
     {
         isPaused = false;
-        Debug.Log("[ConveyorBelt] Resumed");
+        /* Debug.Log("[ConveyorBelt] Resumed"); */
     }
 
 

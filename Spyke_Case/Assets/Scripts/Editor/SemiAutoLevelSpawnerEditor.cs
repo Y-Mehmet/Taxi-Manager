@@ -265,7 +265,7 @@ public class SemiAutoLevelSpawnerEditor : EditorWindow
         List<HyperCasualColor> wagonSequence = CalculateWagonSequence();
         PlaceWagonsOnPath(wagonSequence);
 
-        Debug.Log($"<color=cyan>[SemiAutoLevelSpawner]</color> {wagonSequence.Count} wagon başarıyla spawn edildi!");
+        /* Debug.Log($"<color=cyan>[SemiAutoLevelSpawner]</color> {wagonSequence.Count} wagon başarıyla spawn edildi!"); */
         PrintSummary(wagonSequence);
     }
 
@@ -293,7 +293,7 @@ public class SemiAutoLevelSpawnerEditor : EditorWindow
             DestroyImmediate(wagonContainer.GetChild(i).gameObject);
         }
 
-        Debug.Log("[SemiAutoLevelSpawner] Mevcut vagonlar temizlendi.");
+        /* Debug.Log("[SemiAutoLevelSpawner] Mevcut vagonlar temizlendi."); */
     }
 
     private List<HyperCasualColor> CalculateWagonSequence()
@@ -446,39 +446,39 @@ public class SemiAutoLevelSpawnerEditor : EditorWindow
 
     private void PrintSummary(List<HyperCasualColor> wagonSequence)
     {
-        Debug.Log("═══════════════════════════════════════════");
-        Debug.Log("<color=cyan><b>WAGON DISTRIBUTION SUMMARY</b></color>");
-        Debug.Log("═══════════════════════════════════════════");
+        /* Debug.Log("═══════════════════════════════════════════"); */
+        /* Debug.Log("<color=cyan><b>WAGON DISTRIBUTION SUMMARY</b></color>"); */
+        /* Debug.Log("═══════════════════════════════════════════"); */
 
         var first20 = wagonSequence.Take(challengeWagonCount).ToList();
         var colorGroups = first20.GroupBy(c => c).OrderByDescending(g => g.Count());
 
-        Debug.Log($"<color=yellow>İLK {challengeWagonCount} WAGON:</color>");
+        /* Debug.Log($"<color=yellow>İLK {challengeWagonCount} WAGON:</color>"); */
         foreach (var group in colorGroups)
         {
             var data = passengerData.Find(p => p.color == group.Key);
             string tag = data != null && data.isChallenge ? "<color=red>[CHALLENGE]</color>" : "";
-            Debug.Log($"  {tag} {group.Key}: {group.Count()} wagon");
+            /* Debug.Log($"  {tag} {group.Key}: {group.Count()} wagon"); */
         }
 
-        Debug.Log("───────────────────────────────────────────");
+        /* Debug.Log("───────────────────────────────────────────"); */
 
         var allColorGroups = wagonSequence.GroupBy(c => c).OrderByDescending(g => g.Count());
-        Debug.Log($"<color=yellow>TOPLAM {wagonSequence.Count} WAGON:</color>");
+        /* Debug.Log($"<color=yellow>TOPLAM {wagonSequence.Count} WAGON:</color>"); */
         foreach (var group in allColorGroups)
         {
             var data = passengerData.Find(p => p.color == group.Key);
             int passengerCount = data != null ? data.count : 0;
-            Debug.Log($"  {group.Key}: {group.Count()} wagon ({passengerCount} yolcu)");
+            /* Debug.Log($"  {group.Key}: {group.Count()} wagon ({passengerCount} yolcu)"); */
         }
 
-        Debug.Log("───────────────────────────────────────────");
+        /* Debug.Log("───────────────────────────────────────────"); */
 
         string sequencePreview = string.Join("-", wagonSequence.Take(30).Select(c => c.ToString().Substring(0, 1)));
-        Debug.Log($"<color=yellow>İLK 30 WAGON SIRASI:</color>");
-        Debug.Log($"  {sequencePreview}...");
+        /* Debug.Log($"<color=yellow>İLK 30 WAGON SIRASI:</color>"); */
+        /* Debug.Log($"  {sequencePreview}..."); */
 
-        Debug.Log("═══════════════════════════════════════════");
+        /* Debug.Log("═══════════════════════════════════════════"); */
     }
 
     private Color GetColorForEnum(HyperCasualColor color)

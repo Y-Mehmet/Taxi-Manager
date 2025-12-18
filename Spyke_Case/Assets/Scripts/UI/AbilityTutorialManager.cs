@@ -35,7 +35,7 @@ public class AbilityTutorialManager : MonoBehaviour
         {
             string tutorialType = GameDataManager.Instance.GetSaveData().currentAbilityTutorial;
             
-            Debug.Log($"[AbilityTutorialManager] Current tutorial type from SaveData: {tutorialType}");
+            /* Debug.Log($"[AbilityTutorialManager] Current tutorial type from SaveData: {tutorialType}"); */
             
             // Spawn appropriate panel based on tutorial type
             SpawnTutorialPanel(tutorialType);
@@ -64,25 +64,25 @@ public class AbilityTutorialManager : MonoBehaviour
             case "AddStop":
                 prefabToSpawn = addStopTutorialPrefab;
                 currentAbilityType = AbilityType.AddNewStop;
-                Debug.Log("[AbilityTutorialManager] Spawning Add Stop Tutorial");
+                /* Debug.Log("[AbilityTutorialManager] Spawning Add Stop Tutorial"); */
                 break;
                 
             case "UniversalPathfinding":
                 prefabToSpawn = universalPathfindingTutorialPrefab;
                 currentAbilityType = AbilityType.UniversalPathfinding;
-                Debug.Log("[AbilityTutorialManager] Spawning Universal Pathfinding Tutorial");
+                /* Debug.Log("[AbilityTutorialManager] Spawning Universal Pathfinding Tutorial"); */
                 break;
                 
             case "Flasher":
                 prefabToSpawn = flasherTutorialPrefab;
                 currentAbilityType = AbilityType.RemoveWagons;
-                Debug.Log("[AbilityTutorialManager] Spawning Flasher Tutorial");
+                /* Debug.Log("[AbilityTutorialManager] Spawning Flasher Tutorial"); */
                 break;
                 
             case "Shuffle":
                 prefabToSpawn = shuffleTutorialPrefab;
                 currentAbilityType = AbilityType.ShuffleWagonColors;
-                Debug.Log("[AbilityTutorialManager] Spawning Shuffle Tutorial");
+                /* Debug.Log("[AbilityTutorialManager] Spawning Shuffle Tutorial"); */
                 break;
                 
             default:
@@ -106,7 +106,7 @@ public class AbilityTutorialManager : MonoBehaviour
                 rectTransform.localScale = Vector3.one;
             }
             
-            Debug.Log($"[AbilityTutorialManager] Spawned panel: {spawnedPanel.name}");
+            /* Debug.Log($"[AbilityTutorialManager] Spawned panel: {spawnedPanel.name}"); */
             
             // Find and connect AbilityTutorialButton to this manager
             ConnectTutorialButton();
@@ -134,11 +134,11 @@ public class AbilityTutorialManager : MonoBehaviour
             // Set manager reference and UI components
             tutorialButton.SetTutorialManager(this);
             tutorialButton.SetUIComponents(selectionText, typewriterEffect);
-            Debug.Log("[AbilityTutorialManager] Connected tutorial button to manager and set UI components");
+            /* Debug.Log("[AbilityTutorialManager] Connected tutorial button to manager and set UI components"); */
         }
         else
         {
-            Debug.LogWarning("[AbilityTutorialManager] No AbilityTutorialButton found in spawned panel!");
+            /* Debug.LogWarning("[AbilityTutorialManager] No AbilityTutorialButton found in spawned panel!"); */
         }
     }
     
@@ -150,7 +150,7 @@ public class AbilityTutorialManager : MonoBehaviour
     /// </summary>
     private void OnContinueButtonClicked()
     {
-        Debug.Log("[AbilityTutorialManager] Continue button clicked");
+        /* Debug.Log("[AbilityTutorialManager] Continue button clicked"); */
         CompleteTutorialAndLoadLevel();
     }
     
@@ -184,7 +184,7 @@ public class AbilityTutorialManager : MonoBehaviour
             saveData.currentAbilityTutorial = "";
             
             GameDataManager.Instance.SaveGame();
-            Debug.Log($"[AbilityTutorialManager] Saved {currentAbilityType} tutorial as seen");
+            /* Debug.Log($"[AbilityTutorialManager] Saved {currentAbilityType} tutorial as seen"); */
         }
         
         // Load level scene
@@ -196,7 +196,7 @@ public class AbilityTutorialManager : MonoBehaviour
     /// </summary>
     private void LoadLevel()
     {
-        Debug.Log("[AbilityTutorialManager] Loading AllLevel scene (build index 1)");
+        /* Debug.Log("[AbilityTutorialManager] Loading AllLevel scene (build index 1)"); */
         // Directly load AllLevel scene (build index 1)
         UnityEngine.SceneManagement.SceneManager.LoadScene(2); // Go back to AllLevel
     }

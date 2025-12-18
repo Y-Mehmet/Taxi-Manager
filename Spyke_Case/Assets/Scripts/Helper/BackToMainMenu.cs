@@ -29,7 +29,7 @@ public class BackToMainMenu : MonoBehaviour
             if (boosterCost > 0 && GameEconomy.Instance != null)
             {
                 GameEconomy.Instance.AddMainCoins(boosterCost);
-                Debug.Log($"[BackToMainMenu] Refunded {boosterCost} coins for booster usage (Back to Main Menu).");
+                /* Debug.Log($"[BackToMainMenu] Refunded {boosterCost} coins for booster usage (Back to Main Menu)."); */
             }
         }
         

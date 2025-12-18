@@ -115,7 +115,7 @@ public class SettingManager : MonoBehaviour
                 SoundManager.instance.SetBgmVolume(MusicVolume);
             }
 
-            Debug.Log($"[SettingManager] Settings loaded: SFX={SoundFxVolume}, Music={MusicVolume}, PushAlarm={IsPushAlarmEnabled}");
+            /* Debug.Log($"[SettingManager] Settings loaded: SFX={SoundFxVolume}, Music={MusicVolume}, PushAlarm={IsPushAlarmEnabled}"); */
         }
     }
 
@@ -141,7 +141,7 @@ public class SettingManager : MonoBehaviour
                 ResourceManager.Instance.musicVolume = MusicVolume;
             }
 
-            Debug.Log($"[SettingManager] Settings saved: SFX={SoundFxVolume}, Music={MusicVolume}, PushAlarm={IsPushAlarmEnabled}");
+            /* Debug.Log($"[SettingManager] Settings saved: SFX={SoundFxVolume}, Music={MusicVolume}, PushAlarm={IsPushAlarmEnabled}"); */
         }
     }
 
@@ -181,7 +181,7 @@ public class SettingManager : MonoBehaviour
         }
 
         // TODO: Enable/disable push notifications in your notification system
-        Debug.Log($"[SettingManager] Push notifications {(IsPushAlarmEnabled ? "enabled" : "disabled")}");
+        /* Debug.Log($"[SettingManager] Push notifications {(IsPushAlarmEnabled ? "enabled" : "disabled")}"); */
 
         SaveSettings();
     }

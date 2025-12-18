@@ -51,7 +51,7 @@ public class GameDataManager : MonoBehaviour
 
         if (saveData == null)
         {
-            Debug.Log("No save data found, creating new game data.");
+            /* Debug.Log("No save data found, creating new game data."); */
             saveData = new SaveGameData();
         }
 

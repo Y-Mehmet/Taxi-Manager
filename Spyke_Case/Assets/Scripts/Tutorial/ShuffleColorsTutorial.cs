@@ -66,7 +66,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
             }
         }
         
-        Debug.Log($"[ShuffleColorsTutorial] Auto-filled {childCount} color panels from children");
+        /* Debug.Log($"[ShuffleColorsTutorial] Auto-filled {childCount} color panels from children"); */
     }
     
     /// <summary>
@@ -88,7 +88,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
             }
         }
         
-        Debug.Log("[ShuffleColorsTutorial] Initialized color panels");
+        /* Debug.Log("[ShuffleColorsTutorial] Initialized color panels"); */
     }
     
     /// <summary>
@@ -105,7 +105,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
         // UI'ı güncelle
         UpdateCostDisplay();
         
-        Debug.Log($"[ShuffleColorsTutorial] Colors shuffled, Next cost: {currentCost}");
+        /* Debug.Log($"[ShuffleColorsTutorial] Colors shuffled, Next cost: {currentCost}"); */
     }
     
     /// <summary>
@@ -131,7 +131,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
             colorPanels[colorPanels.Length - 1].color = temp;
         }
         
-        Debug.Log("[ShuffleColorsTutorial] Colors shuffled");
+        /* Debug.Log("[ShuffleColorsTutorial] Colors shuffled"); */
     }
     
     /// <summary>
@@ -154,7 +154,7 @@ public class ShuffleColorsTutorial : MonoBehaviour, IAbilityTutorial
         InitializePanels();
         UpdateCostDisplay();
         
-        Debug.Log("[ShuffleColorsTutorial] Tutorial reset");
+        /* Debug.Log("[ShuffleColorsTutorial] Tutorial reset"); */
     }
     
     /// <summary>
